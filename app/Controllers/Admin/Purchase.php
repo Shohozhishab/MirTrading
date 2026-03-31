@@ -1018,7 +1018,7 @@ class Purchase extends BaseController
 
                 //insetr purchase Item in purchase item table
                 $purchasePrice = get_data_by_id('purchase_price', 'products', 'prod_id', $prodId);
-                $quantity = get_data_by_id('quantity', 'products', 'prod_id', $prodId);
+                $quantity = $this->request->getPost('quantity[]')[$i];
 
                 $total_price = $quantity * $purchasePrice;
 
@@ -1534,17 +1534,25 @@ class Purchase extends BaseController
             //purchase pay bank amount calculate to suppliers balance and update suppliers balance or create supplier ledger in ledger_suppliers table (end)
         }
 
-
+        $storeTab = DB()->table('stores');
+        $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
+        $storeId = $store->store_id;
 
         $number = count($prod_id);
         for ($i = 0; $i < $number; $i++) {
             //insert purchase product
             $data = array(
-                'quantity' => $qty[$i],
                 'purchase_price' => $price[$i],
             );
             $proTable = DB()->table('products');
             $proTable->where('prod_id',$prod_id[$i])->update($data);
+
+            $dataQty = array(
+                'quantity' => $qty[$i],
+            );
+            $stockRelationTable = DB()->table('product_stock_relation');
+            $stockRelationTable->where('store_id',$storeId)->where('product_id',$prod_id[$i])->update($dataQty);
+
 
             //insetr purchase Item in purchase item table
             $purchaseData = array(

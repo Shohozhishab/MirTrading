@@ -106,9 +106,27 @@ class Sales extends BaseController
 
         $keyWord = $this->request->getPost("keyWord");
 
+        $storeTab = DB()->table('stores');
+        $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
+
+
+
         $proTable = DB()->table('products');
-        $whereLike = "(`name` LIKE '%{$keyWord}%' ESCAPE '!' OR  `prod_id` LIKE '%{$keyWord}%' ESCAPE '!')";
-        $data = $proTable->where("sch_id", $shopId)->where("quantity >", 0)->where($whereLike)->get()->getResult();
+//        $whereLike = "(`name` LIKE '%{$keyWord}%' ESCAPE '!' OR  `prod_id` LIKE '%{$keyWord}%' ESCAPE '!')";
+//        $data = $proTable->where("sch_id", $shopId)->where("quantity >", 0)->where($whereLike)->get()->getResult();
+
+        $data = $proTable
+            ->select('products.*')
+            ->join('product_stock_relation', 'product_stock_relation.product_id = products.prod_id')
+            ->where('products.sch_id', $shopId)
+            ->where('product_stock_relation.store_id', $store->store_id)
+            ->where('product_stock_relation.quantity >', 0)
+            ->groupStart()
+            ->like('products.name', $keyWord)
+            ->orLike('products.prod_id', $keyWord)
+            ->groupEnd()
+            ->get()
+            ->getResult();
 
 
         $view = '';
@@ -143,14 +161,19 @@ class Sales extends BaseController
      */
     public function add_cart()
     {
+        $shopId = $this->session->shopId;
 
         $proId = $this->request->getPost('prod_id');
         $proName = $this->request->getPost('name');
         $proPrice = $this->request->getPost('price');
         $quantity = $this->request->getPost('quantity');
 
-        $productQnt = get_data_by_id('quantity', 'products', 'prod_id', $proId);
+        $storeTab = DB()->table('stores');
+        $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
 
+        $stockTable = DB()->table('product_stock_relation');
+        $stock = $stockTable->where('store_id',$store->store_id)->where('product_id', $proId)->get()->getRow();
+        $productQnt = $stock->quantity;
         $qty = 0;
         foreach ($this->cart->contents() as $row) {
             if ($proId == $row['id']) {
@@ -304,6 +327,8 @@ class Sales extends BaseController
             return redirect()->to(site_url('Admin/Sales/create'));
         }
 
+        $storeTab = DB()->table('stores');
+        $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
 
         DB()->transStart();
 
@@ -453,14 +478,18 @@ class Sales extends BaseController
 
 
             //product Qnt Update in product table (start)
-            $productQnt = get_data_by_id('quantity', 'products', 'prod_id', $proId[$i]);
-            $qnt = $productQnt - $quantity[$i];
+            $storeTab = DB()->table('stores');
+            $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
+
+            $stockTable = DB()->table('product_stock_relation');
+            $stock = $stockTable->where('store_id',$store->store_id)->where('product_id', $proId[$i])->get()->getRow();
+
+            $qnt = $stock->quantity - $quantity[$i];
             $qntProData = array(
                 'quantity' => $qnt,
-                'updatedBy' => $userId,
             );
-            $productsTable = DB()->table('products');
-            $productsTable->where('prod_id', $proId[$i])->update($qntProData);
+            $productsTable = DB()->table('product_stock_relation');
+            $productsTable->where('store_id',$store->store_id)->where('product_id', $proId[$i])->update($qntProData);
             //product Qnt Update in product table (end)
             //insert log (start)
             $this->transactionLog->insert_log_data('products',$proId[$i],'',$quantity[$i],'','',$invoiceId,'','quantity');
@@ -478,6 +507,30 @@ class Sales extends BaseController
         $salesTab->insert($saleData);
         $sales_id = DB()->insertID();
         //create salse in sales table(end)
+
+        //sale commission
+        if (!empty($customerId)) {
+            $affiliateUserId = get_data_by_id('affiliate_user_id','customers','customer_id',$customerId);
+            if(!empty($affiliateUserId)){
+                $tableAffiliateUser = DB()->table('affiliate_user');
+                $affiliateUserData = $tableAffiliateUser->where('affiliate_user_id',$affiliateUserId)->get()->getRow();
+
+                $newCommission = ($finalAmount * $affiliateUserData->commission)/100;
+                $newCommissionBalance = $affiliateUserData->balance + $newCommission;
+                $commissionData = array(
+                    'balance' => $newCommissionBalance,
+                );
+                DB()->table('affiliate_user')->where('affiliate_user_id',$affiliateUserId)->update($commissionData);
+
+                DB()->table('commission')->insert([
+                    'affiliate_user_id' => $affiliateUserId,
+                    'sales_id' => $sales_id,
+                    'commission' => $affiliateUserData->commission,
+                    'commission_amount' => $newCommission,
+                    'date' => date('Y-m-d'),
+                ]);
+            }
+        }
 
 
         //sale balance update and ledger create (start)
@@ -854,16 +907,21 @@ class Sales extends BaseController
         $shopId = $this->session->shopId;
 
         $proId = $this->request->getPost('prod_id');
+        $table = DB()->table('products');
+        $product = $table->where('prod_id', $proId)->get()->getRow();
 
-        $checkShop = get_data_by_id('sch_id', 'products', 'prod_id', $proId);
+        if ($product->sch_id == $shopId) {
+            $storeTab = DB()->table('stores');
+            $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
 
-        if ($checkShop == $shopId) {
+            $stockTable = DB()->table('product_stock_relation');
+            $stock = $stockTable->where('store_id',$store->store_id)->where('product_id', $proId)->get()->getRow();
 
-            $proName = get_data_by_id('name', 'products', 'prod_id', $proId);
-            $proPrice = get_data_by_id('selling_price', 'products', 'prod_id', $proId);
+            $proName = $product->name;
+            $proPrice = $product->selling_price;
             $quantity = 1;
 
-            $productQnt = get_data_by_id('quantity', 'products', 'prod_id', $proId);
+            $productQnt = $stock->quantity;
 
             $qty = 0;
             foreach ($this->cart->contents() as $row) {

@@ -73,10 +73,12 @@ class Customers extends BaseController
         if (!isset($isLoggedIn) || $isLoggedIn != TRUE) {
             return redirect()->to(site_url('Admin/login'));
         } else {
+            $shopId = $this->session->shopId;
             $data['action'] = base_url('Admin/Customers/create_action');
             $data['action2'] = base_url('Admin/Customers/existing_create_action');
 
-
+            $table = DB()->table('affiliate_user');
+            $data['affiliateUser'] = $table->where('sch_id', $shopId)->get()->getResult();
             // All Permissions
             //$perm = array('create','read','update','delete','mod_access');
             $perm = $this->permission->module_permission_list($role_id, $this->module_name);
@@ -110,6 +112,7 @@ class Customers extends BaseController
             $data['mobile'] = $this->request->getPost('mobile');
             $data['customer_name'] = $this->request->getPost('customer_name');
             $data['cus_type_id'] = $this->request->getPost('cus_type_id');
+            $data['affiliate_user_id'] = $this->request->getPost('affiliate_user_id');
             $data['sch_id'] = $shopId;
             $data['createdBy'] = $userId;
             $data['createdDtm'] = date('Y-m-d h:i:s');
@@ -321,7 +324,8 @@ class Customers extends BaseController
             $shopId = $this->session->shopId;
             $data['customer'] = $this->customersModel->where('customer_id', $id)->where('sch_id', $shopId)->first();
 
-
+            $table = DB()->table('affiliate_user');
+            $data['affiliateUser'] = $table->where('sch_id', $shopId)->get()->getResult();
             // All Permissions
             //$perm = array('create','read','update','delete','mod_access');
             $perm = $this->permission->module_permission_list($role_id, $this->module_name);
@@ -350,6 +354,7 @@ class Customers extends BaseController
 
         $data['customer_id'] = $this->request->getPost('customer_id');
         $data['cus_type_id'] = $this->request->getPost('cus_type_id');
+        $data['affiliate_user_id'] = $this->request->getPost('affiliate_user_id');
         $data['customer_name'] = $this->request->getPost('customer_name');
         $data['mobile'] = $this->request->getPost('mobile');
         $data['status'] = $this->request->getPost('status');

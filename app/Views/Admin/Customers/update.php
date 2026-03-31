@@ -49,14 +49,26 @@
                                                 <label for="varchar">Customer Name </label>
                                                 <input type="text" class="form-control" name="customer_name" id="CustomerName" placeholder="CustomerName" value="<?php echo $customer->customer_name; ?>" />
                                             </div>
+
                                             <div class="form-group">
                                                 <label for="int">Mobile</label>
                                                 <input type="number" class="form-control" name="mobile" id="Mobile" placeholder="Mobile" value="<?php echo $customer->mobile; ?>" />
                                             </div>
+
                                             <div class="form-group">
                                                 <label for="varchar">Customer Type </label>
                                                 <select class="form-control" name="cus_type_id" >
                                                     <?php echo getListInOption($customer->cus_type_id,'cus_type_id','type_name', 'customer_type')?>
+                                                </select>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="int">Affiliate User</label>
+                                                <select class="form-control" name="affiliate_user_id" id="affiliate_user_id" required>
+                                                    <option value="">Please Select</option>
+                                                    <?php foreach ($affiliateUser as $item){ ?>
+                                                        <option value="<?= $item->affiliate_user_id;?>" <?= ($customer->affiliate_user_id == $item->affiliate_user_id)?'selected="selected"':''; ?> ><?= $item->name;?></option>
+                                                    <?php } ?>
                                                 </select>
                                             </div>
 

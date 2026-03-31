@@ -3489,6 +3489,55 @@ function opening_status(url){
           document.getElementById("categoryDiv").style.display = "block";
       }
   }
+
+  function affiliateUserValidat(){
+      var name = $('#name').val();
+      var phone = $('#phone').val();
+      var commission = $('#commission').val();
+      var address = $('#address').val();
+
+      if (required(name) == false){
+          $('#name').parent().find('.error').html('<div style="color:red;" id="mesWrong">This field cannot be empty</div>');
+      }else if(numericOrStringCheck(name) == false){
+          $('#name').parent().find('.error').html('<div style="color:red;" id="mesWrong">Only numeric not allow!</div>');
+      }else if (lengthValidation(name) == false){
+          $('#name').parent().find('.error').html('<div style="color:red;" id="mesWrong">maximum length of 32 characters</div>');
+      }else{
+          // $('#name').parent().find('.error').html('<div style="color:green;" id="mesWrong">Success</div>');
+          var name_validation = true;
+      }
+
+      if (required(phone) == false){
+          $('#phone').parent().find('.error').html('<div style="color:red;" id="mesWrong">This field cannot be empty</div>');
+      }else if(notNumericCheck(phone) == false){
+          $('#phone').parent().find('.error').html('<div style="color:red;" id="mesWrong">Only numeric allow!</div>');
+      }else{
+          var phone_validation = true;
+      }
+
+      if (required(commission) == false){
+          $('#commission').parent().find('.error').html('<div style="color:red;" id="mesWrong">This field cannot be empty</div>');
+      }else if(notNumericCheck(commission) == false){
+          $('#commission').parent().find('.error').html('<div style="color:red;" id="mesWrong">Only numeric allow!</div>');
+      }else{
+          var commission_validation = true;
+      }
+
+      if (required(address) == false){
+          $('#address').parent().find('.error').html('<div style="color:red;" id="mesWrong">This field cannot be empty</div>');
+      }else{
+          var address_validation = true;
+      }
+
+      if ((name_validation == true) && (commission_validation == true) && (address_validation == true) && (phone_validation == true)){
+          $('#name').parent().find('.error').html('<div style="color:green;" id="mesWrong">success</div>');
+          $('#phone').parent().find('.error').html('<div style="color:green;" id="mesWrong">success</div>');
+          $('#commission').parent().find('.error').html('<div style="color:green;" id="mesWrong">success</div>');
+          $('#address').parent().find('.error').html('<div style="color:green;" id="mesWrong">success</div>');
+
+          $('#geniusform').submit();
+      }
+  }
 </script>
 
 

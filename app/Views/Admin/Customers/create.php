@@ -43,15 +43,22 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="int">Customer Type</label>
-
                                         <select class="form-control" name="cus_type_id" id="cus_type_id" required>
                                             <option value="">Please Select</option>
                                             <?php echo getAllListInOption('','cus_type_id','type_name','customer_type'); ?>
                                         </select>
                                         <div class="error"></div>
                                     </div>
+                                    <div class="form-group">
+                                        <label for="int">Affiliate User</label>
+                                        <select class="form-control" name="affiliate_user_id" id="affiliate_user_id" required>
+                                            <option value="">Please Select</option>
+                                            <?php foreach ($affiliateUser as $item){ ?>
+                                                <option value="<?= $item->affiliate_user_id;?>"><?= $item->name;?></option>
+                                            <?php } ?>
+                                        </select>
+                                    </div>
 
-<!--                                    <button type="submit" class="btn btn-primary geniusSubmit-btn">Register</button>-->
                                     <button type="button" class="btn btn-primary" onclick="customerValidat()"  >Create</button>
                                     <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Customers_ajax/'); ?>','<?php echo '/Admin/Customers/'; ?>')" class="btn btn-default">Cancel</a>
                                 </form>

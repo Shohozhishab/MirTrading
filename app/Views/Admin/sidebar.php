@@ -285,6 +285,8 @@
             </li>
             <?php } ?>
 
+            <?php echo add_main_ajax_based_menu_with_permission('Affiliate User', '/Admin/Affiliate_user', $role_id, 'fa fa-user', '/Admin/Affiliate_user_ajax','AffiliateUser'); ?>
+
             <?php echo add_main_ajax_based_menu_with_permission('Settings', '/Admin/Settings', $role_id, 'fa fa-hospital-o', '/Admin/Settings_ajax','Settings'); ?>
 
 

@@ -50,6 +50,10 @@
                                         <td style="width: 50%;">Expense</td>
                                         <td><?php echo showWithCurrencySymbol($expensedata); ?></td>
                                     </tr>
+                                    <tr>
+                                        <td style="width: 50%;">Expense Commission</td>
+                                        <td><?php echo showWithCurrencySymbol($commission); ?></td>
+                                    </tr>
                                 </table>
                                 <h5><b>Bank</b></h5>
 

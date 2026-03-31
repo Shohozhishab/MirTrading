@@ -65,6 +65,10 @@ class Trial_balance extends BaseController
             $expense = $expensequ->getRow()->expense;
             // expence
 
+            //commission
+            $commission = $expensequ->getRow()->ledger_expense_commission;
+            //commission
+
 
             // bank balance(start)
             $bankTab = DB()->table('bank');
@@ -118,7 +122,7 @@ class Trial_balance extends BaseController
             $totalDue = $customerCash + $loanCash + $supplierCash;
 
 
-            $totalDebit = $totalDue + $cash + $bankCash + $stockAmount + $emplBal + $expense;
+            $totalDebit = $totalDue + $cash + $bankCash + $stockAmount + $emplBal + $expense + $commission;
             // all debit (end)
 
 
@@ -209,7 +213,8 @@ class Trial_balance extends BaseController
                 'profit' => $profit,
                 'service_charge' => $serviceCharge,
                 'stockAmount' => $stockAmount,
-                'employee' => $employee
+                'employee' => $employee,
+                'commission' => $commission
 
             );
 

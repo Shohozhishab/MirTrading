@@ -290,13 +290,24 @@ class Affiliate_user extends BaseController
 
             DB()->transStart();
 
-            //Suppliers Balance Update
+            //commission Balance Update
             $userRestBalance = array(
                 'balance' => $balance - $amount,
             );
             $affiliateUserTable = DB()->table('affiliate_user');
             $affiliateUserTable->where('affiliate_user_id', $affiliate_user_id)->update($userRestBalance);
             //insert log (end)
+
+            //commission Pay insert
+            $commissionPayData = array(
+                'sch_id' => $shopId,
+                'affiliate_user_id' => $affiliate_user_id,
+                'amount' => $amount,
+                'status' => 'Paid',
+            );
+            $commissionPayTable = DB()->table('commission_pay');
+            $commissionPayTable->insert($userRestBalance);
+            //commission Pay insert (end)
 
             //insert data
             $ledgerExpenseCommission = get_data_by_id('ledger_expense_commission', 'shops', 'sch_id', $shopId);

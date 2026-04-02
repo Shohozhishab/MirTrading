@@ -70,13 +70,11 @@ class Stock_report extends BaseController
         $productsTb->join('product_stock_relation relation', 'relation.product_id = products.prod_id');
         $data = $productsTb->where('relation.store_id', $storeId)->where('products.sch_id', $shopId)->orderBy('prod_id', "DESC")->get()->getResult();
 
-
-        $prodQtyTb = DB()->table('products');
-        $prodQtyTb->join('product_stock_relation relation', 'relation.product_id = products.prod_id');
-        $quty = $prodQtyTb->where('relation.store_id', $storeId)->where('products.sch_id', $shopId)->orderBy('prod_id', "DESC")->get()->getRow();
         $quantity = '0';
-        if (!empty($quty)) {
-            $quantity = $quty->quantity;
+        if (!empty($data)) {
+            foreach ($data as $result) {
+                $quantity += $result->quantity;
+            }
         }
 
 

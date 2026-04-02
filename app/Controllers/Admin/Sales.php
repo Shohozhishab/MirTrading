@@ -523,6 +523,7 @@ class Sales extends BaseController
                 DB()->table('affiliate_user')->where('affiliate_user_id',$affiliateUserId)->update($commissionData);
 
                 DB()->table('commission')->insert([
+                    'sch_id' => $shopId,
                     'affiliate_user_id' => $affiliateUserId,
                     'sales_id' => $sales_id,
                     'commission' => $affiliateUserData->commission,
@@ -1187,15 +1188,21 @@ class Sales extends BaseController
 
 
             //product Qnt Update in product table (start)
+            $storeTab = DB()->table('stores');
+            $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
+
+
             foreach ($proQty as $pro) {
                 if ($pro->id == $proId[$i]) {
-                    $productQnt = get_data_by_id('quantity', 'products', 'prod_id', $proId[$i]);
-                    $qnt = ($productQnt + $pro->amount) - $quantity[$i];
+                    $stockTable = DB()->table('product_stock_relation');
+                    $stock = $stockTable->where('store_id',$store->store_id)->where('product_id', $proId[$i])->get()->getRow();
+
+                    $qnt = ($stock->quantity + $pro->amount) - $quantity[$i];
                     $qntProData = array(
                         'quantity' => $qnt,
                     );
-                    $productsTable = DB()->table('products');
-                    $productsTable->where('prod_id', $proId[$i])->update($qntProData);
+                    $productsTable = DB()->table('product_stock_relation');
+                    $productsTable->where('store_id',$store->store_id)->where('product_id', $proId[$i])->update($qntProData);
                 }
             }
             //product Qnt Update in product table (end)

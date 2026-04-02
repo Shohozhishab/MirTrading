@@ -482,8 +482,10 @@ class Purchase extends BaseController
                 //purshase pay bank amount calculet to suppliers balance and update suppliers balance or create supplier ledger in ledger_suppliers table (end)
             }
 
+            $storeTab = DB()->table('stores');
             $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
             $storeId = $store->store_id;
+
 
             //purchase product insert in product table and purchase item table (start)
             foreach ($returnchecked as $value) {
@@ -494,15 +496,21 @@ class Purchase extends BaseController
                 $quantity = $productQuantity[$key];
                 $price = $productPrice[$key];
                 //Update each product quantity and price
-                $exixQunt = get_data_by_id('quantity', 'products', 'prod_id', $product_id);
-                $newQunt = $exixQunt + $quantity;
-
                 $data = array(
-                    'quantity' => $newQunt,
                     'purchase_price' => $price,
                 );
-                $tabproducts = DB()->table('products');
-                $tabproducts->where('prod_id', $product_id)->update($data);
+                $tabProducts = DB()->table('products');
+                $tabProducts->where('prod_id', $product_id)->update($data);
+
+                $stockTable = DB()->table('product_stock_relation');
+                $stock = $stockTable->where('store_id',$store->store_id)->where('product_id', $product_id)->get()->getRow();
+                $newQunt = $stock->quantity + $quantity;
+                $dataQty = array(
+                    'quantity' => $newQunt,
+                );
+                $stockTableUpdate = DB()->table('product_stock_relation');
+                $stockTableUpdate->where('store_id',$store->store_id)->where('product_id', $product_id)->update($dataQty);
+
 
                 //insetr purchase Item in purchase item table
                 $total_price = $price * $quantity;

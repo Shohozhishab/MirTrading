@@ -1,10 +1,10 @@
 <div class="content-wrapper" id="viewpage">
     <!-- Content Header (Page header) -->
     <section class="content-header">
-        <h1> Commission  <small>Commission List</small></h1>
+        <h1> Detail <small>Detail</small></h1>
         <ol class="breadcrumb">
             <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-            <li class="active">Bank</li>
+            <li class="active">Detail</li>
         </ol>
     </section>
 
@@ -12,48 +12,36 @@
     <section class="content">
         <!-- Small boxes (Stat box) -->
         <div class="row">
+            <div class="col-xs-12" style="margin-bottom: 15px;">
+                <a href="#" onclick="showData('<?php echo site_url('/Admin/Affiliate_user_ajax'); ?>','<?php echo '/Admin/Affiliate_user';?>')"  class="btn btn-default"><i class="fa fa-arrow-left" aria-hidden="true"></i> Back to list</a>
+            </div>
             <div class="col-xs-12">
 
                 <div class="box">
                     <div class="box-header">
                         <div class="row">
-                            <div class="col-lg-9">
-                                <h3 class="box-title">Commission List</h3>
+                            <div class="col-lg-8">
+                                <h3 class="box-title">Detail</h3>
                             </div>
-                            <div class="col-lg-3">
+                            <div class="col-lg-4">
+                                <div style="display: flex; justify-content: space-between;font-size: 15px ">
+                                    <b>Total Commission:</b>
+                                    <?= showWithCurrencySymbol($commissionAmount);?>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;font-size: 15px ">
+                                    <b>Total Commission Pay:</b>
+                                    <?= showWithCurrencySymbol($commissionPayAmount);?>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;font-size: 15px ">
+                                    <b>Total Commission Due:</b>
+                                    <?= showWithCurrencySymbol($totalDue);?>
+                                </div>
                             </div>
                             <div class="col-lg-12" style="margin-top: 20px;">
+                                <div id="message"></div>
                                 <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
                             </div>
-
-                            <div class="col-lg-12">
-                                <form action="<?= base_url('/Admin/Affiliate_commission')?>" method="get">
-                                    <div class="col-md-3" style="padding: 20px;">
-                                        <label for="int">Affiliate User</label>
-                                        <select class="form-control select2 select2-hidden-accessible" name="affiliate_user_id" id="affiliate_user_id" style=" width: 100%;" tabindex="-1" aria-hidden="true">
-                                            <option selected="selected" value="">Please Select</option>
-                                            <?php foreach ($user as $item){ ?>
-                                            <option value="<?= $item->affiliate_user_id;?>" <?= ($affiliate_user_id == $item->affiliate_user_id)?'selected':''; ?> ><?= $item->name;?></option>
-                                            <?php } ?>
-                                        </select>
-
-                                    </div>
-                                    <div class="col-xs-3" style="padding: 17px;">
-                                        <label>Start Date</label>
-                                        <input type="date" class="form-control" name="st_date" value="<?= $st_date?>" id="st_date" >
-                                    </div>
-                                    <div class="col-xs-3" style="padding: 17px;">
-                                        <label>End Date</label>
-                                        <input type="date" class="form-control" name="en_date" id="en_date" value="<?= $en_date?>" >
-                                    </div>
-                                    <div class="col-xs-3" style="padding: 18px;">
-                                        <button class="btn btn-primary " style="margin-top: 25px;" type="submit">Filter </button>
-                                    </div>
-                                </form>
-                            </div>
                         </div>
-
-
                     </div>
                     <!-- /.box-header -->
                     <div class="box-body">
@@ -96,3 +84,4 @@
     </section>
     <!-- /.content -->
 </div>
+

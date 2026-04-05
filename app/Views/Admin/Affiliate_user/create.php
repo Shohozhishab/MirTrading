@@ -30,11 +30,6 @@
                                         <input type="text" class="form-control" name="name" id="name" placeholder="Name" required>
                                         <div class="error"></div>
                                     </div>
-                                    <div class="form-group">
-                                        <label for="varchar">Phone</label>
-                                        <input type="number" class="form-control" name="phone" id="phone" placeholder="phone" required>
-                                        <div class="error"></div>
-                                    </div>
 
                                     <div class="form-group">
                                         <label for="varchar">commission</label>
@@ -45,6 +40,21 @@
                                     <div class="form-group">
                                         <label for="varchar">Address</label>
                                         <textarea class="form-control" name="address" id="address"></textarea>
+                                        <div class="error"></div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="varchar">Phone</label>
+                                        <input type="number" class="form-control" name="phone" id="phone" placeholder="phone" required>
+                                        <div class="error"></div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="longtext">Password </label>
+                                        <input type="password" class="form-control" name="password" id="password" placeholder="Password" required />
+                                        <div class="error"></div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="longtext">Confirm Password</label>
+                                        <input type="password" class="form-control" name="con_password" id="con_password" placeholder="Confirm Password" required>
                                         <div class="error"></div>
                                     </div>
 

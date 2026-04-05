@@ -105,20 +105,30 @@ class Affiliate_user extends BaseController
         $data['phone'] = $this->request->getPost('phone');
         $data['commission'] = $this->request->getPost('commission');
         $data['address'] = $this->request->getPost('address');
+        $data['password'] = $this->request->getPost('password');
+        $data['con_password'] = $this->request->getPost('con_password');
         $data['sch_id'] = $shopId;
 
         $this->validation->setRules([
             'commission' => ['label' => 'commission', 'rules' => 'required|is_natural_no_zero'],
             'name' => ['label' => 'name', 'rules' => 'required|only_numeric_not_allow|max_length[60]'],
             'address' => ['label' => 'address', 'rules' => 'required'],
+            'password' => ['label' => 'Password', 'rules' => 'required|max_length[155]'],
+            'con_password' => ['label' => 'Con password', 'rules' => 'required|matches[password]'],
         ]);
         if ($this->validation->run($data) == FALSE) {
             print '<div class="alert alert-danger alert-dismissible" role="alert">' . $this->validation->listErrors() . '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
         } else {
             $phoneUnique = is_unique('affiliate_user', 'phone', $data['phone']);
             if ($phoneUnique == true) {
+                $data2['name'] = $data['name'];
+                $data2['phone'] = $data['phone'];
+                $data2['commission'] = $data['commission'];
+                $data2['address'] = $data['address'];
+                $data2['password'] = sha1($data['password']);
+                $data2['sch_id'] = $shopId;
                 $table = DB()->table('affiliate_user');
-                if ($table->insert($data)) {
+                if ($table->insert($data2)) {
                     print '<div class="alert alert-success alert-dismissible" role="alert"> Crate data successfully  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
                 } else {
                     print '<div class="alert alert-danger alert-dismissible" role="alert"> something went wrong  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
@@ -180,11 +190,15 @@ class Affiliate_user extends BaseController
         $data['phone'] = $this->request->getPost('phone');
         $data['commission'] = $this->request->getPost('commission');
         $data['address'] = $this->request->getPost('address');
+        $data['password'] = $this->request->getPost('password');
+        $data['con_password'] = $this->request->getPost('con_password');
 
         $this->validation->setRules([
             'commission' => ['label' => 'commission', 'rules' => 'required|is_natural_no_zero'],
             'name' => ['label' => 'name', 'rules' => 'required|only_numeric_not_allow|max_length[60]'],
             'address' => ['label' => 'address', 'rules' => 'required'],
+            'password' => ['label' => 'Password', 'rules' => 'required|max_length[155]'],
+            'con_password' => ['label' => 'Con password', 'rules' => 'required|matches[password]'],
         ]);
 
         if ($this->validation->run($data) == FALSE) {
@@ -192,8 +206,13 @@ class Affiliate_user extends BaseController
         } else {
             $phoneUnique = is_unique_update('affiliate_user', 'phone', $data['phone'], 'affiliate_user_id', $affiliate_user_id);
             if ($phoneUnique == true) {
+                $data2['name'] = $data['name'];
+                $data2['phone'] = $data['phone'];
+                $data2['commission'] = $data['commission'];
+                $data2['address'] = $data['address'];
+                $data2['password'] = sha1($data['password']);
                 $table = DB()->table('affiliate_user');
-                if ($table->where('affiliate_user_id', $affiliate_user_id)->update($data)) {
+                if ($table->where('affiliate_user_id', $affiliate_user_id)->update($data2)) {
                     print '<div class="alert alert-success alert-dismissible" role="alert"> Update data successfully  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
                 } else {
                     print '<div class="alert alert-danger alert-dismissible" role="alert"> something went wrong  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
@@ -306,7 +325,7 @@ class Affiliate_user extends BaseController
                 'status' => 'Paid',
             );
             $commissionPayTable = DB()->table('commission_pay');
-            $commissionPayTable->insert($userRestBalance);
+            $commissionPayTable->insert($commissionPayData);
             //commission Pay insert (end)
 
             //insert data
@@ -389,6 +408,52 @@ class Affiliate_user extends BaseController
             print '<div class="alert alert-danger alert-dismissible" role="alert">Not Enough Balance<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
         }
 
+    }
+    public function detail($affiliate_user_id){
+        $isLoggedIn = $this->session->isLoggedIn;
+        $role_id = $this->session->role;
+        if (!isset($isLoggedIn) || $isLoggedIn != TRUE) {
+            return redirect()->to(site_url('Admin/login'));
+        } else {
+            $shopId = $this->session->shopId;
+
+            $table = DB()->table('commission');
+            $result = $table->selectSum('commission_amount')
+                ->where('affiliate_user_id', $affiliate_user_id)
+                ->get()
+                ->getRow();
+            $data['commissionAmount'] = $result->commission_amount ?? 0;
+
+
+            $tablePay = DB()->table('commission_pay');
+            $resultPay = $tablePay->selectSum('amount')
+                ->where('affiliate_user_id', $affiliate_user_id)
+                ->get()
+                ->getRow();
+            $data['commissionPayAmount'] = $resultPay->amount ?? 0;
+
+            $data['totalDue'] = $data['commissionAmount'] - $data['commissionPayAmount'];
+
+            $table = DB()->table('commission');
+            $table->where('sch_id',$shopId);
+            $table->where('affiliate_user_id', $affiliate_user_id);
+            $data['commission'] =   $table->get()->getResult();
+
+            // All Permissions
+            //$perm = array('create','read','update','delete','mod_access');
+            $perm = $this->permission->module_permission_list($role_id, $this->module_name);
+            foreach ($perm as $key => $val) {
+                $data[$key] = $this->permission->have_access($role_id, $this->module_name, $key);
+            }
+            echo view('Admin/header');
+            echo view('Admin/sidebar');
+            if (isset($data['mod_access']) and $data['update'] == 1) {
+                echo view('Admin/Affiliate_user/detail', $data);
+            } else {
+                echo view('no_permission');
+            }
+            echo view('Admin/footer');
+        }
     }
 
 

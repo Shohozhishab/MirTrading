@@ -48,6 +48,17 @@
                                         <div class="error"></div>
                                     </div>
 
+                                    <div class="form-group">
+                                        <label for="longtext">Password </label>
+                                        <input type="password" class="form-control" name="password" id="password" placeholder="Password" required />
+                                        <div class="error"></div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="longtext">Confirm Password</label>
+                                        <input type="password" class="form-control" name="con_password" id="con_password" placeholder="Confirm Password" required>
+                                        <div class="error"></div>
+                                    </div>
+
                                     <input type="hidden" name="affiliate_user_id" value="<?= $affiliateUser->affiliate_user_id?>">
                                     <button type="button" class="btn btn-primary" onclick="affiliateUserValidat()"  >Update</button>
                                     <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Affiliate_user_ajax/'); ?>','<?php echo '/Admin/Affiliate_user/'; ?>')" class="btn btn-default">Cancel</a>

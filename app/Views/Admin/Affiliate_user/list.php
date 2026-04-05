@@ -63,6 +63,8 @@
                                         <a href="<?= base_url('Admin/Affiliate_commission?affiliate_user_id='. $val->affiliate_user_id)?>" class="btn btn-primary btn-xs">Commission List</a>
                                         <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Affiliate_user_ajax/commissionPay/' . $val->affiliate_user_id); ?>','<?php echo '/Admin/Affiliate_user/commissionPay/' . $val->affiliate_user_id; ?>')"
                                            class="btn btn-success btn-xs">Commission Pay</a>
+                                        <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Affiliate_user_ajax/detail/' . $val->affiliate_user_id); ?>','<?php echo '/Admin/Affiliate_user/detail/' . $val->affiliate_user_id; ?>')"
+                                           class="btn btn-info btn-xs">Detail</a>
                                         <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Affiliate_user_ajax/update/' . $val->affiliate_user_id); ?>','<?php echo '/Admin/Affiliate_user/update/' . $val->affiliate_user_id; ?>')"
                                            class="btn btn-warning btn-xs">Update</a>
                                         <?php if($isDeletable == true){ ?>

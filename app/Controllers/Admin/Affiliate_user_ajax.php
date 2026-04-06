@@ -142,6 +142,51 @@ class Affiliate_user_ajax extends BaseController
         }
     }
 
+    public function detail($affiliate_user_id){
+        $isLoggedIn = $this->session->isLoggedIn;
+        $role_id = $this->session->role;
+        if (!isset($isLoggedIn) || $isLoggedIn != TRUE) {
+            return redirect()->to(site_url('Admin/login'));
+        } else {
+            $shopId = $this->session->shopId;
+
+            $table = DB()->table('commission');
+            $result = $table->selectSum('commission_amount')
+                ->where('affiliate_user_id', $affiliate_user_id)
+                ->get()
+                ->getRow();
+            $data['commissionAmount'] = $result->commission_amount ?? 0;
+
+
+            $tablePay = DB()->table('commission_pay');
+            $resultPay = $tablePay->selectSum('amount')
+                ->where('affiliate_user_id', $affiliate_user_id)
+                ->get()
+                ->getRow();
+            $data['commissionPayAmount'] = $resultPay->amount ?? 0;
+
+            $data['totalDue'] = $data['commissionAmount'] - $data['commissionPayAmount'];
+
+
+            $table = DB()->table('commission');
+            $table->where('sch_id',$shopId);
+            $table->where('affiliate_user_id', $affiliate_user_id);
+            $data['commission'] =   $table->get()->getResult();
+
+            // All Permissions
+            //$perm = array('create','read','update','delete','mod_access');
+            $perm = $this->permission->module_permission_list($role_id, $this->module_name);
+            foreach ($perm as $key => $val) {
+                $data[$key] = $this->permission->have_access($role_id, $this->module_name, $key);
+            }
+            if (isset($data['mod_access']) and $data['update'] == 1) {
+                echo view('Admin/Affiliate_user/detail', $data);
+            } else {
+                echo view('no_permission');
+            }
+        }
+    }
+
 
 
 }

@@ -4660,7 +4660,7 @@ class Transaction extends BaseController
                     $ledger_nagodanTab->where('ledg_nagodan_id', $shopLedInfo->id)->update($shopedata);
 
                     //shop all ledger rest balance update
-                    $this->shop_ledger_rest_balance_update($tanId, $amount);
+                    $this->shop_ledger_rest_balance_update($tanId, $amount ,'Cr.');
                     //shop all ledger rest balance update
 
                     //update shops balance
@@ -4688,7 +4688,7 @@ class Transaction extends BaseController
                     $ledger_bankTab->where('ledgBank_id', $bankLedgInfo->id)->update($lgBankData);
 
                     //all bank ledger reset balance update
-                    $this->bank_ledger_rest_balance_update($tanId, $transaction->bank_id, $amount);
+                    $this->bank_ledger_rest_balance_update($tanId, $transaction->bank_id, $amount,'Cr.');
                     //all bank ledger reset balance update
 
                     //update bank balance

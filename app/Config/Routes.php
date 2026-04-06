@@ -38,6 +38,7 @@ $routes->setAutoRoute(true);
 // route since we don't have to scan directories.
 $routes->get('/', 'Admin\Login::index');
 $routes->get('/Super_admin', 'Super_admin\Login::index');
+$routes->get('/Affiliate_user', 'Affiliate_user\Login::index');
 
 /*
  * --------------------------------------------------------------------

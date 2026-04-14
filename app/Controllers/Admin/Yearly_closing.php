@@ -112,7 +112,7 @@ class Yearly_closing extends BaseController
         $this->create_users_table_backup($newDb);
         $this->create_vat_register_table_backup($newDb);
         $this->create_warranty_manage_table_backup($newDb);
-
+        $this->create_product_stock_relation_table_backup($newDb);
 
         // delete data all
         $this->delete_table_data();
@@ -194,6 +194,7 @@ class Yearly_closing extends BaseController
         $this->create_vat_register_table_backup($newDb);
         $this->create_warranty_manage_table_backup($newDb);
         $this->create_package_table_backup($newDb);
+        $this->create_product_stock_relation_table_backup($newDb);
 
 
         // delete data all
@@ -1898,6 +1899,32 @@ class Yearly_closing extends BaseController
             }
         }
     }
+    private function create_product_stock_relation_table_backup($newDb)
+    {
+        $database = DB()->database;
+        $tableMain = DB()->table($database . '.product_stock_relation');
+        $data = $tableMain->get()->getResult();
+
+
+        $mastertable = $database . '.product_stock_relation';
+        $tablename = $newDb . '.product_stock_relation';
+
+        DB()->query('use ' . $newDb);
+        DB()->query("CREATE TABLE IF NOT EXISTS $tablename LIKE $mastertable");
+
+
+        $table = 'product_stock_relation';
+        foreach ($data as $row) {
+            $tableIn = DB()->table('product_stock_relation');
+            $check = $this->check_data_exists_in_table($table, 'product_stock_relation_id', $row->product_stock_relation_id);
+            if ($check == true) {
+                foreach ($row as $key => $val) {
+                    $tableIn->set($key, $val);
+                }
+                $tableIn->insert();
+            }
+        }
+    }
 
     /**
      * @description This method backup data exists table
@@ -2032,6 +2059,7 @@ class Yearly_closing extends BaseController
 
         $warranty_manageTab = DB()->table('warranty_manage');
         $warranty_manageTab->where('sch_id', $shopId)->delete();
+        
 
     }
 

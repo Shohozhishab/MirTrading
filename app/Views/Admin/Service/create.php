@@ -160,6 +160,7 @@
 
                                     <input type="number" step=any class="form-control saleDisc" oninput="minusValueCheck(this.value,this)" name="saleDisc" id="saleDisc" placeholder="Input Discount %">
                                     <input type="hidden" class="form-control totalamount" name="total" id="totalamount" readonly value="<?php echo Cart()->total() ?>">
+                                    <input type="hidden" class="form-control" id="vatTotallast" readonly value="0">
                                 </div>
 
                                 <div class="col-md-6" >

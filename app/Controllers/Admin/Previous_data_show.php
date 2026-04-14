@@ -117,7 +117,11 @@ class Previous_data_show extends BaseController
                     $product = $productsTab->where('sch_id', $shopId)->get()->getResult();
                     $totalProdPrice = 0;
                     foreach ($product as $row) {
-                        $totalProdPrice += $row->quantity * $row->purchase_price;
+                        $stockTable = DB()->table('product_stock_relation');
+                        $totalQty = $stockTable->selectSum('quantity')->where('product_id' ,$row->prod_id)->get()->getRow()->quantity;
+                        if (!empty($totalQty)) {
+                            $totalProdPrice += $totalQty * $row->purchase_price;
+                        }
                     }
                     //total invoice profite calculet (end)
 
@@ -1256,7 +1260,11 @@ class Previous_data_show extends BaseController
         $product = $productsTab->where('sch_id', $shopId)->get()->getResult();
         $totalProdPrice = 0;
         foreach ($product as $row) {
-            $totalProdPrice += $row->quantity * $row->purchase_price;
+            $stockTable = DB()->table('product_stock_relation');
+            $totalQty = $stockTable->selectSum('quantity')->where('product_id' ,$row->prod_id)->get()->getRow()->quantity;
+            if(!empty($totalQty)) {
+                $totalProdPrice += $totalQty * $row->purchase_price;
+            }
         }
         //total invoice profite calculet (end)
 

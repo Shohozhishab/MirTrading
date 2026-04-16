@@ -179,6 +179,9 @@ class Return_sale extends BaseController
         }
 
         DB()->transStart();
+        $storeTab = DB()->table('stores');
+        $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
+        $storeId = $store->store_id;
 
         //insert return Data in return_sale table(start)
         $returnData = array(
@@ -253,14 +256,15 @@ class Return_sale extends BaseController
 
 
             //product Qnt Update in product table (start)
-            $productQnt = get_data_by_id('quantity', 'products', 'prod_id', $proId[$i]);
-            $qnt = $productQnt + $quantity[$i];
+            $stockTable = DB()->table('product_stock_relation');
+            $stock = $stockTable->where('store_id',$store->store_id)->where('product_id', $proId[$i])->get()->getRow();
+
+            $qnt = $stock->quantity + $quantity[$i];
             $qntProData = array(
                 'quantity' => $qnt,
-                'updatedBy' => $userId,
             );
-            $productsTab = DB()->table('products');
-            $productsTab->where('prod_id', $proId[$i])->update($qntProData);
+            $productsTab = DB()->table('product_stock_relation');
+            $productsTab->where('store_id',$store->store_id)->where('product_id', $proId[$i])->update($qntProData);
             //product Qnt Update in product table (end)
 
 

@@ -16,7 +16,7 @@
                 <?php echo $menu;?>
             </div>
             <div class="col-xs-12">
-                <form action="<?= base_url('Admin/Exchange_product/exchangeAction') ?>" method="post">
+                <form action="<?= base_url('Admin/Exchange_product/exchangeUpdateAction') ?>" method="post">
                     <div class="box">
                         <div class="box-header">
                             <div class="row">
@@ -24,6 +24,9 @@
                                     <h3 class="box-title">Exchange Products List</h3>
                                 </div>
                                 <div class="col-lg-6"></div>
+                                <div class="col-lg-12" style="margin-top: 20px;">
+                                    <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
+                                </div>
                             </div>
 
 
@@ -34,7 +37,6 @@
                                    aria-describedby="example1_info">
                                 <thead>
                                 <tr role="row">
-                                    <th>Select</th>
                                     <th>Product Name</th>
                                     <th>Quantity</th>
                                     <th>Lot</th>
@@ -42,57 +44,78 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <?php foreach ($invoice_item as $row) { ?>
+                                <?php foreach ($transferItem as $row) {
+                                    $table = DB()->table('product_lot_info');
+                                    if ($exchangeProduct->type == 'Unconditional') {
+                                        $table->where('stock_transfer_item_id', $row->stock_transfer_item_id);
+                                    }else {
+                                        $table->where('exchange_product_item_id', $row->exchange_product_item_id);
+                                    }
+                                    $lot = $table->get()->getResult();
+                                    $lotId = 0;
+                                    ?>
                                     <tr role="row" class="odd">
-                                        <td><input type="checkbox" name="prod_id[]" class="datatables" id="checkedProd" value="<?php echo $row->prod_id; ?>"></td>
+                                        <td><input type="checkbox" name="prod_id[]" class="datatables" id="checkedProd" value="<?php echo $row->prod_id; ?>" checked hidden="">
 
-                                        <td><?php echo get_data_by_id('name', 'products', 'prod_id', $row->prod_id) ?></td>
-                                        <td><input type="number" class="quantity form-control" id="quantity" name="quantity[]" min="1" max="<?php echo $row->quantity ?>" placeholder="Quantity" value="<?php echo $row->quantity ?>"></td>
-                                        <td><div id="showId_<?php echo $row->prod_id ?>"></div></td>
+                                        <?php echo get_data_by_id('name', 'products', 'prod_id', $row->prod_id) ?></td>
+                                        <td><?php echo $row->quantity ?></td>
+                                        <td><div id="showId_<?= ($exchangeProduct->type == 'Unconditional')?$row->stock_transfer_item_id:$row->exchange_product_item_id; ?>">
+                                                <?php foreach ($lot as $val){ $lotId = $val->product_lot_info_id ?>
+                                                    <div class="item " style="display:flex; margin-top:5px;">
+                                                        <div style="display:flex;">
+                                                            <?php if ($exchangeProduct->type == 'Unconditional') { ?>
+                                                                <input type="hidden" class="form-control" name="stock_transfer_item_id[]" value="<?= $row->stock_transfer_item_id?>">
+                                                            <?php }else{ ?>
+                                                                <input type="hidden" class="form-control" name="exchange_product_item_id[]" value="<?= $row->exchange_product_item_id?>">
+                                                            <?php } ?>
+                                                            <input type="text" class="form-control" name="number[]" placeholder="Number" value="<?= $val->number?>">
+                                                            <input type="date" class="form-control" name="date[]" value="<?= $val->date?>">
+                                                            <input type="text" class="form-control" name="comment[]" placeholder="Comment" value="<?= $val->comment?>">
+                                                        </div>
+                                                        <div>
+                                                            <button class="remove-me" onclick="removeRow(this)" style="height: 34px;width: 34px;border: 1px solid #d2d6de;margin-left: 5px;">X</button>
+                                                        </div>
+                                                    </div>
+                                                <?php } ?>
+                                            </div></td>
                                         <td>
-                                            <button type="button" onclick="addLot('<?php echo $row->prod_id ?>','showId')"  class="btn btn-info">Add Lot</button>
+                                            <?php if ($exchangeProduct->type == 'Unconditional') { ?>
+                                                <button type="button" onclick="addLot('<?= $row->stock_transfer_item_id?>','showId')"  class="btn btn-info">Add Lot</button>
+                                            <?php }else{ ?>
+                                                <button type="button" onclick="addLot('<?= $row->exchange_product_item_id?>','showId')"  class="btn btn-info">Add Lot</button>
+                                            <?php } ?>
+
                                         </td>
                                     </tr>
                                 <?php } ?>
                                 </tbody>
                             </table>
                             <div class="col-xs-12" >
-                                <?php if (!empty($invoice->customer_id)){ ?>
-                                    <input type="hidden" name="customer_id" value="<?= $invoice->customer_id ?>">
-                                <?php }else{ ?>
-                                    <input type="hidden" name="customer_name" value="<?= $invoice->customer_name ?>">
-                                <?php }?>
-
                                 <div class="form-group col-md-6" >
                                     <div class="form-group">
-                                        <label for="varchar">Type </label><br>
-                                        <label>
-                                            <input type="radio" name="type" onclick="typeChangeExchange(this)" value="Unconditional" checked>
-                                            Unconditional
-                                        </label>
+                                        <p><b>Type:</b> <?= $exchangeProduct->type ?></p>
 
-                                        <label>
-                                            <input type="radio" name="type" onclick="typeChangeExchange(this)" value="Conditional">
-                                            Conditional
-                                        </label>
                                     </div>
                                     <div class="form-group" >
                                         <label for="varchar">Comment </label>
-                                        <textarea class="form-control" name="commentMain" required></textarea>
+                                        <textarea class="form-control" name="commentMain" required><?= $exchangeProduct->comment ?></textarea>
                                     </div>
-
+                                    <?php if (!empty($status)){ ?>
                                     <div class="form-group" >
-                                        <label for="varchar">Store </label>
-                                        <select class="form-control" name="store_id" id="store_id"  required>
-                                            <option value="">Please Select</option>
-                                            <?php foreach ($stores as $val){ ?>
-                                                <option value="<?= $val->store_id ?>"><?= $val->name ?></option>
-                                            <?php } ?>
+                                        <label for="varchar">Status </label>
+                                        <select class="form-control" name="status" id="status"  required>
+                                            <option value="1" <?= ($status->status == 1)?'selected':''; ?>>Received From Customer</option>
+                                            <option value="2" <?= ($status->status == 2)?'selected':''; ?>>Sent to Warehouse</option>
+                                            <option value="4" <?= ($status->status == 3)?'selected':''; ?>>Received From Warehouse</option>
+                                            <option value="4" <?= ($status->status == 4)?'selected':''; ?>>Complete</option>
+                                            <option value="5" <?= ($status->status == 5)?'selected':''; ?>>Canceled with no return</option>
                                         </select>
                                     </div>
+                                    <?php } ?>
                                 </div>
                                 <div class="col-md-12" >
-                                    <button type="submit" class="btn btn-primary">Exchange</button>
+                                    <input type="hidden" name="exchange_pro_id" value="<?= $exchangeProduct->exchange_pro_id ?>">
+                                    <button type="submit" class="btn btn-primary">Exchange Update</button>
                                 </div>
                             </div>
                         </div>
@@ -136,7 +159,11 @@
     function addLot(prodctId, showID) {
         let html = `<div class="item template" style="display:flex; margin-top:5px;">
                 <div style="display:flex;">
-                    <input type="hidden" class="form-control" name="proIdLot[]" id="proId" value="">
+                    <?php if ($exchangeProduct->type == 'Unconditional') { ?>
+                        <input type="hidden" class="form-control" name="stock_transfer_item_id[]" id="proId" value="<?= $row->stock_transfer_item_id?>">
+                    <?php }else{ ?>
+                        <input type="hidden" class="form-control" name="exchange_product_item_id[]" id="proId" value="<?= $row->exchange_product_item_id?>">
+                    <?php } ?>
                     <input type="text" class="form-control" name="number[]" placeholder="Number">
                     <input type="date" class="form-control" name="date[]">
                     <input type="text" class="form-control" name="comment[]" placeholder="Comment">

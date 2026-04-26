@@ -74,6 +74,7 @@
                                         <th>Name</th>
                                         <th>Quantity</th>
                                         <th>Price</th>
+                                        <th>Production Date</th>
                                         <?php if (isset($discount) AND ($discount == 1)) { ?>
                                             <th>Disc %</th>
                                         <?php } ?>
@@ -104,6 +105,9 @@
                                             <td>
                                                 <input type="text" class="form-control upprice" name="price[]"
                                                        value="<?php echo $row['price']; ?>">
+                                            </td>
+                                            <td>
+                                                <input type="date" class="form-control" name="date[]" >
                                             </td>
                                             <?php if (isset($discount) AND ($discount == 1)) { ?>
                                                 <td><input type="number" step=any class="form-control disc" oninput="minusValueCheck(this.value,this),validationDiscount('disc_<?= $row['id']?>')" name="disc[]" id="disc_<?= $row['id']?>"></td>

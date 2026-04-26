@@ -81,3 +81,6 @@ if (($uri == 'Products_ajax') && ($uri2 == 'read') || ($uri == 'Products_ajax') 
 
 
 <a href="#" onclick="showData('<?php echo site_url('/Admin/Brand_ajax'); ?>','<?php echo '/Admin/Brand';?>')"  class="btn btn-default" style="<?php echo $brand;?>">Brand</a>
+
+<a href="#" onclick="showData('<?php echo site_url('/Admin/Exchange_product_ajax'); ?>','<?php echo '/Admin/Exchange_product';?>')"  class="btn btn-default" >Exchange Product</a>
+<a href="#" onclick="showData('<?php echo site_url('/Admin/Stock_transfer_ajax'); ?>','<?php echo '/Admin/Stock_transfer';?>')"  class="btn btn-default" >Stock Transfer</a>

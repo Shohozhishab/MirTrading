@@ -73,9 +73,7 @@
                     <tr>
                         <th>No</th>
                         <th>Product</th>
-                        <?php if ($warranty == 1) { ?>
-                            <th>Warranty</th>
-                        <?php } ?>
+                        <th>Production Date</th>
                         <th>Price</th>
                         <th>Qty</th>
                         <th>Total</th>
@@ -100,9 +98,9 @@
 
                                 echo $productName.'<br> <small>('.$category.' > '.$subCategory .')</small>';
                                 ?></td>
-                            <?php if ($warranty == 1) { ?>
-                                <td><?php echo get_data_by_id('warranty','products','prod_id',$row->prod_id);?></td>
-                            <?php }?>
+
+                                <td><?php echo $row->productionDate;?></td>
+
                             <td><?php echo showWithCurrencySymbol($row->price);?></td>
                             <td><?php echo $row->quantity;?>/<?php echo showUnitName($unit) ?></td>
                             <td><?php echo showWithCurrencySymbol($row->total_price);?></td>
@@ -145,15 +143,21 @@
                             <th style="width:50%">Total:</th>
                             <td><?php echo showWithCurrencySymbol(get_data_by_id('amount','invoice','invoice_id',$invoiceId));?></td>
                         </tr>
-                        <?php if ($discount == 1) { ?>
+                        <?php if ($discount == 1) {
+                            $discount = get_data_by_id('entire_sale_discount','invoice','invoice_id',$invoiceId);
+                            $vat = get_data_by_id('amount','ledger_vat','invoice_id',$invoiceId);
+                            if (!empty($discount)){
+                            ?>
                             <tr>
                                 <th>Entire Sale discount (%)</th>
-                                <td><?php echo get_data_by_id('entire_sale_discount','invoice','invoice_id',$invoiceId);?></td>
+                                <td><?= $discount?></td>
                             </tr>
+                            <?php } if (!empty($vat)){ ?>
                             <tr>
                                 <th>Vat (<?php echo get_data_by_id('vat','invoice','invoice_id',$invoiceId);?> %)</th>
-                                <td><?php echo showWithCurrencySymbol(get_data_by_id('amount','ledger_vat','invoice_id',$invoiceId));?> </td>
+                                <td><?= showWithCurrencySymbol($vat)?> </td>
                             </tr>
+                            <?php } ?>
                             <tr>
                                 <th>Subtotal:</th>
                                 <td><?php echo showWithCurrencySymbol(get_data_by_id('final_amount','invoice','invoice_id',$invoiceId));?></td>
@@ -191,14 +195,14 @@
                             <th>Today Due:</th>
                             <td><?php echo showWithCurrencySymbol(get_data_by_id('due','invoice','invoice_id',$invoiceId));?></td>
                         </tr>
-                        <!-- <tr>
-                <th>Previous Due:</th>
-                <td><?php //echo showWithCurrencySymbol($oldDue);?></td>
-              </tr>
-              <tr>
-                <th>Total Due:</th>
-                <td><?php //echo showWithCurrencySymbol($totalDue);?></td>
-              </tr> -->
+                         <tr>
+                            <th>Previous Due:</th>
+                            <td><?php echo showWithCurrencySymbol($oldDue);?></td>
+                          </tr>
+                          <tr>
+                            <th>Total Due:</th>
+                            <td><?php echo showWithCurrencySymbol($totalDue);?></td>
+                          </tr>
                         </tbody></table>
                 </div>
             </div>

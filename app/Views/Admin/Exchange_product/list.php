@@ -49,7 +49,9 @@
                             <tr>
                                 <th>No</th>
                                 <th>Date</th>
+                                <th>Type</th>
                                 <th>Customer</th>
+                                <th>Comment</th>
                                 <th>Action</th>
                             </tr>
                             </thead>
@@ -58,6 +60,7 @@
                                 <tr>
                                     <td><?php echo $i++ ?></td>
                                     <td><?php echo globalTimeStamp($item->createdDtm); ?></td>
+                                    <td><?php echo $item->type; ?></td>
                                     <td><?php
                                         if(!empty($item->customer_id)){
                                             echo get_data_by_id('customer_name','customers','customer_id',$item->customer_id);
@@ -66,8 +69,11 @@
                                         }
 
                                         ?></td>
+                                    <td><?php echo $item->comment; ?></td>
                                     <td>
                                         <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Exchange_product_ajax/view/'.$item->exchange_pro_id); ?>','<?php echo '/Admin/Exchange_product/view/'.$item->exchange_pro_id; ?>')" class="btn btn-primary btn-xs">View</a>
+                                        <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Exchange_product_ajax/update/' . $item->exchange_pro_id); ?>','<?php echo '/Admin/Exchange_product/update/' . $item->exchange_pro_id; ?>')" class="btn btn-warning btn-xs">Update</a>
+
                                     </td>
                                 </tr>
                             <?php } ?>

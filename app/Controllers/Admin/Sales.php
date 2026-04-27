@@ -242,6 +242,7 @@ class Sales extends BaseController
         $proId = $this->request->getPost('productId[]');
         $quantity = $this->request->getPost('qty[]');
         $proPrice = $this->request->getPost('price[]');
+        $proDate = $this->request->getPost('date[]');
 
         $number = count($proId);
         for ($i = 0; $i < $number; $i++) {
@@ -449,6 +450,7 @@ class Sales extends BaseController
                 'prod_id' => $proId[$i],
                 'price' => $proPrice[$i],
                 'quantity' => $quantity[$i],
+                'productionDate' => $proDate[$i],
                 'total_price' => $prodsubtotal[$i],
                 'discount' => $prodsaleDisc[$i],
                 'final_price' => $prosubTo[$i],

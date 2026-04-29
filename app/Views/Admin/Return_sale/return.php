@@ -127,26 +127,26 @@
                                                        readonly>
                                                 <!-- <input type="hidden" class="form-control" name="totalPrice"  id="totalPrice" readonly > -->
                                             </div>
-                                            <div class="col-xs-6">
-                                                <label for="int">Cash</label>
-                                            </div>
-                                            <div class="form-group col-xs-6">
-                                                <input type="text" onchange="checkShopsBalance(this.value)"
-                                                       class="cash form-control" name="cash" id="cash"><b
-                                                        id="Balance_valid"></b>
-                                            </div>
-                                            <div class="col-xs-6">
-                                                <label for="int">Bank</label>
-                                            </div>
-                                            <div class="form-group col-xs-6">
-                                                <select class="form-control" name="bank_id" id="bank_id">
-                                                    <option value="">Select Bank</option>
-                                                    <?php echo getTwoValueInOption('', 'bank_id', 'name', 'account_no', 'bank'); ?>
-                                                </select><br>
-                                                <input type="text" onchange="checkBankBalance(this.value)"
-                                                       class="bank form-control" name="bank" id="bank">
-                                                <b id="Bank_valid"></b>
-                                            </div>
+<!--                                            <div class="col-xs-6">-->
+<!--                                                <label for="int">Cash</label>-->
+<!--                                            </div>-->
+<!--                                            <div class="form-group col-xs-6">-->
+<!--                                                <input type="text" onchange="checkShopsBalance(this.value)"-->
+<!--                                                       class="cash form-control" name="cash" id="cash"><b-->
+<!--                                                        id="Balance_valid"></b>-->
+<!--                                            </div>-->
+<!--                                            <div class="col-xs-6">-->
+<!--                                                <label for="int">Bank</label>-->
+<!--                                            </div>-->
+<!--                                            <div class="form-group col-xs-6">-->
+<!--                                                <select class="form-control" name="bank_id" id="bank_id">-->
+<!--                                                    <option value="">Select Bank</option>-->
+<!--                                                    --><?php //echo getTwoValueInOption('', 'bank_id', 'name', 'account_no', 'bank'); ?>
+<!--                                                </select><br>-->
+<!--                                                <input type="text" onchange="checkBankBalance(this.value)"-->
+<!--                                                       class="bank form-control" name="bank" id="bank">-->
+<!--                                                <b id="Bank_valid"></b>-->
+<!--                                            </div>-->
                                             <div class="col-xs-6">
                                                 <label for="int">Due</label>
                                             </div>
@@ -174,7 +174,7 @@
                                         <?php } ?>
 
 
-                                        <button type="submit" class="btn btn-primary">Create</button>
+                                        <button type="submit" class="btn btn-primary">Return</button>
                                         <a href="<?php echo site_url('purchase') ?>" class="btn btn-default">Cancel</a>
                                     </div>
                                 </div>

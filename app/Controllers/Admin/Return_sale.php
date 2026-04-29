@@ -329,6 +329,22 @@ class Return_sale extends BaseController
             $ledgerTab = DB()->table('ledger');
             $ledgerTab->insert($cusLedData);
             // Insert customer Ledger (start)
+
+            //affiliate user commission update
+            $affiliate_user_id = get_data_by_id('affiliate_user_id', 'customers', 'customer_id', $customerId);
+            if (!empty($affiliate_user_id)) {
+                $sales_id = get_data_by_id('sales_id', 'sales', 'invoice_id', $InvId);
+                $commissionParcent = get_data_by_id('commission', 'commission', 'sales_id', $sales_id);
+                $affiliateOldBalance = get_data_by_id('balance', 'affiliate_user', 'affiliate_user_id', $affiliate_user_id);
+
+                $commission = ($amount * $commissionParcent) / 100;
+                $affiliateNewBalance = $affiliateOldBalance - $commission;
+                $dataAffiliate = array(
+                    'balance' => $affiliateNewBalance
+                );
+                $affiliate_user = DB()->table('affiliate_user');
+                $affiliate_user->where('affiliate_user_id', $affiliate_user_id)->update($dataAffiliate);
+            }
         }
 
 
@@ -387,132 +403,132 @@ class Return_sale extends BaseController
         //Update salse profit in invoice table (end)
 
 
-        //cash pay shop cash update and create nagod ledger (start)
-        if ($nagod > 0) {
-            //cash pay amount update shops cash (start)
-            $shopsCash = get_data_by_id('cash', 'shops', 'sch_id', $shopId);
-            $upCahs = $shopsCash - $nagod;
-
-            $shopsData = array(
-                'cash' => $upCahs,
-                'updatedBy' => $userId,
-            );
-            $shopsTab = DB()->table('shops');
-            $shopsTab->where('sch_id', $shopId)->update($shopsData);
-            //cash pay amount update shops cash (end)
-
-
-            //insert ledger in ledger_nagodan cash pay amount(start)
-            $lgNagData = array(
-                'sch_id' => $shopId,
-                'rtn_sale_id' => $returnId,
-                'trangaction_type' => 'Cr.',
-                'particulars' => 'Return Sale Cash Pay',
-                'amount' => $nagod,
-                'rest_balance' => $upCahs,
-                'createdBy' => $userId,
-                'createdDtm' => date('Y-m-d h:i:s')
-            );
-            $ledger_nagodanTab = DB()->table('ledger_nagodan');
-            $ledger_nagodanTab->insert($lgNagData);
-            //insert ledger in ledger_nagodan cash pay amount(start)
-
-
-            //return sale amount calculet and update customer balance (Start)
-            if ($customerId) {
-                $cusOldBalance2 = get_data_by_id('balance', 'customers', 'customer_id', $customerId);
-                $restBalance2 = $cusOldBalance2 + $nagod;
-                $cusData2 = array(
-                    'balance' => $restBalance2,
-                    'createdBy' => $userId,
-                );
-                $customersTab = DB()->table('customers');
-                $customersTab->where('customer_id', $customerId)->update($cusData2);
-                //return sale amount calculet and update customer balance (Start)
-
-                // Insert customer Ledger (start)
-                $cusLedData2 = array(
-                    'sch_id' => $shopId,
-                    'customer_id' => $customerId,
-                    'rtn_sale_id' => $returnId,
-                    'particulars' => 'Return Sale Product cash Pay',
-                    'trangaction_type' => 'Dr.',
-                    'amount' => $nagod,
-                    'rest_balance' => $restBalance2,
-                    'createdBy' => $userId,
-                    'createdDtm' => date('Y-m-d h:i:s')
-                );
-                $ledgerTab = DB()->table('ledger');
-                $ledgerTab->insert($cusLedData2);
-            }
-            // Insert customer Ledger (start)
-
-        }
-        //cash pay shop cash update and create nagod ledger (end)
-
-
-        // bank pay amount calculate and bank balance update (start)
-        if ($bankAmount > 0) {
-            //bank pay amount calculate and update bank balance (start)
-            $bankCash = get_data_by_id('balance', 'bank', 'bank_id', $bankId);
-            $upCahs = $bankCash - $bankAmount;
-
-            $bankData = array(
-                'balance' => $upCahs,
-                'updatedBy' => $userId,
-            );
-            $bankTab = DB()->table('bank');
-            $bankTab->where('bank_id', $bankId)->update($bankData);
-            //bank pay amount calculate and update bank balance (end)
-
-
-            //insert ledger in table ledger_bank (start)
-            $lgBankData = array(
-                'sch_id' => $shopId,
-                'bank_id' => $bankId,
-                'rtn_sale_id' => $returnId,
-                'particulars' => 'Return Sale Bank Pay',
-                'trangaction_type' => 'Cr.',
-                'amount' => $bankAmount,
-                'rest_balance' => $upCahs,
-                'createdBy' => $userId,
-                'createdDtm' => date('Y-m-d h:i:s')
-            );
-            $ledger_bankTab = DB()->table('ledger_bank');
-            $ledger_bankTab->insert($lgBankData);
-            //insert ledger in table ledger_bank (end)
-
-            //return sale amount calculet and update customer balance (Start)
-            if ($customerId) {
-                $cusOldBalance3 = get_data_by_id('balance', 'customers', 'customer_id', $customerId);
-                $restBalance3 = $cusOldBalance3 + $bankAmount;
-                $cusData3 = array(
-                    'balance' => $restBalance3,
-                    'createdBy' => $userId,
-                );
-                $customersTab = DB()->table('customers');
-                $customersTab->where('customer_id', $customerId)->update($cusData3);
-                //return sale amount calculet and update customer balance (Start)
-
-                // Insert customer Ledger (start)
-                $cusLedData3 = array(
-                    'sch_id' => $shopId,
-                    'customer_id' => $customerId,
-                    'rtn_sale_id' => $returnId,
-                    'particulars' => 'Return Sale Product Bank Pay',
-                    'trangaction_type' => 'Dr.',
-                    'amount' => $bankAmount,
-                    'rest_balance' => $restBalance3,
-                    'createdBy' => $userId,
-                    'createdDtm' => date('Y-m-d h:i:s')
-                );
-                $ledgerTab = DB()->table('ledger');
-                $ledgerTab->insert($cusLedData3);
-            }
-            // Insert customer Ledger (start)
-
-        }
-        // bank pay amount calculate and bank balance update (end)
+//        //cash pay shop cash update and create nagod ledger (start)
+//        if ($nagod > 0) {
+//            //cash pay amount update shops cash (start)
+//            $shopsCash = get_data_by_id('cash', 'shops', 'sch_id', $shopId);
+//            $upCahs = $shopsCash - $nagod;
+//
+//            $shopsData = array(
+//                'cash' => $upCahs,
+//                'updatedBy' => $userId,
+//            );
+//            $shopsTab = DB()->table('shops');
+//            $shopsTab->where('sch_id', $shopId)->update($shopsData);
+//            //cash pay amount update shops cash (end)
+//
+//
+//            //insert ledger in ledger_nagodan cash pay amount(start)
+//            $lgNagData = array(
+//                'sch_id' => $shopId,
+//                'rtn_sale_id' => $returnId,
+//                'trangaction_type' => 'Cr.',
+//                'particulars' => 'Return Sale Cash Pay',
+//                'amount' => $nagod,
+//                'rest_balance' => $upCahs,
+//                'createdBy' => $userId,
+//                'createdDtm' => date('Y-m-d h:i:s')
+//            );
+//            $ledger_nagodanTab = DB()->table('ledger_nagodan');
+//            $ledger_nagodanTab->insert($lgNagData);
+//            //insert ledger in ledger_nagodan cash pay amount(start)
+//
+//
+//            //return sale amount calculet and update customer balance (Start)
+//            if ($customerId) {
+//                $cusOldBalance2 = get_data_by_id('balance', 'customers', 'customer_id', $customerId);
+//                $restBalance2 = $cusOldBalance2 + $nagod;
+//                $cusData2 = array(
+//                    'balance' => $restBalance2,
+//                    'createdBy' => $userId,
+//                );
+//                $customersTab = DB()->table('customers');
+//                $customersTab->where('customer_id', $customerId)->update($cusData2);
+//                //return sale amount calculet and update customer balance (Start)
+//
+//                // Insert customer Ledger (start)
+//                $cusLedData2 = array(
+//                    'sch_id' => $shopId,
+//                    'customer_id' => $customerId,
+//                    'rtn_sale_id' => $returnId,
+//                    'particulars' => 'Return Sale Product cash Pay',
+//                    'trangaction_type' => 'Dr.',
+//                    'amount' => $nagod,
+//                    'rest_balance' => $restBalance2,
+//                    'createdBy' => $userId,
+//                    'createdDtm' => date('Y-m-d h:i:s')
+//                );
+//                $ledgerTab = DB()->table('ledger');
+//                $ledgerTab->insert($cusLedData2);
+//            }
+//            // Insert customer Ledger (start)
+//
+//        }
+//        //cash pay shop cash update and create nagod ledger (end)
+//
+//
+//        // bank pay amount calculate and bank balance update (start)
+//        if ($bankAmount > 0) {
+//            //bank pay amount calculate and update bank balance (start)
+//            $bankCash = get_data_by_id('balance', 'bank', 'bank_id', $bankId);
+//            $upCahs = $bankCash - $bankAmount;
+//
+//            $bankData = array(
+//                'balance' => $upCahs,
+//                'updatedBy' => $userId,
+//            );
+//            $bankTab = DB()->table('bank');
+//            $bankTab->where('bank_id', $bankId)->update($bankData);
+//            //bank pay amount calculate and update bank balance (end)
+//
+//
+//            //insert ledger in table ledger_bank (start)
+//            $lgBankData = array(
+//                'sch_id' => $shopId,
+//                'bank_id' => $bankId,
+//                'rtn_sale_id' => $returnId,
+//                'particulars' => 'Return Sale Bank Pay',
+//                'trangaction_type' => 'Cr.',
+//                'amount' => $bankAmount,
+//                'rest_balance' => $upCahs,
+//                'createdBy' => $userId,
+//                'createdDtm' => date('Y-m-d h:i:s')
+//            );
+//            $ledger_bankTab = DB()->table('ledger_bank');
+//            $ledger_bankTab->insert($lgBankData);
+//            //insert ledger in table ledger_bank (end)
+//
+//            //return sale amount calculet and update customer balance (Start)
+//            if ($customerId) {
+//                $cusOldBalance3 = get_data_by_id('balance', 'customers', 'customer_id', $customerId);
+//                $restBalance3 = $cusOldBalance3 + $bankAmount;
+//                $cusData3 = array(
+//                    'balance' => $restBalance3,
+//                    'createdBy' => $userId,
+//                );
+//                $customersTab = DB()->table('customers');
+//                $customersTab->where('customer_id', $customerId)->update($cusData3);
+//                //return sale amount calculet and update customer balance (Start)
+//
+//                // Insert customer Ledger (start)
+//                $cusLedData3 = array(
+//                    'sch_id' => $shopId,
+//                    'customer_id' => $customerId,
+//                    'rtn_sale_id' => $returnId,
+//                    'particulars' => 'Return Sale Product Bank Pay',
+//                    'trangaction_type' => 'Dr.',
+//                    'amount' => $bankAmount,
+//                    'rest_balance' => $restBalance3,
+//                    'createdBy' => $userId,
+//                    'createdDtm' => date('Y-m-d h:i:s')
+//                );
+//                $ledgerTab = DB()->table('ledger');
+//                $ledgerTab->insert($cusLedData3);
+//            }
+//            // Insert customer Ledger (start)
+//
+//        }
+//        // bank pay amount calculate and bank balance update (end)
 
 
         DB()->transComplete();

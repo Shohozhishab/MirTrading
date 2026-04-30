@@ -70,6 +70,8 @@ class Return_sale extends BaseController
         $invoiceTable = DB()->table('invoice');
         $data['invoice_data'] = $invoiceTable->where('sch_id', $shopId)->where('invoice_id', $invoiceId)->get()->getResult();
 
+        $data['return_status'] = get_return_status_by_invoice_id($invoiceId);
+
         $data['menu'] = view('Admin/menu_sales', $data);
         echo view('Admin/header');
         echo view('Admin/sidebar');
@@ -134,7 +136,7 @@ class Return_sale extends BaseController
         $customerName = $this->request->getPost('customer_name');
         $InvId = $this->request->getPost('invoice_id');
 
-        $proId = $this->request->getPost('prod_id[]');
+        $proId = $this->request->getPost('returnchecked[]');
         $quantity = $this->request->getPost('quantity[]');
         $proPrice = $this->request->getPost('purchase_price[]');
         $prodsaleDisc = $this->request->getPost('disc[]');
@@ -186,6 +188,7 @@ class Return_sale extends BaseController
         //insert return Data in return_sale table(start)
         $returnData = array(
             'sch_id' => $shopId,
+            'invoice_id' => $InvId,
             'amount' => $amount,
             'nagad_paid' => $nagod,
             'bank_paid' => $bankAmount,

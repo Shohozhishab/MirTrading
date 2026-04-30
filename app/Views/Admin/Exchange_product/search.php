@@ -42,15 +42,17 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <?php foreach ($invoice_item as $row) { ?>
+                                <?php foreach ($invoice_item as $row) { $availableReturnQty = get_available_quantity_to_return($invoice->invoice_id,$row->prod_id,$row->quantity); ?>
                                     <tr role="row" class="odd">
-                                        <td><input type="checkbox" name="prod_id[]" class="datatables" id="checkedProd" value="<?php echo $row->prod_id; ?>"></td>
+                                        <td><input type="checkbox" name="prod_id[]" class="datatables" id="checkedProd" value="<?php echo $row->prod_id; ?>" <?= empty($availableReturnQty)?'disabled':'';?> ></td>
 
                                         <td><?php echo get_data_by_id('name', 'products', 'prod_id', $row->prod_id) ?></td>
-                                        <td><input type="number" class="quantity form-control" id="quantity" name="quantity[]" min="1" max="<?php echo $row->quantity ?>" placeholder="Quantity" value="<?php echo $row->quantity ?>"></td>
+                                        <td><input type="number" class="quantity form-control" id="quantity" name="quantity[]" min="<?= empty($availableReturnQty)?0:1;?>" max="<?= $availableReturnQty ?>" placeholder="Quantity" value="<?=$availableReturnQty ?>"> </td>
                                         <td><div id="showId_<?php echo $row->prod_id ?>"></div></td>
                                         <td>
+                                            <?php if (!empty($availableReturnQty)){ ?>
                                             <button type="button" onclick="addLot('<?php echo $row->prod_id ?>','showId')"  class="btn btn-info">Add Lot</button>
+                                            <?php } ?>
                                         </td>
                                     </tr>
                                 <?php } ?>

@@ -41,15 +41,15 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <?php foreach ($invoice_item as $row) { ?>
+                                <?php foreach ($invoice_item as $row) {   $availableReturnQty = get_available_quantity_to_return($invoiceId,$row->prod_id,$row->quantity); ?>
                                     <tr role="row" class="odd">
-                                        <td><input type="checkbox" name="returnchecked[]" class="datatables"
-                                                   id="checkedProd" value="<?php echo $row->prod_id; ?>">
-                                            <input type="hidden" name="prod_id[]" value="<?php echo $row->prod_id ?>"></td>
+                                        <td>
+                                            <input type="checkbox" name="returnchecked[]" class="datatables" id="checkedProd" value="<?php echo $row->prod_id; ?>" <?= empty($availableReturnQty)?'disabled':'';?> >
+                                        </td>
                                         <td><?php echo get_data_by_id('name', 'products', 'prod_id', $row->prod_id) ?></td>
                                         <td><input type="number" class="quantity form-control" id="quantity"
-                                                   name="quantity[]" placeholder="Quantity"
-                                                   value="<?php echo $row->quantity ?>"></td>
+                                                   name="quantity[]" placeholder="Quantity" min="<?= empty($availableReturnQty)?0:1;?>" max="<?= $availableReturnQty;?>"
+                                                   value="<?= $availableReturnQty ?>"> </td>
                                         <td><input type="text" class="purchase_price form-control" id="searchColumn"
                                                    name="purchase_price[]" value="<?php echo $row->price ?>" readonly></td>
                                     </tr>

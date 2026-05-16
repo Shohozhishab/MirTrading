@@ -35,9 +35,16 @@ class Exchange_product_ajax extends BaseController
         if (!isset($isLoggedIn) || $isLoggedIn != TRUE) {
             return redirect()->to(site_url('Admin/login'));
         } else {
+            $customer_id = $this->request->getGet('customer');
+
             $shopId = $this->session->shopId;
             $table = DB()->table('exchange_product');
-            $data['exchangeProduct'] = $table->where('sch_id', $shopId)->get()->getResult();
+            $table->where('sch_id', $shopId);
+            if (!empty($customer_id)) {
+                $table->where('customer_id', $customer_id);
+            }
+            $data['exchangeProduct'] = $table->get()->getResult();
+            $data['customerId'] = $customer_id ?? '';
 
             $data['menu'] = view('Admin/menu_stock');
             // All Permissions

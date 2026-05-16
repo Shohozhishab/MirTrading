@@ -35,9 +35,19 @@ class Return_sale_ajax extends BaseController
         if (!isset($isLoggedIn) || $isLoggedIn != TRUE) {
             return redirect()->to(site_url('Admin/login'));
         } else {
+            $customer_id = $this->request->getGet('customer');
+
             $shopId = $this->session->shopId;
-            $return_saleTable = DB()->table('return_sale');
-            $data['return_sale_data'] = $return_saleTable->where('sch_id', $shopId)->where('deleted IS NULL')->get()->getResult();
+
+            $table = DB()->table('return_sale');
+            $table->where('return_sale.sch_id', $shopId);
+            $table->where('return_sale.deleted', null);
+            if (!empty($customer_id)) {
+                $table->join('invoice', 'invoice.invoice_id = return_sale.invoice_id');
+                $table->where('invoice.customer_id', $customer_id);
+            }
+            $data['return_sale_data'] = $table->get()->getResult();
+            $data['customerId'] = $customer_id ?? '';
 
             $data['menu'] = view('Admin/menu_sales', $data);
             // All Permissions

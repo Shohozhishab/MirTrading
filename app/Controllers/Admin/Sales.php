@@ -667,6 +667,12 @@ class Sales extends BaseController
             $this->transactionLog->insert_log_data('customers',$customerId,'',$finalAmount,'','',$invoiceId,'');
             //insert log (end)
 
+            //invoice Previous Due add
+            $invoicePreviousDueData = array(
+                'previous_due' => $customerCash,
+            );
+            $invoiceTabl = DB()->table('invoice');
+            $invoiceTabl->where('invoice_id', $invoiceId)->update($invoicePreviousDueData);
 
             //insert customer ledger in ledger(start)
             $ledgerData = array(

@@ -44,7 +44,31 @@
                     </div>
                     <!-- /.box-header -->
                     <div class="box-body">
-                        <table id="example1" class="table table-bordered table-striped text-capitalize">
+                        <div class="row">
+                            <div class="col-lg-3"></div>
+                            <div class="col-lg-6">
+                                <form method="get" action="<?php echo site_url('Admin/Return_sale') ?>">
+                                    <div class="col-lg-4 pull-right">
+                                        <button style="margin-top: 25px;" class="btn btn-primary" type="submit">
+                                            Search
+                                        </button>
+                                    </div>
+
+                                    <div class="col-lg-8 pull-right">
+                                        <label>Customer</label>
+                                        <select class="form-control select2" name="customer" required>
+                                            <option value="">Please Select</option>
+                                            <?= getAllListInOptionWithStatus( $customerId, 'customer_id', 'customer_name', 'customers', 'customer_name' );?>
+                                        </select>
+                                    </div>
+
+                                </form>
+                            </div>
+                            <div class="col-lg-3"></div>
+
+                        </div>
+
+                        <table id="example1" class="table table-bordered table-striped text-capitalize" style="margin-top: 20px;">
                             <thead>
                             <tr>
                                 <th>No</th>

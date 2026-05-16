@@ -19,9 +19,32 @@
         <!-- title row -->
         <div class="row">
 
+            <div class="col-xs-12 no-print">
+                <div class="pull-right">
+                    <?php
+                        $returnStatus = get_return_status_by_invoice_id($invoiceId);
+                        if ($returnStatus == 0){
+                    ?>
+                    <div class="pull-right" style="margin-left: 10px;">
+                         <a href="<?php echo site_url('Admin/Return_sale/return/'.$invoiceId) ?>" style="margin-top: 25px;" class="btn btn-warning " type="submit">Return Sales</a>
+                    </div>
+                    <?php } ?>
+
+                    <div class="pull-right" >
+                        <form method="post" action="<?php echo site_url('Admin/Exchange_product/invoice_search') ?>"  >
+                            <button style="margin-top: 25px;" class="btn btn-warning " type="submit">Exchange Product</button>
+                            <input type="hidden" class="form-control" name="invoiceId" id="invoiceId" value="<?= $invoiceId;?>" required>
+                        </form>
+                    </div>
+                </div>
+            </div>
             <div class="col-xs-12">
                 <h2 class="page-header">
-                    <small class="pull-right">Date: <?php echo invoiceDateFormat(get_data_by_id('createdDtm','invoice','invoice_id',$invoiceId));?></small>
+
+                    <small class="pull-right">
+                        Date: <?php echo invoiceDateFormat(get_data_by_id('createdDtm','invoice','invoice_id',$invoiceId));?>
+                    </small>
+
                     <!-- <i class="fa fa-globe"></i> <?php //print $shopsName; ?>. -->
                     <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" width="200" alt="<?php print $shopsName; ?>">
 
@@ -136,11 +159,11 @@
             <div class="col-xs-6">
                 <p class="lead">Amount Due <?php echo invoiceDateFormat(get_data_by_id('createdDtm','invoice','invoice_id',$invoiceId));?></p>
 
-                <div class="table-responsive">
+                <div class="">
                     <table class="table">
                         <tbody>
                         <tr>
-                            <th style="width:50%">Total:</th>
+                            <td style="font-weight: bold" style="width:50%">Total:</td>
                             <td><?php echo showWithCurrencySymbol(get_data_by_id('amount','invoice','invoice_id',$invoiceId));?></td>
                         </tr>
                         <?php if ($discount == 1) {
@@ -149,17 +172,17 @@
                             if (!empty($discount)){
                             ?>
                             <tr>
-                                <th>Entire Sale discount (%)</th>
+                                <td style="font-weight: bold">Entire Sale discount (%)</td>
                                 <td><?= $discount?></td>
                             </tr>
                             <?php } if (!empty($vat)){ ?>
                             <tr>
-                                <th>Vat (<?php echo get_data_by_id('vat','invoice','invoice_id',$invoiceId);?> %)</th>
+                                <td style="font-weight: bold">Vat (<?php echo get_data_by_id('vat','invoice','invoice_id',$invoiceId);?> %)</td>
                                 <td><?= showWithCurrencySymbol($vat)?> </td>
                             </tr>
                             <?php } ?>
                             <tr>
-                                <th>Subtotal:</th>
+                                <td style="font-weight: bold">Subtotal:</td>
                                 <td><?php echo showWithCurrencySymbol(get_data_by_id('final_amount','invoice','invoice_id',$invoiceId));?></td>
                             </tr>
                         <?php }?>
@@ -168,7 +191,7 @@
                         $nagadPay = get_data_by_id('nagad_paid','invoice','invoice_id',$invoiceId);
                         if ($nagadPay != 0) {
                             echo '<tr>
-		                <th>Cash Pay:</th>
+		                <td style="font-weight: bold;">Cash Pay:</td>
 		                <td>'.showWithCurrencySymbol($nagadPay).'</td>
 		              </tr>';
                         }
@@ -176,7 +199,7 @@
                         $bankPay = get_data_by_id('bank_paid','invoice','invoice_id',$invoiceId);
                         if ($bankPay != 0) {
                             echo '<tr>
-		                <th>Bank Pay:</th>
+		                <td style="font-weight: bold;">Bank Pay:</td>
 		                <td>'.showWithCurrencySymbol($bankPay).'</td>
 		              </tr>';
                         }
@@ -184,7 +207,7 @@
                         $chaquePay = get_data_by_id('chaque_paid','invoice','invoice_id',$invoiceId);
                         if ($chaquePay != 0) {
                             echo '<tr>
-		                <th>Cheque Pay:</th>
+		                <td style="font-weight: bold;">Cheque Pay:</td>
 		                <td>'.showWithCurrencySymbol($chaquePay).'</td>
 		              </tr>';
                         }
@@ -192,17 +215,19 @@
                         ?>
 
                         <tr>
-                            <th>Today Due:</th>
+                            <td style="font-weight: bold">Today Due:</td>
                             <td><?php echo showWithCurrencySymbol(get_data_by_id('due','invoice','invoice_id',$invoiceId));?></td>
                         </tr>
+                        <?php if (!empty($invoiceData->previous_due)){ ?>
                          <tr>
-                            <th>Previous Due:</th>
-                            <td><?php echo showWithCurrencySymbol($oldDue);?></td>
+                            <td style="font-weight: bold">Previous <?= ($invoiceData->previous_due > 0)?'Due':'Balance';?>:</td>
+                            <td><?php echo showWithCurrencySymbol($invoiceData->previous_due);?></td>
                           </tr>
                           <tr>
-                            <th>Total Due:</th>
-                            <td><?php echo showWithCurrencySymbol($totalDue);?></td>
+                            <td style="font-weight: bold">Total <?= ($invoiceData->previous_due > 0)?'Due':'Balance';?>:</td>
+                            <td><?php echo showWithCurrencySymbol($invoiceData->previous_due + $invoiceData->due);?></td>
                           </tr>
+                        <?php } ?>
                         </tbody></table>
                 </div>
             </div>

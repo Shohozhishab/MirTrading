@@ -73,8 +73,8 @@ class Ledger extends BaseController
         $view = ' <div class="box" >
                         <div class="box-header">
                             <h3 class="box-title">Customer: ' . $name . '</h3>
-                            <span class="pull-right"><table class="table table-bordered table-striped" id="TFtable"><tr><td> Total Buy:</td><td>' . showWithCurrencySymbol(get_total('ledger', 'amount', 'Cr.', 'customer_id', $customerId)) . '</td></tr><tr><td>Total Pay:</td><td>' . showWithCurrencySymbol(get_total('ledger', 'amount', 'Dr.', 'customer_id', $customerId)) .
-            '</td></tr><tr><td>Due Balance:</td><td>' . showWithCurrencySymbol($balance) . '</td></tr></table></span>
+                            <span class="pull-right"><table class="table table-bordered table-striped" id="TFtable"><tr><td> Total Buy:</td><td>' . showWithCurrencySymbol(get_total('ledger', 'amount', 'Dr.', 'customer_id', $customerId)) . '</td></tr><tr><td>Total Pay:</td><td>' . showWithCurrencySymbol(get_total('ledger', 'amount', 'Cr.', 'customer_id', $customerId)) .
+            '</td></tr><tr><td>Last Balance:</td><td>' . showWithCurrencySymbol($balance) . '</td></tr></table></span>
                         </div>
                     <div class="box-body">
                         <table class="table table-bordered table-striped" id="example1">
@@ -223,7 +223,7 @@ class Ledger extends BaseController
         $view = ' <div class="box" >
                         <div class="box-header">
                             <h3 class="box-title">Customer: ' . $name . '</h3>
-                            <span class="pull-right"><table class="table table-bordered table-striped" id="TFtable"><tr><td> Total Buy:</td><td>' . showWithCurrencySymbol(get_total('ledger', 'amount', 'Cr.', 'customer_id', $customerId, $st_date, $en_date)) . '</td></tr><tr><td>Total Pay:</td><td>' . showWithCurrencySymbol(get_total('ledger', 'amount', 'Dr.', 'customer_id', $customerId, $st_date, $en_date)) .
+                            <span class="pull-right"><table class="table table-bordered table-striped" id="TFtable"><tr><td> Total Buy:</td><td>' . showWithCurrencySymbol(get_total('ledger', 'amount', 'Dr.', 'customer_id', $customerId, $st_date, $en_date)) . '</td></tr><tr><td>Total Pay:</td><td>' . showWithCurrencySymbol(get_total('ledger', 'amount', 'Cr.', 'customer_id', $customerId, $st_date, $en_date)) .
             '</td></tr><tr><td>Due Balance:</td><td>' . showWithCurrencySymbol($balance) . '</td></tr></table></span>
                         </div>
                     <div class="box-body">

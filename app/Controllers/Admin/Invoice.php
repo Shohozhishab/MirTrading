@@ -106,6 +106,7 @@ class Invoice extends BaseController
 
             $data['oldDue'] = $rest_balance - $amount;
             $data['totalDue'] = $data['oldDue'] + $invoiceDue;
+            $data['invoiceData'] = $invoiceDueData;
             //Due calculation (end)
 
             $data['menu'] = view('Admin/menu_report', $data);

@@ -68,6 +68,9 @@
                                     <td><?php echo $val->present_address; ?></td>
                                     <td><?php echo $val->age; ?></td>
                                     <td>
+                                        <a href="<?= site_url('/Admin/Return_sale?customer=' . $val->customer_id)?>" class="btn btn-warning btn-xs">Return List</a>
+                                        <a href="<?= site_url('/Admin/Exchange_product?customer=' . $val->customer_id)?>" class="btn btn-warning btn-xs">Exchange List</a>
+
                                         <a href="javascript:void(0)"
                                            onclick="showData('<?php echo site_url('/Admin/Customers_ajax/transaction/' . $val->customer_id); ?>','<?php echo '/Admin/Customers/transaction/' . $val->customer_id; ?>')"
                                            class="btn btn-primary btn-xs">Transaction</a>

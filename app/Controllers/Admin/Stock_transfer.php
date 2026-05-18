@@ -132,9 +132,6 @@ class Stock_transfer extends BaseController
             return redirect()->to(site_url('Admin/Stock_transfer'));
         }
 
-        print_r($proId);
-
-        die();
         $db = DB();
         $db->transStart();
             //stock transfer data insert

@@ -113,12 +113,19 @@ class Exchange_product extends BaseController
 
         // If customer name of id not selected (start)
         if (empty($customerName) && empty($customerId)) {
+            $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert"> Customer not selected! <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
             return redirect()->to(site_url('Admin/Exchange_product'));
         }
         // If customer name of id not selected (End)
         // Check if all product IDs are empty
+        if (empty($proId)) {
+            $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert"> Product not selected! <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+            return redirect()->to(site_url('Admin/Exchange_product'));
+        }
+
         $filteredProId = array_filter($proId);
         if (empty($filteredProId)) {
+            $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert"> Product not selected! <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
             return redirect()->to(site_url('Admin/Exchange_product'));
         }
 

@@ -15,8 +15,9 @@
             <div class="col-xs-12" style="margin-bottom: 15px;">
                 <?php echo $menu;?>
             </div>
-            <div class="col-xs-12">
-                <form action="<?= base_url('Admin/Exchange_product/exchangeAction') ?>" method="post">
+            <div class="col-xs-12" >
+
+                <form id="exchangeForm" action="<?= base_url('Admin/Exchange_product/exchangeAction') ?>" method="post" onsubmit="return validateExchangeForm()" >
                     <div class="box">
                         <div class="box-header">
                             <div class="row">
@@ -26,7 +27,7 @@
                                 <div class="col-lg-6"></div>
                             </div>
 
-
+                            <div id="errorMsg"></div>
                         </div>
                         <!-- /.box-header -->
                         <div class="box-body">
@@ -80,12 +81,12 @@
                                     </div>
                                     <div class="form-group" >
                                         <label for="varchar">Comment </label>
-                                        <textarea class="form-control" name="commentMain" required></textarea>
+                                        <textarea class="form-control" name="commentMain" ></textarea>
                                     </div>
 
                                     <div class="form-group" >
                                         <label for="varchar">Store </label>
-                                        <select class="form-control" name="store_id" id="store_id"  required>
+                                        <select class="form-control" name="store_id" id="store_id"  >
                                             <option value="">Please Select</option>
                                             <?php foreach ($stores as $val){ ?>
                                                 <option value="<?= $val->store_id ?>"><?= $val->name ?></option>
@@ -134,6 +135,7 @@
     </section>
     <!-- /.content -->
 </div>
+
 <script>
     function addLot(prodctId, showID) {
         let html = `<div class="item template" style="display:flex; margin-top:5px;">
@@ -207,4 +209,74 @@
         }
     }
 
+    function validateExchangeForm() {
+
+        let checkedProduct = document.querySelectorAll('.datatables:checked').length;
+
+        let comment = document.querySelector('[name="commentMain"]').value.trim();
+
+        let store = document.getElementById('store_id').value;
+
+        let message = '';
+
+        // Product validation
+        if (checkedProduct == 0) {
+
+            message += 'Please select at least one product .<br>';
+
+        }
+
+        // Quantity validation
+        let checkedRows = document.querySelectorAll('.datatables:checked');
+
+        checkedRows.forEach(function (item) {
+
+            let row = item.closest('tr');
+
+            let qty = row.querySelector('.quantity').value;
+
+            let maxQty = row.querySelector('.quantity').max;
+
+            if (qty == '' || qty <= 0) {
+
+                message += 'Quantity must be greater than 0 .<br>';
+
+            }
+
+            if (parseInt(qty) > parseInt(maxQty)) {
+
+                message += 'Quantity cannot exceed stock .<br>';
+
+            }
+
+        });
+
+        // Comment validation
+        if (comment == '') {
+
+            message += 'Comment is required .<br>';
+
+        }
+
+        // Store validation
+        if (store == '') {
+
+            message += 'Please select store <br>';
+
+        }
+
+        // Final validation
+        if (message != '') {
+
+            $('#errorMsg').html(
+                '<div class="alert alert-danger">' + message + '</div>'
+            );
+
+            return false;
+
+        }
+
+        return true;
+
+    }
 </script>

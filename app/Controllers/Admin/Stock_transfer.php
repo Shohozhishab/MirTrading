@@ -116,16 +116,21 @@ class Stock_transfer extends BaseController
         $toStockId = $this->request->getPost('store_id');
         $defaultStoreId = $this->request->getPost('from_stock_id');
 
-        $proId = $this->request->getPost('prod_id[]');
+        $proId = $this->request->getPost('returnchecked[]');
         $quantity = $this->request->getPost('quantity[]');
 
         // If customer name of id not selected (End)
         // Check if all product IDs are empty
-        $filteredProId = array_filter($proId);
-        if (empty($filteredProId)) {
+        if (empty($proId)) {
+            $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert"> Product not selected! <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
             return redirect()->to(site_url('Admin/Stock_transfer'));
         }
 
+        $filteredProId = array_filter($proId);
+        if (empty($filteredProId)) {
+            $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert"> Product not selected! <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+            return redirect()->to(site_url('Admin/Stock_transfer'));
+        }
 
         $db = DB();
         $db->transStart();

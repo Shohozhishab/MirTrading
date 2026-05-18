@@ -16,7 +16,7 @@
                 <?php echo $menu;?>
             </div>
             <div class="col-xs-12">
-                <form action="<?php echo $action; ?>" method="post">
+                <form action="<?php echo $action; ?>" method="post" onsubmit="return validateReturnForm()">
                     <div class="box">
                         <div class="box-header">
                             <div class="row">
@@ -25,7 +25,10 @@
                                 </div>
                                 <div class="col-lg-6"></div>
                             </div>
-
+                            <div class="col-lg-12" style="margin-top: 20px;">
+                                <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
+                                <div id="errorMsg"></div>
+                            </div>
 
                         </div>
                         <!-- /.box-header -->
@@ -193,3 +196,60 @@
     </section>
     <!-- /.content -->
 </div>
+
+<script>
+    function validateReturnForm() {
+
+        let checkedProduct = document.querySelectorAll('.datatables:checked').length;
+
+        let message = '';
+
+        // Product validation
+        if (checkedProduct == 0) {
+
+            message += 'Please select at least one product .<br>';
+
+        }
+
+        // Quantity validation
+        let checkedRows = document.querySelectorAll('.datatables:checked');
+
+        checkedRows.forEach(function (item) {
+
+            let row = item.closest('tr');
+
+            let qty = row.querySelector('.quantity').value;
+
+            let maxQty = row.querySelector('.quantity').max;
+
+            if (qty == '' || qty <= 0) {
+
+                message += 'Quantity must be greater than 0 .<br>';
+
+            }
+
+            if (parseInt(qty) > parseInt(maxQty)) {
+
+                message += 'Quantity cannot exceed stock .<br>';
+
+            }
+
+        });
+
+
+
+        // Final validation
+        if (message != '') {
+
+            $('#errorMsg').html(
+                '<div class="alert alert-danger">' + message + '</div>'
+            );
+
+            return false;
+
+        }
+
+        return true;
+
+    }
+</script>

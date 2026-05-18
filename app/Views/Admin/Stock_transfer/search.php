@@ -16,7 +16,7 @@
                 <?php echo $menu;?>
             </div>
             <div class="col-xs-12">
-                <form action="<?= base_url('Admin/Stock_transfer/transferAction') ?>" method="post">
+                <form onsubmit="return validateTransferForm()" action="<?= base_url('Admin/Stock_transfer/transferAction') ?>" method="post" >
                     <div class="box">
                         <div class="box-header">
                             <div class="row">
@@ -25,7 +25,7 @@
                                 </div>
                                 <div class="col-lg-6"></div>
                             </div>
-
+                            <div id="errorMsg"></div>
 
                         </div>
                         <!-- /.box-header -->
@@ -42,8 +42,7 @@
                                 <tbody>
                                 <?php foreach ($result as $row) { ?>
                                     <tr role="row" class="odd">
-                                        <td><input type="checkbox" name="returnchecked[]" class="datatables" id="checkedProd" value="<?= $row->prod_id; ?>">
-                                            <input type="hidden" name="prod_id[]" value="<?= $row->prod_id ?>"></td>
+                                        <td><input type="checkbox" name="returnchecked[]" class="datatables" id="checkedProd" value="<?= $row->prod_id; ?>"> </td>
                                         <td><?= $row->name;?></td>
                                         <td><input type="number" class="quantity form-control" id="quantity" name="quantity[]" min="1" max="<?= $row->quantity ?>" placeholder="Quantity" value="<?php echo $row->quantity ?>"></td>
                                     </tr>
@@ -54,7 +53,7 @@
                                 <input type="hidden" name="from_stock_id" value="<?= $storeId ?>">
                                 <div class="form-group col-md-6" >
                                     <label for="varchar">Store </label>
-                                    <select class="form-control" name="store_id" required>
+                                    <select class="form-control" name="store_id" id="store_id">
                                         <option value="">Please Select</option>
                                         <?php foreach ($stores as $val){ ?>
                                             <option value="<?= $val->store_id ?>"><?= $val->name ?></option>
@@ -80,3 +79,65 @@
     </section>
     <!-- /.content -->
 </div>
+<script>
+    function validateTransferForm() {
+
+        let checkedProduct = document.querySelectorAll('.datatables:checked').length;
+
+        let store = document.getElementById('store_id').value;
+
+        let message = '';
+
+        // Product validation
+        if (checkedProduct == 0) {
+
+            message += 'Please select at least one product .<br>';
+
+        }
+
+        // Quantity validation
+        let checkedRows = document.querySelectorAll('.datatables:checked');
+
+        checkedRows.forEach(function (item) {
+
+            let row = item.closest('tr');
+
+            let qty = row.querySelector('.quantity').value;
+
+            let maxQty = row.querySelector('.quantity').max;
+
+            if (qty == '' || qty <= 0) {
+
+                message += 'Quantity must be greater than 0 .<br>';
+
+            }
+
+            if (parseInt(qty) > parseInt(maxQty)) {
+
+                message += 'Quantity cannot exceed stock .<br>';
+
+            }
+
+        });
+        // Store validation
+        if (store == '') {
+
+            message += 'Please select store <br>';
+
+        }
+
+        // Final validation
+        if (message != '') {
+
+            $('#errorMsg').html(
+                '<div class="alert alert-danger">' + message + '</div>'
+            );
+
+            return false;
+
+        }
+
+        return true;
+
+    }
+</script>

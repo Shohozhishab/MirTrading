@@ -26,43 +26,6 @@
                             </div>
                             <div class="col-lg-8">
                                 <form method="post" action="<?php echo site_url('Admin/Stock_transfer/search') ?>"  >
-                                    <div class="col-lg-3">
-                                        <div class="form-group">
-                                            <label for="varchar">Store </label>
-                                            <select class="form-control" name="type" onchange="typeChange(this.value)"  id="typeSelect" required>
-                                                <option value="product">Product</option>
-                                                <option value="brand">Brand</option>
-                                                <option value="category">Category</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-lg-3">
-                                        <div class="form-group" id="productDiv">
-                                            <label>Product Id</label>
-                                            <input type="number" class="form-control" name="prod_id" >
-                                        </div>
-
-                                        <div class="form-group" id="brandDiv" style="display:none;">
-                                            <label>Brand Id</label>
-                                            <select class="form-control" name="brand_id" >
-                                                <option value="">Please Select</option>
-                                                <?php foreach ($brand as $value){?>
-                                                    <option value="<?= $value->brand_id?>"><?= $value->name?></option>
-                                                <?php } ?>
-                                            </select>
-                                        </div>
-
-                                        <div class="form-group" id="categoryDiv" style="display:none;">
-                                            <label>Category Id</label>
-                                            <select class="form-control" name="prod_cat_id"  >
-                                                <option value="">Please Select</option>
-                                                <?php foreach ($category as $val){?>
-                                                <option value="<?= $val->prod_cat_id?>"><?= $val->product_category?></option>
-                                                <?php } ?>
-                                            </select>
-                                        </div>
-                                    </div>
                                     <div class="col-lg-3 ">
                                         <div class="form-group" >
                                             <label for="varchar">Store </label>
@@ -74,6 +37,46 @@
                                             </select>
                                         </div>
                                     </div>
+
+                                    <div class="col-lg-3">
+                                        <div class="form-group">
+                                            <label for="varchar">Item </label>
+                                            <select class="form-control" name="type" onchange="typeChange(this.value)"  id="typeSelect" >
+                                                <option value="">Please Select</option>
+                                                <option value="product">Product</option>
+                                                <option value="brand">Brand</option>
+                                                <option value="category">Category</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3">
+                                        <div class="form-group" id="productDiv" style="display:none;">
+                                            <label>Product Id</label>
+                                            <input type="number" class="form-control" name="prod_id" id="prodId" >
+                                        </div>
+
+                                        <div class="form-group" id="brandDiv" style="display:none;">
+                                            <label>Brand Id</label>
+                                            <select class="form-control" name="brand_id" id="brandId">
+                                                <option value="">Please Select</option>
+                                                <?php foreach ($brand as $value){?>
+                                                    <option value="<?= $value->brand_id?>"><?= $value->name?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group" id="categoryDiv" style="display:none;">
+                                            <label>Category Id</label>
+                                            <select class="form-control" name="prod_cat_id" id="prodCatId" >
+                                                <option value="">Please Select</option>
+                                                <?php foreach ($category as $val){?>
+                                                <option value="<?= $val->prod_cat_id?>"><?= $val->product_category?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </div>
+                                    </div>
+
                                     <div class="col-lg-3 ">
                                         <button style="margin-top: 25px;" class="btn btn-primary " type="submit">search</button>
                                     </div>

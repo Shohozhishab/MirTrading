@@ -42,8 +42,10 @@
                 </a>
                 <ul class="treeview-menu">
                     <?php echo add_main_ajax_based_menu_with_permission('Sales List', '/Admin/Sales', $role_id, 'fa fa-cart-plus', '/Admin/Sales_ajax','Sales'); ?>
-                    <?php echo add_main_ajax_based_menu_with_permission('Return  Sales', '/Admin/Return_sale', $role_id, 'fa fa-cart-plus', '/Admin/Return_sale_ajax','Return_sale'); ?>
                     <?php echo add_main_ajax_based_menu_with_permission('Invoice', '/Admin/Invoice', $role_id, 'fa fa fa-tasks', '/Admin/Invoice_ajax','Invoice'); ?>
+                    <?php echo add_main_ajax_based_menu_with_permission('Return  Sales', '/Admin/Return_sale', $role_id, 'fa fa-cart-plus', '/Admin/Return_sale_ajax','Return_sale'); ?>
+                    <?php echo add_main_ajax_based_menu_with_permission('Exchange Product', '/Admin/Exchange_product', $role_id, 'fa fa-tasks', '/Admin/Exchange_product_ajax','ExchangeProduct'); ?>
+                    <?php echo add_main_ajax_based_menu_with_permission('Stock Transfer', '/Admin/Stock_transfer', $role_id, 'fa fa-tasks', '/Admin/Stock_transfer_ajax','StockTransfer'); ?>
                 </ul>
             </li>
             <?php } ?>

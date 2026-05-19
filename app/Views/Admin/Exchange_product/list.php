@@ -55,7 +55,7 @@
                                     </div>
 
                                     <div class="col-lg-8 pull-right">
-                                        <label>Customer</label>
+                                        <label>Customer</label><br>
                                         <select class="form-control select2" name="customer" required>
                                             <option value="">Please Select</option>
                                             <?= getAllListInOptionWithStatus( $customerId, 'customer_id', 'customer_name', 'customers', 'customer_name' );?>

@@ -54,9 +54,14 @@
                                     $lot = $table->get()->getResult();
                                     $lotId = 0;
                                     ?>
+
                                     <tr role="row" class="odd">
                                         <td><input type="checkbox" name="prod_id[]" class="datatables" id="checkedProd" value="<?php echo $row->prod_id; ?>" checked hidden="">
-
+                                            <?php if ($exchangeProduct->type == 'Unconditional') {?>
+                                            <input type="hidden" name="transfer_item_id[]" value="<?= $row->stock_transfer_item_id ?>">
+                                            <?php }else{?>
+                                            <input type="hidden" name="product_item_id[]" value="<?= $row->exchange_product_item_id ?>">
+                                            <?php } ?>
                                         <?php echo get_data_by_id('name', 'products', 'prod_id', $row->prod_id) ?></td>
                                         <td><?php echo $row->quantity ?></td>
                                         <td><div id="showId_<?= ($exchangeProduct->type == 'Unconditional')?$row->stock_transfer_item_id:$row->exchange_product_item_id; ?>">
@@ -106,7 +111,7 @@
                                         <select class="form-control" name="status" id="status"  required>
                                             <option value="1" <?= ($status->status == 1)?'selected':''; ?>>Received From Customer</option>
                                             <option value="2" <?= ($status->status == 2)?'selected':''; ?>>Sent to Warehouse</option>
-                                            <option value="4" <?= ($status->status == 3)?'selected':''; ?>>Received From Warehouse</option>
+                                            <option value="3" <?= ($status->status == 3)?'selected':''; ?>>Received From Warehouse</option>
                                             <option value="4" <?= ($status->status == 4)?'selected':''; ?>>Complete</option>
                                             <option value="5" <?= ($status->status == 5)?'selected':''; ?>>Canceled with no return</option>
                                         </select>

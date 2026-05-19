@@ -212,70 +212,45 @@
     function validateExchangeForm() {
 
         let checkedProduct = document.querySelectorAll('.datatables:checked').length;
-
         let comment = document.querySelector('[name="commentMain"]').value.trim();
-
         let store = document.getElementById('store_id').value;
+        let type = document.querySelector('input[name="type"]:checked');
 
         let message = '';
-
         // Product validation
         if (checkedProduct == 0) {
-
             message += 'Please select at least one product .<br>';
-
         }
-
         // Quantity validation
         let checkedRows = document.querySelectorAll('.datatables:checked');
-
         checkedRows.forEach(function (item) {
-
             let row = item.closest('tr');
-
             let qty = row.querySelector('.quantity').value;
-
             let maxQty = row.querySelector('.quantity').max;
-
             if (qty == '' || qty <= 0) {
-
                 message += 'Quantity must be greater than 0 .<br>';
-
             }
-
             if (parseInt(qty) > parseInt(maxQty)) {
-
                 message += 'Quantity cannot exceed stock .<br>';
-
             }
-
         });
 
         // Comment validation
         if (comment == '') {
-
             message += 'Comment is required .<br>';
-
         }
-
-        // Store validation
-        if (store == '') {
-
-            message += 'Please select store <br>';
-
+        if (type.value == 'Unconditional') {
+            // Store validation
+            if (store == '') {message += 'Please select store <br>';}
         }
 
         // Final validation
         if (message != '') {
-
             $('#errorMsg').html(
                 '<div class="alert alert-danger">' + message + '</div>'
             );
-
             return false;
-
         }
-
         return true;
 
     }

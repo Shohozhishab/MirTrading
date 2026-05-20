@@ -89,6 +89,8 @@ class Stock_transfer extends BaseController
         } elseif ($type == 'category') {
             $table->where('products.prod_cat_id', $this->request->getPost('prod_cat_id'));
             $result = $table->get()->getResult();
+        }else{
+            $result = $table->get()->getResult();
         }
 
         $data['result'] = $result;

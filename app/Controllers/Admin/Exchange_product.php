@@ -384,14 +384,27 @@ class Exchange_product extends BaseController
         $comment = $this->request->getPost('comment[]');
 
 
+        $product_item_id = $this->request->getPost('product_item_id[]');
+        $transfer_item_id = $this->request->getPost('transfer_item_id[]');
 
         $db = DB();
         $db->transStart();
 
+        //delete lot info
+        if (!empty($product_item_id)){
+            foreach ($product_item_id as $item) {
+                $db->table('product_lot_info')->where('exchange_product_item_id', $item)->delete();
+            }
+        }
+        if (!empty($transfer_item_id)){
+            foreach ($transfer_item_id as $item) {
+                $db->table('product_lot_info')->where('stock_transfer_item_id', $item)->delete();
+            }
+        }
+        //lot data insert
         if (!empty($exchange_product_item_id)) {
             $data = [];
             foreach ($exchange_product_item_id as $key => $val) {
-                $db->table('product_lot_info')->where('exchange_product_item_id',$val)->delete();
                 $data[] = [
                     'exchange_product_item_id' => $val,
                     'number'                   => $number[$key],
@@ -400,19 +413,21 @@ class Exchange_product extends BaseController
                 ];
             }
             $db->table('product_lot_info')->insertBatch($data);
-        }else{
+        }
+        //lot data insert
+        if (!empty($stock_transfer_item_id)) {
             $data = [];
             foreach ($stock_transfer_item_id as $key => $val) {
-                $db->table('product_lot_info')->where('stock_transfer_item_id',$val)->delete();
                 $data[] = [
-                    'stock_transfer_item_id'   => $val,
-                    'number'                   => $number[$key],
-                    'date'                     => $date[$key],
-                    'comment'                  => $comment[$key],
+                    'stock_transfer_item_id' => $val,
+                    'number' => $number[$key],
+                    'date' => $date[$key],
+                    'comment' => $comment[$key],
                 ];
             }
             $db->table('product_lot_info')->insertBatch($data);
         }
+
 
         $db->table('exchange_product')->where('exchange_pro_id', $exchange_pro_id)->update(['comment'=>$commentMain]);
         $db->table('exchange_status_info')->where('exchange_pro_id', $exchange_pro_id)->update(['status'=>$status]);

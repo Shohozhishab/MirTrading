@@ -886,7 +886,8 @@ function goBack() {
             var customerId = $("#cus").val();
 
             //if (duetotal >= 0 && name != "" || duetotal >= 0 && customerId != "") {
-            if (duetotal < 0 || name == "" && duetotal < 0 || customerId == "") {
+            // if (duetotal < 0 || name == "" && duetotal < 0 || customerId == "") {
+            if ((name == "" || duetotal < 0) && customerId == "") {
                 $('#btn').hide();
                 $('#mess').html('<span style="color:red">wrong input!! please correct inputs to proceed.</span>');
             }else{
@@ -3471,24 +3472,27 @@ function opening_status(url){
       });
 
   });
-  
-  function typeChange(val){
-      let value = val;
 
-      // hide all
-      document.getElementById("productDiv").style.display = "none";
-      document.getElementById("brandDiv").style.display = "none";
-      document.getElementById("categoryDiv").style.display = "none";
+  function typeChange(value) {
+      const config = {
+          product:  { div: "productDiv",  input: "prodId" },
+          brand:    { div: "brandDiv",    input: "brandId" },
+          category: { div: "categoryDiv", input: "prodCatId" }
+      };
 
-      // show selected
-      if (value === "product") {
-          document.getElementById("productDiv").style.display = "block";
-      } else if (value === "brand") {
-          document.getElementById("brandDiv").style.display = "block";
-      } else if (value === "category") {
-          document.getElementById("categoryDiv").style.display = "block";
+      // Reset everything
+      Object.values(config).forEach(item => {
+          document.getElementById(item.div).style.display = "none";
+          document.getElementById(item.input).required = false;
+      });
+
+      // Activate selected section
+      if (config[value]) {
+          document.getElementById(config[value].div).style.display = "block";
+          document.getElementById(config[value].input).required = true;
       }
   }
+  
 
   function affiliateUserValidat(){
       var name = $('#name').val();
@@ -3553,6 +3557,56 @@ function opening_status(url){
           $('#geniusform').submit();
       }
   }
+
+  function downloadPDF(dataId,prefix) {
+      // Show hidden div before generating PDF
+      let element = document.getElementById(dataId);
+      element.style.display = 'block';
+      let opt = {
+          margin: [10, 0, 0, 0], // top, left, bottom, right
+          filename: 'ledger-'+prefix+'.pdf',
+          image: { type: 'jpeg', quality: 1 },
+          html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait'  },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      html2pdf().set(opt).from(element).save().then(() => {
+          // Hide again after download
+          element.style.display = 'none';
+      });
+  }
+
+  function downloadCSV(dataId,prefix) {
+      let id = '#'+dataId;
+      let table = document.querySelector(id+" table");
+      let rows = table.querySelectorAll("tr");
+      let csv = [];
+      rows.forEach(row => {
+          let cols = row.querySelectorAll("th, td");
+          let rowData = [];
+          cols.forEach(col => {
+              let text = col.innerText
+                  .replace(/(\r\n|\n|\r)/gm, "")
+                  .replace(/,/g, " "); // remove commas
+              rowData.push('"' + text + '"');
+          });
+          csv.push(rowData.join(","));
+      });
+
+      // Create CSV file
+      let csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
+
+      // Download link
+      let downloadLink = document.createElement("a");
+      downloadLink.download = "ledger-"+prefix+".csv";
+      downloadLink.href = window.URL.createObjectURL(csvFile);
+
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+  }
+
 </script>
 
 

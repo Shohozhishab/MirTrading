@@ -781,6 +781,13 @@ class Sales extends BaseController
                 //insert log (start)
                 $this->transactionLog->insert_log_data('ledger',$ledg_id,'',$nagod,'','',$invoiceId,'');
                 //insert log (end)
+
+                //invoice total Due add
+                $invoiceTotalBalanceData = array(
+                    'total' => $newcastCash,
+                );
+                $invoiceTabl = DB()->table('invoice');
+                $invoiceTabl->where('invoice_id', $invoiceId)->update($invoiceTotalBalanceData);
             }
             //cash pay amount and customer balance amount calculate and update customer balance (end)
         }
@@ -860,7 +867,16 @@ class Sales extends BaseController
                 $this->transactionLog->insert_log_data('ledger',$ledg_id,'',$bankAmount,'','',$invoiceId,'');
                 //insert log (end)
 
+                //invoice total Due add
+                $invoiceTotalBalanceData = array(
+                    'total' => $bankastCash,
+                );
+                $invoiceTabl = DB()->table('invoice');
+                $invoiceTabl->where('invoice_id', $invoiceId)->update($invoiceTotalBalanceData);
+
             }
+
+
 
         }
         // bank pay amount calculate and bank balance update (end)

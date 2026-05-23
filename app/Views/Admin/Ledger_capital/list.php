@@ -27,6 +27,22 @@
                             <div class="col-lg-12" style="margin-top: 20px;">
                                 <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
                             </div>
+
+                            <div class="col-lg-12">
+                                <form action="<?= base_url('Admin/Ledger_capital')?>" method="get">
+                                    <div class="col-xs-3" style="padding: 17px;">
+                                        <label>Start Date</label>
+                                        <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>" id="st_date" required>
+                                    </div>
+                                    <div class="col-xs-3" style="padding: 17px;">
+                                        <label>End Date</label>
+                                        <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>" id="en_date" required>
+                                    </div>
+                                    <div class="col-xs-3" style="padding: 18px;">
+                                        <button style="margin-top: 22px;" class="btn btn-primary " type="submit">Filter </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                     <!-- /.box-header -->
@@ -84,6 +100,8 @@
                 <div class="row no-print" >
                     <div class="col-xs-12">
                         <button onclick="printDiv('ledgPrint')"    class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
+                        <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','profit')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                        <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','profit')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
                     </div>
                 </div>
             </div>

@@ -224,8 +224,8 @@
                             <td><?php echo showWithCurrencySymbol($invoiceData->previous_due);?></td>
                           </tr>
                           <tr>
-                            <td style="font-weight: bold">Total <?= ($invoiceData->previous_due > 0)?'Due':'Balance';?>:</td>
-                            <td><?php echo showWithCurrencySymbol($invoiceData->previous_due + $invoiceData->due);?></td>
+                            <td style="font-weight: bold">Total <?= ($invoiceData->total > 0)?'Due':'Balance';?>:</td>
+                            <td><?php echo showWithCurrencySymbol($invoiceData->total);?></td>
                           </tr>
                         <?php } ?>
                         </tbody></table>

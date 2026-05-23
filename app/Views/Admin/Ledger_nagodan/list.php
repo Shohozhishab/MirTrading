@@ -110,6 +110,8 @@
 
                             <div class="col-xs-12">
                                 <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right"><i class="fa fa-print "></i> Print Now </button>
+                                <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','cash')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','cash')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
                             </div>
 
 
@@ -121,9 +123,9 @@
                         <div class="col-xs-12" style="margin-bottom: 20px;   ">
                             <div class="col-xs-6">
                                 <?php if(logo_image() == NULL){ ?>
-                                    <img src="<?php echo base_url() ?>uploads/schools/no_image.jpg" alt="User Image" >
+                                    <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg" alt="User Image" >
                                 <?php }else{ ?>
-                                    <img src="<?php echo base_url(); ?>uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
+                                    <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
                                 <?php } ?>
                             </div>
                             <div class="col-xs-6">
@@ -170,6 +172,8 @@
                     <div class="row no-print" >
                         <div class="col-xs-12" id="printbutt" style="display: none;">
                             <button onclick="printDiv('ledger_cashPrint')"    class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
+                            <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledger_cashPrint','cash')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                            <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledger_cashPrint','cash')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
                         </div>
                     </div>
                     <!-- /.box-body -->

@@ -289,30 +289,31 @@ class Return_sale extends BaseController
 
         }
 
-        //All vat
-        $vatId = get_data_by_id('vat_id', 'vat_register', 'sch_id', $shopId);
-        $vatBalance = get_data_by_id('balance', 'vat_register', 'sch_id', $shopId);
+        if (!empty($totalVat)) {
+            //All vat
+            $vatId = get_data_by_id('vat_id', 'vat_register', 'sch_id', $shopId);
+            $vatBalance = get_data_by_id('balance', 'vat_register', 'sch_id', $shopId);
 
-        $vatrestBal = $vatBalance + $totalVat;
-        $vatData = array(
-            'balance' => $vatrestBal,
-        );
-        $vat_registerTab = DB()->table('vat_register');
-        $vat_registerTab->where('sch_id', $shopId)->update($vatData);
+            $vatrestBal = $vatBalance + $totalVat;
+            $vatData = array(
+                'balance' => $vatrestBal,
+            );
+            $vat_registerTab = DB()->table('vat_register');
+            $vat_registerTab->where('sch_id', $shopId)->update($vatData);
 
-        $vatLedData = array(
-            'vat_id' => $vatId,
-            'invoice_id' => $InvId,
-            'sch_id' => $shopId,
-            'particulars' => 'Return Sale Vat return',
-            'trangaction_type' => 'Dr.',
-            'amount' => $totalVat,
-            'rest_balance' => $vatrestBal,
-            'createdBy' => $shopId,
-        );
-        $ledger_vatTab = DB()->table('ledger_vat');
-        $ledger_vatTab->insert($vatLedData);
-
+            $vatLedData = array(
+                'vat_id' => $vatId,
+                'invoice_id' => $InvId,
+                'sch_id' => $shopId,
+                'particulars' => 'Return Sale Vat return',
+                'trangaction_type' => 'Dr.',
+                'amount' => $totalVat,
+                'rest_balance' => $vatrestBal,
+                'createdBy' => $shopId,
+            );
+            $ledger_vatTab = DB()->table('ledger_vat');
+            $ledger_vatTab->insert($vatLedData);
+        }
 
         if ($customerId) {
             //return sale amount calculet and update customer balance (Start)

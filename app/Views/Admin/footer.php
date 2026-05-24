@@ -53,6 +53,8 @@
 
 <script  src="<?php print base_url(); ?>/bower_components/select2/dist/js/select2.full.min.js"></script>
 
+<script src="<?php print base_url(); ?>/dist/js/html2pdf.bundle.min.js"></script>
+
 <!-- AdminLTE for demo purposes -->
 <!--<script src="--><?php //echo base_url()?><!--/dist/js/demo.js"></script>-->
 <?php require_once(FCPATH .'dist/js/ajaxScript.php'); ?>

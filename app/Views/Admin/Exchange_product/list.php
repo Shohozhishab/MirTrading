@@ -24,17 +24,7 @@
                             <div class="col-lg-6">
                                 <h3 class="box-title">Exchange Product List</h3>
                             </div>
-                            <div class="col-lg-6">
-                                <form method="post" action="<?php echo site_url('Admin/Exchange_product/invoice_search') ?>"  >
-                                    <div class="col-lg-4 pull-right">
-                                        <button style="margin-top: 25px;" class="btn btn-primary " type="submit">search</button>
-                                    </div>
-                                    <div class="col-lg-8 pull-right">
-                                        <label>Input InvoiceId</label>
-                                        <input type="text" class="form-control" name="invoiceId" id="invoiceId"  required>
-                                    </div>
-                                </form>
-                            </div>
+
                             <div class="col-lg-12" style="margin-top: 20px;">
                                 <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
                             </div>
@@ -44,35 +34,70 @@
                     </div>
                     <!-- /.box-header -->
                     <div class="box-body">
-                        <div class="row">
-                            <div class="col-lg-3"></div>
-                            <div class="col-lg-6">
-                                <form method="get" action="<?php echo site_url('Admin/Exchange_product') ?>">
+
+                        <form method="get" action="<?php echo site_url('Admin/Exchange_product') ?>">
+                            <div class="col-lg-4" >
+                                <label>Customer</label><br>
+                                <select class="form-control select2" name="customer" >
+                                    <option value="">Please Select</option>
+                                    <?= getAllListInOptionWithStatus( $customerId, 'customer_id', 'customer_name', 'customers', 'customer_name' );?>
+                                </select>
+                            </div>
+                            <div class="col-lg-4" style="border-right: 1px solid;">
+                                <div class="col-lg-4 pull-right">
+                                    <button style="margin-top: 25px;" class="btn btn-primary" type="submit">
+                                        Search
+                                    </button>
+                                </div>
+                                <div class="col-lg-8 pull-right">
+                                    <label for="varchar">Conditional Status </label><br>
+                                    <select class="form-control select2" name="status" id="status"  >
+                                        <option value="" >Please Select</option>
+                                        <option value="1" <?= ($status == '1')?'selected':'';?> >Received From Customer</option>
+                                        <option value="2" <?= ($status == '2')?'selected':'';?> >Sent to Warehouse</option>
+                                        <option value="3" <?= ($status == '3')?'selected':'';?> >Received From Warehouse</option>
+                                        <option value="4" <?= ($status == '4')?'selected':'';?> >Complete</option>
+                                        <option value="5" <?= ($status == '5')?'selected':'';?> >Canceled with no return</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
+                            <div class="col-lg-4">
+                                <form method="post" action="<?php echo site_url('Admin/Exchange_product/invoice_search') ?>"  >
                                     <div class="col-lg-4 pull-right">
-                                        <button style="margin-top: 25px;" class="btn btn-primary" type="submit">
-                                            Search
-                                        </button>
+                                        <button style="margin-top: 25px;" class="btn btn-primary " type="submit">Search</button>
                                     </div>
-
                                     <div class="col-lg-8 pull-right">
-                                        <label>Customer</label><br>
-                                        <select class="form-control select2" name="customer" required>
-                                            <option value="">Please Select</option>
-                                            <?= getAllListInOptionWithStatus( $customerId, 'customer_id', 'customer_name', 'customers', 'customer_name' );?>
-                                        </select>
+                                        <label>Input Invoice ID</label>
+                                        <input type="text" class="form-control" name="invoiceId" id="invoiceId"  required>
                                     </div>
-
                                 </form>
                             </div>
-                            <div class="col-lg-3"></div>
 
-                        </div>
+                            <div class="col-lg-12">
+                                <form action="<?= base_url('Admin/Exchange_product')?>" method="get">
+                                    <div class="col-xs-3" style="padding: 17px;">
+                                        <label>Start Date</label>
+                                        <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>" id="st_date" required>
+                                    </div>
+                                    <div class="col-xs-3" style="padding: 17px;">
+                                        <label>End Date</label>
+                                        <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>" id="en_date" required>
+                                    </div>
+                                    <div class="col-xs-3" style="padding: 18px;">
+                                        <button style="margin-top: 22px;" class="btn btn-primary " type="submit">Filter </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                        <div class="col-lg-12" style="margin-top: 30px;"></div>
                         <table id="example1" class="table table-bordered table-striped text-capitalize">
                             <thead>
                             <tr>
                                 <th>No</th>
                                 <th>Date</th>
                                 <th>Type</th>
+                                <th>Status</th>
                                 <th>Customer</th>
                                 <th>Comment</th>
                                 <th>Action</th>
@@ -84,6 +109,7 @@
                                     <td><?php echo $i++ ?></td>
                                     <td><?php echo globalTimeStamp($item->createdDtm); ?></td>
                                     <td><?php echo $item->type; ?></td>
+                                    <td><?php echo get_exchange_status_by_id($item->exchange_pro_id); ?></td>
                                     <td><?php
                                         if(!empty($item->customer_id)){
                                             echo get_data_by_id('customer_name','customers','customer_id',$item->customer_id);
@@ -92,6 +118,7 @@
                                         }
 
                                         ?></td>
+
                                     <td><?php echo $item->comment; ?></td>
                                     <td>
                                         <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Exchange_product_ajax/view/'.$item->exchange_pro_id); ?>','<?php echo '/Admin/Exchange_product/view/'.$item->exchange_pro_id; ?>')" class="btn btn-primary btn-xs">View</a>
@@ -103,6 +130,64 @@
 
                             </tbody>
                         </table>
+
+                        <div class="row no-print" >
+                            <div class="col-xs-12">
+                                <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
+                                <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','exchangeProduct')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','exchangeProduct')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12" id="ledgPrint" style="display: none; text-transform: capitalize; " >
+                            <div class="col-xs-12" style="margin-bottom: 20px;   ">
+                                <div class="col-xs-6">
+                                    <?php if(logo_image() == NULL){ ?>
+                                        <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg" alt="User Image" >
+                                    <?php }else{ ?>
+                                        <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
+                                    <?php } ?>
+                                </div>
+                                <div class="col-xs-6">
+                                    <?php print address(); ?>
+                                </div>
+                            </div>
+                            <div class="col-md-12" >
+                                <table class="table table-bordered table-striped text-capitalize">
+                                    <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Customer</th>
+                                        <th>Comment</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php $i = 1; foreach ($exchangeProduct as $item) { ?>
+                                        <tr>
+                                            <td><?php echo $i++ ?></td>
+                                            <td><?php echo globalTimeStamp($item->createdDtm); ?></td>
+                                            <td><?php echo $item->type; ?></td>
+                                            <td><?php echo get_exchange_status_by_id($item->exchange_pro_id); ?></td>
+                                            <td><?php
+                                                if(!empty($item->customer_id)){
+                                                    echo get_data_by_id('customer_name','customers','customer_id',$item->customer_id);
+                                                }else{
+                                                    echo $item->customer_name;
+                                                }
+
+                                                ?></td>
+
+                                            <td><?php echo $item->comment; ?></td>
+                                        </tr>
+                                    <?php } ?>
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                     <!-- /.box-body -->
                 </div>

@@ -13,7 +13,7 @@
         <!-- Small boxes (Stat box) -->
         <div class="row">
             <div class="col-xs-12" style="margin-bottom: 15px;">
-                <a href="#" onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/create/'); ?>','<?php echo '/Admin/Transaction/create/';?>')"  class="btn btn-default">Add</a>
+                <a href="#" onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/create/'); ?>','<?php echo '/Admin/Transaction/create/'; ?>')" class="btn btn-default">Add</a>
             </div>
             <div class="col-xs-12">
 
@@ -25,11 +25,29 @@
                             </div>
                             <div class="col-lg-3">
                                 <a href="javascript:void(0)"
-                                   onclick="showData('<?php echo site_url('//Admin/Transaction_ajax/create/'); ?>','<?php echo '//Admin/Transaction/create/'; ?>')"
-                                   class="btn btn-block btn-primary">Add</a>
+                                    onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/create/'); ?>','<?php echo '/Admin/Transaction/create/'; ?>')"
+                                    class="btn btn-block btn-primary">Add</a>
                             </div>
+
+                            <div class="col-lg-12">
+                                <form action="<?= base_url('Admin/Transaction') ?>" method="get">
+                                    <div class="col-xs-3" style="padding: 17px;">
+                                        <label>Start Date</label>
+                                        <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>" id="st_date" required>
+                                    </div>
+                                    <div class="col-xs-3" style="padding: 17px;">
+                                        <label>End Date</label>
+                                        <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>" id="en_date" required>
+                                    </div>
+                                    <div class="col-xs-3" style="padding: 18px;">
+                                        <button style="margin-top: 22px;" class="btn btn-primary " type="submit">Filter </button>
+                                    </div>
+                                </form>
+                            </div>
+
                             <div class="col-lg-12" style="margin-top: 20px;" id="messageAcc">
-                                <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
+                                <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message');
+                                endif; ?>
                             </div>
                         </div>
 
@@ -60,40 +78,88 @@
                                         <div class="box-body">
                                             <table class="table table-bordered table-striped transaction" id="customer2">
                                                 <thead>
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>Customer</th>
-                                                    <th>Transaction Type</th>
-                                                    <th>Amount</th>
-                                                    <th>Action</th>
-                                                </tr>
+                                                    <tr>
+                                                        <th>No</th>
+                                                        <th>Customer</th>
+                                                        <th>Transaction Type</th>
+                                                        <th>Amount</th>
+                                                        <th>Action</th>
+                                                    </tr>
                                                 </thead>
                                                 <tbody>
-                                                <?php $i = 0;
-                                                foreach ($transaction_data as $row) {
-                                                    if ($row->customer_id != NULL) { ?>
-                                                        <tr>
-                                                            <td><?php echo ++$i; ?></td>
-                                                            <td><?php echo get_data_by_id('customer_name', 'customers', 'customer_id', $row->customer_id); ?></td>
-                                                            <td><?php echo $row->trangaction_type; ?></td>
-                                                            <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
-                                                            <td>
-                                                                <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/moneyReceipt/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/moneyReceipt/' . $row->trans_id; ?>')"
-                                                                   class="btn btn-xs btn-info">Money Receipt</a>
-                                                                <?php if(edit_expire_check($row->createdDtm) == true){ ?>
-                                                                <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="cusTranEdit('<?= $row->trans_id;?>')" data-toggle="modal" data-target="#modal-default" >Edit</a>
-                                                                <?php } ?>
+                                                    <?php $i = 0;
+                                                    foreach ($transaction_data as $row) {
+                                                        if ($row->customer_id != NULL) { ?>
+                                                            <tr>
+                                                                <td><?php echo ++$i; ?></td>
+                                                                <td><?php echo get_data_by_id('customer_name', 'customers', 'customer_id', $row->customer_id); ?></td>
+                                                                <td><?php echo $row->trangaction_type; ?></td>
+                                                                <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
+                                                                <td>
+                                                                    <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/moneyReceipt/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/moneyReceipt/' . $row->trans_id; ?>')"
+                                                                        class="btn btn-xs btn-info">Money Receipt</a>
+                                                                    <?php if (edit_expire_check($row->createdDtm) == true) { ?>
+                                                                        <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="cusTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
+                                                                    <?php } ?>
 
-                                                                <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
-                                                                   class="btn btn-xs btn-success">View</a>
+                                                                    <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
+                                                                        class="btn btn-xs btn-success">View</a>
 
-                                                            </td>
-                                                        </tr>
-                                                    <?php } } ?>
+                                                                </td>
+                                                            </tr>
+                                                    <?php }
+                                                    } ?>
                                                 </tbody>
 
                                             </table>
+                                            <div class="row no-print">
+                                                <div class="col-xs-12">
+                                                    <button onclick="printDiv('cusPrint')" class="print_line btn btn-primary pull-right"><i class="fa fa-print "></i> Print Now</button>
+                                                    <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('cusPrint','customer')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                                    <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('cusPrint','customer')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                                </div>
+                                            </div>
 
+                                            <div class="col-md-12" id="cusPrint" style="display: none; text-transform: capitalize; ">
+                                                <div class="col-xs-12" style="margin-bottom: 20px;   ">
+                                                    <div class="col-xs-6">
+                                                        <?php if (logo_image() == NULL) { ?>
+                                                            <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg" alt="User Image">
+                                                        <?php } else { ?>
+                                                            <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
+                                                        <?php } ?>
+                                                    </div>
+                                                    <div class="col-xs-6">
+                                                        <?php print address(); ?>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-12">
+                                                    <table class="table table-bordered table-striped ">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>No</th>
+                                                                <th>Customer</th>
+                                                                <th>Transaction Type</th>
+                                                                <th>Amount</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <?php $i = 0;
+                                                            foreach ($transaction_data as $row) {
+                                                                if ($row->customer_id != NULL) { ?>
+                                                                    <tr>
+                                                                        <td><?php echo ++$i; ?></td>
+                                                                        <td><?php echo get_data_by_id('customer_name', 'customers', 'customer_id', $row->customer_id); ?></td>
+                                                                        <td><?php echo $row->trangaction_type; ?></td>
+                                                                        <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
+                                                                    </tr>
+                                                            <?php }
+                                                            } ?>
+                                                        </tbody>
+
+                                                    </table>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -104,38 +170,87 @@
                                         <div class="box-body">
                                             <table class="table table-bordered table-striped supplier" id="supplier2">
                                                 <thead>
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>Supplier</th>
-                                                    <th>Transaction Type</th>
-                                                    <th>Amount</th>
-                                                    <th>Action</th>
-                                                </tr>
+                                                    <tr>
+                                                        <th>No</th>
+                                                        <th>Supplier</th>
+                                                        <th>Transaction Type</th>
+                                                        <th>Amount</th>
+                                                        <th>Action</th>
+                                                    </tr>
                                                 </thead>
                                                 <tbody>
-                                                <?php $i = 0;
-                                                foreach ($transaction_data as $row) {
-                                                    if ($row->supplier_id != NULL) { ?>
-                                                        <tr>
-                                                            <td><?php echo ++$i; ?></td>
-                                                            <td><?php echo get_data_by_id('name', 'suppliers', 'supplier_id', $row->supplier_id); ?></td>
-                                                            <td><?php echo $row->trangaction_type; ?></td>
-                                                            <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
-                                                            <td>
-                                                                <?php if(edit_expire_check($row->createdDtm) == true){ ?>
-                                                                <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="supplierTranEdit('<?= $row->trans_id;?>')" data-toggle="modal" data-target="#modal-default" >Edit</a>
-                                                                <?php } ?>
-                                                                <a href="javascript:void(0)"
-                                                                   onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
-                                                                   class="btn btn-xs btn-success">View</a>
+                                                    <?php $i = 0;
+                                                    foreach ($transaction_data as $row) {
+                                                        if ($row->supplier_id != NULL) { ?>
+                                                            <tr>
+                                                                <td><?php echo ++$i; ?></td>
+                                                                <td><?php echo get_data_by_id('name', 'suppliers', 'supplier_id', $row->supplier_id); ?></td>
+                                                                <td><?php echo $row->trangaction_type; ?></td>
+                                                                <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
+                                                                <td>
+                                                                    <?php if (edit_expire_check($row->createdDtm) == true) { ?>
+                                                                        <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="supplierTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
+                                                                    <?php } ?>
+                                                                    <a href="javascript:void(0)"
+                                                                        onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
+                                                                        class="btn btn-xs btn-success">View</a>
 
-                                                            </td>
-                                                        </tr>
+                                                                </td>
+                                                            </tr>
                                                     <?php }
-                                                } ?>
+                                                    } ?>
                                                 </tbody>
 
                                             </table>
+
+                                            <div class="row no-print">
+                                                <div class="col-xs-12">
+                                                    <button onclick="printDiv('supplierPrint')" class="print_line btn btn-primary pull-right"><i class="fa fa-print "></i> Print Now</button>
+                                                    <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('supplierPrint','supplier')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                                    <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('supplierPrint','supplier')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-12" id="supplierPrint" style="display: none; text-transform: capitalize; ">
+                                                <div class="col-xs-12" style="margin-bottom: 20px;   ">
+                                                    <div class="col-xs-6">
+                                                        <?php if (logo_image() == NULL) { ?>
+                                                            <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg" alt="User Image">
+                                                        <?php } else { ?>
+                                                            <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
+                                                        <?php } ?>
+                                                    </div>
+                                                    <div class="col-xs-6">
+                                                        <?php print address(); ?>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-12">
+                                                    <table class="table table-bordered table-striped ">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>No</th>
+                                                                <th>Supplier</th>
+                                                                <th>Transaction Type</th>
+                                                                <th>Amount</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <?php $i = 0;
+                                                            foreach ($transaction_data as $row) {
+                                                                if ($row->supplier_id != NULL) { ?>
+                                                                    <tr>
+                                                                        <td><?php echo ++$i; ?></td>
+                                                                        <td><?php echo get_data_by_id('name', 'suppliers', 'supplier_id', $row->supplier_id); ?></td>
+                                                                        <td><?php echo $row->trangaction_type; ?></td>
+                                                                        <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
+                                                                    </tr>
+                                                            <?php }
+                                                            } ?>
+                                                        </tbody>
+
+                                                    </table>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -146,38 +261,86 @@
                                         <div class="box-body">
                                             <table class="table table-bordered table-striped loanProvider" id="account2">
                                                 <thead>
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>Account Holder</th>
-                                                    <th>Transaction Type</th>
-                                                    <th>Amount</th>
-                                                    <th>Action</th>
-                                                </tr>
+                                                    <tr>
+                                                        <th>No</th>
+                                                        <th>Account Holder</th>
+                                                        <th>Transaction Type</th>
+                                                        <th>Amount</th>
+                                                        <th>Action</th>
+                                                    </tr>
                                                 </thead>
                                                 <tbody>
-                                                <?php $i = 0;
-                                                foreach ($transaction_data as $row) {
-                                                    if ($row->loan_pro_id != NULL) { ?>
-                                                        <tr>
-                                                            <td><?php echo ++$i; ?></td>
-                                                            <td><?php echo get_data_by_id('name', 'loan_provider', 'loan_pro_id', $row->loan_pro_id); ?></td>
-                                                            <td><?php echo $row->trangaction_type; ?></td>
-                                                            <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
-                                                            <td>
-                                                                <?php if(edit_expire_check($row->createdDtm) == true){ ?>
-                                                                <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="accountTranEdit('<?= $row->trans_id;?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
-                                                                <?php } ?>
-                                                                <a href="javascript:void(0)"
-                                                                   onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
-                                                                   class="btn btn-xs btn-success">View</a>
+                                                    <?php $i = 0;
+                                                    foreach ($transaction_data as $row) {
+                                                        if ($row->loan_pro_id != NULL) { ?>
+                                                            <tr>
+                                                                <td><?php echo ++$i; ?></td>
+                                                                <td><?php echo get_data_by_id('name', 'loan_provider', 'loan_pro_id', $row->loan_pro_id); ?></td>
+                                                                <td><?php echo $row->trangaction_type; ?></td>
+                                                                <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
+                                                                <td>
+                                                                    <?php if (edit_expire_check($row->createdDtm) == true) { ?>
+                                                                        <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="accountTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
+                                                                    <?php } ?>
+                                                                    <a href="javascript:void(0)"
+                                                                        onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
+                                                                        class="btn btn-xs btn-success">View</a>
 
-                                                            </td>
-                                                        </tr>
+                                                                </td>
+                                                            </tr>
                                                     <?php }
-                                                } ?>
+                                                    } ?>
                                                 </tbody>
 
                                             </table>
+                                            <div class="row no-print">
+                                                <div class="col-xs-12">
+                                                    <button onclick="printDiv('accountPrint')" class="print_line btn btn-primary pull-right"><i class="fa fa-print "></i> Print Now</button>
+                                                    <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('accountPrint','account')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                                    <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('accountPrint','account')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-12" id="accountPrint" style="display: none; text-transform: capitalize; ">
+                                                <div class="col-xs-12" style="margin-bottom: 20px;   ">
+                                                    <div class="col-xs-6">
+                                                        <?php if (logo_image() == NULL) { ?>
+                                                            <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg" alt="User Image">
+                                                        <?php } else { ?>
+                                                            <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
+                                                        <?php } ?>
+                                                    </div>
+                                                    <div class="col-xs-6">
+                                                        <?php print address(); ?>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-12">
+                                                    <table class="table table-bordered table-striped">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>No</th>
+                                                                <th>Account Holder</th>
+                                                                <th>Transaction Type</th>
+                                                                <th>Amount</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <?php $i = 0;
+                                                            foreach ($transaction_data as $row) {
+                                                                if ($row->loan_pro_id != NULL) { ?>
+                                                                    <tr>
+                                                                        <td><?php echo ++$i; ?></td>
+                                                                        <td><?php echo get_data_by_id('name', 'loan_provider', 'loan_pro_id', $row->loan_pro_id); ?></td>
+                                                                        <td><?php echo $row->trangaction_type; ?></td>
+                                                                        <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
+                                                                    </tr>
+                                                            <?php }
+                                                            } ?>
+                                                        </tbody>
+
+                                                    </table>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -188,35 +351,84 @@
                                         <div class="box-body">
                                             <table class="table table-bordered table-striped banktrans" id="fund2">
                                                 <thead>
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>Bank</th>
-                                                    <th>Transaction Type</th>
-                                                    <th>Amount</th>
-                                                    <th>Action</th>
-                                                </tr>
+                                                    <tr>
+                                                        <th>No</th>
+                                                        <th>Bank</th>
+                                                        <th>Transaction Type</th>
+                                                        <th>Amount</th>
+                                                        <th>Action</th>
+                                                    </tr>
                                                 </thead>
                                                 <tbody>
-                                                <?php $i = 0;
-                                                foreach ($transaction_data as $row) {
-                                                    if ($row->bank_to_id != NULL){ ?>
-                                                        <tr>
-                                                            <td><?php echo ++$i; ?></td>
-                                                            <td><?php echo get_data_by_id('name', 'bank', 'bank_id', $row->bank_id); ?></td>
-                                                            <td><?php echo $row->trangaction_type; ?></td>
-                                                            <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
-                                                            <td>
-                                                                <?php if(edit_expire_check($row->createdDtm) == true){ ?>
-                                                                <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="fundTranEdit('<?= $row->trans_id;?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
-                                                                <?php } ?>
-                                                                <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
-                                                                   class="btn btn-xs btn-success">View</a>
-                                                            </td>
-                                                        </tr>
-                                                <?php } } ?>
+                                                    <?php $i = 0;
+                                                    foreach ($transaction_data as $row) {
+                                                        if ($row->bank_to_id != NULL) { ?>
+                                                            <tr>
+                                                                <td><?php echo ++$i; ?></td>
+                                                                <td><?php echo get_data_by_id('name', 'bank', 'bank_id', $row->bank_id); ?></td>
+                                                                <td><?php echo $row->trangaction_type; ?></td>
+                                                                <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
+                                                                <td>
+                                                                    <?php if (edit_expire_check($row->createdDtm) == true) { ?>
+                                                                        <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="fundTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
+                                                                    <?php } ?>
+                                                                    <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
+                                                                        class="btn btn-xs btn-success">View</a>
+                                                                </td>
+                                                            </tr>
+                                                    <?php }
+                                                    } ?>
                                                 </tbody>
 
                                             </table>
+                                            <div class="row no-print">
+                                                <div class="col-xs-12">
+                                                    <button onclick="printDiv('fundPrint')" class="print_line btn btn-primary pull-right"><i class="fa fa-print "></i> Print Now</button>
+                                                    <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('fundPrint','fund')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                                    <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('fundPrint','fund')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-12" id="fundPrint" style="display: none; text-transform: capitalize; ">
+                                                <div class="col-xs-12" style="margin-bottom: 20px;   ">
+                                                    <div class="col-xs-6">
+                                                        <?php if (logo_image() == NULL) { ?>
+                                                            <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg" alt="User Image">
+                                                        <?php } else { ?>
+                                                            <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
+                                                        <?php } ?>
+                                                    </div>
+                                                    <div class="col-xs-6">
+                                                        <?php print address(); ?>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-12">
+                                                    <table class="table table-bordered table-striped">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>No</th>
+                                                                <th>Bank</th>
+                                                                <th>Transaction Type</th>
+                                                                <th>Amount</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <?php $i = 0;
+                                                            foreach ($transaction_data as $row) {
+                                                                if ($row->bank_to_id != NULL) { ?>
+                                                                    <tr>
+                                                                        <td><?php echo ++$i; ?></td>
+                                                                        <td><?php echo get_data_by_id('name', 'bank', 'bank_id', $row->bank_id); ?></td>
+                                                                        <td><?php echo $row->trangaction_type; ?></td>
+                                                                        <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
+                                                                    </tr>
+                                                            <?php }
+                                                            } ?>
+                                                        </tbody>
+
+                                                    </table>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -227,37 +439,86 @@
                                         <div class="box-body">
                                             <table class="table table-bordered table-striped expense" id="expense2">
                                                 <thead>
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>Expense</th>
-                                                    <th>Transaction Type</th>
-                                                    <th>Amount</th>
-                                                    <th>Action</th>
-                                                </tr>
+                                                    <tr>
+                                                        <th>No</th>
+                                                        <th>Expense</th>
+                                                        <th>Transaction Type</th>
+                                                        <th>Amount</th>
+                                                        <th>Action</th>
+                                                    </tr>
                                                 </thead>
                                                 <tbody>
-                                                <?php $i = 0;
-                                                foreach ($transaction_data as $row) {
-                                                    if ($row->loan_pro_id == NULL && $row->customer_id == NULL && $row->supplier_id == NULL && $row->bank_id == NULL && $row->lc_id == NULL && $row->employee_id == NULL && $row->trangaction_type == 'Cr.') { ?>
-                                                        <tr>
-                                                            <td><?php echo ++$i; ?></td>
-                                                            <td>Expense</td>
-                                                            <td><?php echo $row->trangaction_type; ?></td>
-                                                            <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
-                                                            <td>
-                                                                <?php if(edit_expire_check($row->createdDtm) == true){ ?>
-                                                                <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="expenseTranEdit('<?= $row->trans_id;?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
-                                                                <?php } ?>
-                                                                <a href="javascript:void(0)"
-                                                                   onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
-                                                                   class="btn btn-xs btn-success">View</a>
-                                                            </td>
-                                                        </tr>
+                                                    <?php $i = 0;
+                                                    foreach ($transaction_data as $row) {
+                                                        if ($row->loan_pro_id == NULL && $row->customer_id == NULL && $row->supplier_id == NULL && $row->bank_id == NULL && $row->lc_id == NULL && $row->employee_id == NULL && $row->trangaction_type == 'Cr.') { ?>
+                                                            <tr>
+                                                                <td><?php echo ++$i; ?></td>
+                                                                <td>Expense</td>
+                                                                <td><?php echo $row->trangaction_type; ?></td>
+                                                                <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
+                                                                <td>
+                                                                    <?php if (edit_expire_check($row->createdDtm) == true) { ?>
+                                                                        <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="expenseTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
+                                                                    <?php } ?>
+                                                                    <a href="javascript:void(0)"
+                                                                        onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
+                                                                        class="btn btn-xs btn-success">View</a>
+                                                                </td>
+                                                            </tr>
                                                     <?php }
-                                                } ?>
+                                                    } ?>
                                                 </tbody>
 
                                             </table>
+
+                                            <div class="row no-print">
+                                                <div class="col-xs-12">
+                                                    <button onclick="printDiv('expensePrint')" class="print_line btn btn-primary pull-right"><i class="fa fa-print "></i> Print Now</button>
+                                                    <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('expensePrint','expense')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                                    <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('expensePrint','expense')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-12" id="expensePrint" style="display: none; text-transform: capitalize; ">
+                                                <div class="col-xs-12" style="margin-bottom: 20px;   ">
+                                                    <div class="col-xs-6">
+                                                        <?php if (logo_image() == NULL) { ?>
+                                                            <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg" alt="User Image">
+                                                        <?php } else { ?>
+                                                            <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
+                                                        <?php } ?>
+                                                    </div>
+                                                    <div class="col-xs-6">
+                                                        <?php print address(); ?>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-12">
+                                                    <table class="table table-bordered table-striped">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>No</th>
+                                                                <th>Expense</th>
+                                                                <th>Transaction Type</th>
+                                                                <th>Amount</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <?php $i = 0;
+                                                            foreach ($transaction_data as $row) {
+                                                                if ($row->loan_pro_id == NULL && $row->customer_id == NULL && $row->supplier_id == NULL && $row->bank_id == NULL && $row->lc_id == NULL && $row->employee_id == NULL && $row->trangaction_type == 'Cr.') { ?>
+                                                                    <tr>
+                                                                        <td><?php echo ++$i; ?></td>
+                                                                        <td>Expense</td>
+                                                                        <td><?php echo $row->trangaction_type; ?></td>
+                                                                        <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
+                                                                    </tr>
+                                                            <?php }
+                                                            } ?>
+                                                        </tbody>
+
+                                                    </table>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -268,38 +529,87 @@
                                         <div class="box-body">
                                             <table class="table table-bordered table-striped othersales" id="other2">
                                                 <thead>
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>Other Sales</th>
-                                                    <th>Transaction Type</th>
-                                                    <th>Amount</th>
-                                                    <th>Action</th>
-                                                </tr>
+                                                    <tr>
+                                                        <th>No</th>
+                                                        <th>Other Sales</th>
+                                                        <th>Transaction Type</th>
+                                                        <th>Amount</th>
+                                                        <th>Action</th>
+                                                    </tr>
                                                 </thead>
                                                 <tbody>
-                                                <?php $i = 0;
-                                                foreach ($transaction_data as $row) {
-                                                    if ($row->loan_pro_id == NULL && $row->customer_id == NULL && $row->supplier_id == NULL && $row->bank_id == NULL && $row->lc_id == NULL && $row->trangaction_type == 'Dr.') { ?>
-                                                        <tr>
-                                                            <td><?php echo ++$i; ?></td>
-                                                            <td>Other Sales</td>
-                                                            <td><?php echo $row->trangaction_type; ?></td>
-                                                            <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
-                                                            <td>
-                                                                <?php if(edit_expire_check($row->createdDtm) == true){ ?>
-                                                                <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="otherSalesTranEdit('<?= $row->trans_id;?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
-                                                                <?php } ?>
-                                                                <a href="javascript:void(0)"
-                                                                   onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
-                                                                   class="btn btn-xs btn-success">View</a>
+                                                    <?php $i = 0;
+                                                    foreach ($transaction_data as $row) {
+                                                        if ($row->loan_pro_id == NULL && $row->customer_id == NULL && $row->supplier_id == NULL && $row->bank_id == NULL && $row->lc_id == NULL && $row->trangaction_type == 'Dr.') { ?>
+                                                            <tr>
+                                                                <td><?php echo ++$i; ?></td>
+                                                                <td>Other Sales</td>
+                                                                <td><?php echo $row->trangaction_type; ?></td>
+                                                                <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
+                                                                <td>
+                                                                    <?php if (edit_expire_check($row->createdDtm) == true) { ?>
+                                                                        <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="otherSalesTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
+                                                                    <?php } ?>
+                                                                    <a href="javascript:void(0)"
+                                                                        onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
+                                                                        class="btn btn-xs btn-success">View</a>
 
-                                                            </td>
-                                                        </tr>
+                                                                </td>
+                                                            </tr>
                                                     <?php }
-                                                } ?>
+                                                    } ?>
                                                 </tbody>
 
                                             </table>
+
+                                            <div class="row no-print">
+                                                <div class="col-xs-12">
+                                                    <button onclick="printDiv('otherSalesPrint')" class="print_line btn btn-primary pull-right"><i class="fa fa-print "></i> Print Now</button>
+                                                    <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('otherSalesPrint','otherSales')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                                    <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('otherSalesPrint','otherSales')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-12" id="otherSalesPrint" style="display: none; text-transform: capitalize; ">
+                                                <div class="col-xs-12" style="margin-bottom: 20px;   ">
+                                                    <div class="col-xs-6">
+                                                        <?php if (logo_image() == NULL) { ?>
+                                                            <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg" alt="User Image">
+                                                        <?php } else { ?>
+                                                            <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
+                                                        <?php } ?>
+                                                    </div>
+                                                    <div class="col-xs-6">
+                                                        <?php print address(); ?>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-12">
+                                                    <table class="table table-bordered table-striped">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>No</th>
+                                                                <th>Other Sales</th>
+                                                                <th>Transaction Type</th>
+                                                                <th>Amount</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <?php $i = 0;
+                                                            foreach ($transaction_data as $row) {
+                                                                if ($row->loan_pro_id == NULL && $row->customer_id == NULL && $row->supplier_id == NULL && $row->bank_id == NULL && $row->lc_id == NULL && $row->trangaction_type == 'Dr.') { ?>
+                                                                    <tr>
+                                                                        <td><?php echo ++$i; ?></td>
+                                                                        <td>Other Sales</td>
+                                                                        <td><?php echo $row->trangaction_type; ?></td>
+                                                                        <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
+                                                                    </tr>
+                                                            <?php }
+                                                            } ?>
+                                                        </tbody>
+
+                                                    </table>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -310,41 +620,90 @@
                                         <div class="box-body">
                                             <table class="table table-bordered table-striped employeeSalary" id="employee2">
                                                 <thead>
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>Name</th>
-                                                    <th>Transaction Type</th>
-                                                    <th>Salary</th>
-                                                    <th>Action</th>
-                                                </tr>
+                                                    <tr>
+                                                        <th>No</th>
+                                                        <th>Name</th>
+                                                        <th>Transaction Type</th>
+                                                        <th>Salary</th>
+                                                        <th>Action</th>
+                                                    </tr>
                                                 </thead>
                                                 <tbody>
-                                                <?php $i = 0;
-                                                foreach ($transaction_data as $row) {
-                                                    if ($row->employee_id != NULL) { ?>
-                                                        <tr>
-                                                            <td><?php echo ++$i; ?></td>
-                                                            <td><?php echo get_data_by_id('name', 'employee', 'employee_id', $row->employee_id); ?></td>
-                                                            <td><?php echo $row->trangaction_type; ?></td>
-                                                            <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
-                                                            <td>
-                                                                <a href="javascript:void(0)"
-                                                                   onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/salaryreceipt/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/salaryreceipt/' . $row->trans_id; ?>')"
-                                                                   class="btn btn-xs btn-info">Salary Receipt</a>
-                                                                <?php if(edit_expire_check($row->createdDtm) == true){ ?>
-                                                                <a href="javascript:void(0)" class="btn btn-xs btn-warning " onclick="employeeTranEdit('<?= $row->trans_id;?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
-                                                                <?php } ?>
-                                                                <a href="javascript:void(0)"
-                                                                   onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
-                                                                   class="btn btn-xs btn-success">View</a>
+                                                    <?php $i = 0;
+                                                    foreach ($transaction_data as $row) {
+                                                        if ($row->employee_id != NULL) { ?>
+                                                            <tr>
+                                                                <td><?php echo ++$i; ?></td>
+                                                                <td><?php echo get_data_by_id('name', 'employee', 'employee_id', $row->employee_id); ?></td>
+                                                                <td><?php echo $row->trangaction_type; ?></td>
+                                                                <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
+                                                                <td>
+                                                                    <a href="javascript:void(0)"
+                                                                        onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/salaryreceipt/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/salaryreceipt/' . $row->trans_id; ?>')"
+                                                                        class="btn btn-xs btn-info">Salary Receipt</a>
+                                                                    <?php if (edit_expire_check($row->createdDtm) == true) { ?>
+                                                                        <a href="javascript:void(0)" class="btn btn-xs btn-warning " onclick="employeeTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
+                                                                    <?php } ?>
+                                                                    <a href="javascript:void(0)"
+                                                                        onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
+                                                                        class="btn btn-xs btn-success">View</a>
 
-                                                            </td>
-                                                        </tr>
+                                                                </td>
+                                                            </tr>
                                                     <?php }
-                                                } ?>
+                                                    } ?>
                                                 </tbody>
 
                                             </table>
+
+                                            <div class="row no-print">
+                                                <div class="col-xs-12">
+                                                    <button onclick="printDiv('employeePrint')" class="print_line btn btn-primary pull-right"><i class="fa fa-print "></i> Print Now</button>
+                                                    <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('employeePrint','employee')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                                    <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('employeePrint','employee')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-12" id="employeePrint" style="display: none; text-transform: capitalize; ">
+                                                <div class="col-xs-12" style="margin-bottom: 20px;   ">
+                                                    <div class="col-xs-6">
+                                                        <?php if (logo_image() == NULL) { ?>
+                                                            <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg" alt="User Image">
+                                                        <?php } else { ?>
+                                                            <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
+                                                        <?php } ?>
+                                                    </div>
+                                                    <div class="col-xs-6">
+                                                        <?php print address(); ?>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-12">
+                                                    <table class="table table-bordered table-striped">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>No</th>
+                                                                <th>Name</th>
+                                                                <th>Transaction Type</th>
+                                                                <th>Salary</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <?php $i = 0;
+                                                            foreach ($transaction_data as $row) {
+                                                                if ($row->employee_id != NULL) { ?>
+                                                                    <tr>
+                                                                        <td><?php echo ++$i; ?></td>
+                                                                        <td><?php echo get_data_by_id('name', 'employee', 'employee_id', $row->employee_id); ?></td>
+                                                                        <td><?php echo $row->trangaction_type; ?></td>
+                                                                        <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
+                                                                    </tr>
+                                                            <?php }
+                                                            } ?>
+                                                        </tbody>
+
+                                                    </table>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -355,36 +714,86 @@
                                         <div class="box-body">
                                             <table class="table table-bordered table-striped vatpay" id="vat2">
                                                 <thead>
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>Vat Register Name</th>
-                                                    <th>Transaction Type</th>
-                                                    <th>Amount</th>
-                                                    <th>Action</th>
-                                                </tr>
+                                                    <tr>
+                                                        <th>No</th>
+                                                        <th>Vat Register Name</th>
+                                                        <th>Transaction Type</th>
+                                                        <th>Amount</th>
+                                                        <th>Action</th>
+                                                    </tr>
                                                 </thead>
                                                 <tbody>
-                                                <?php $i = 0;
-                                                foreach ($transaction_data as $row) {
-                                                    if ($row->vat_id != NULL) { ?>
-                                                        <tr>
-                                                            <td><?php echo ++$i; ?></td>
-                                                            <td><?php echo get_data_by_id('name', 'vat_register', 'vat_id', $row->vat_id); ?></td>
-                                                            <td><?php echo $row->trangaction_type; ?></td>
-                                                            <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
-                                                            <td>
-                                                                <?php if(edit_expire_check($row->createdDtm) == true){ ?>
-                                                                <a href="javascript:void(0)" class="btn btn-xs btn-warning"  onclick="vatTranEdit('<?= $row->trans_id;?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
-                                                                <?php } ?>
-                                                                <a href="javascript:void(0)"
-                                                                   onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
-                                                                   class="btn btn-xs btn-success">View</a>
-                                                            </td>
-                                                        </tr>
-                                                    <?php } } ?>
+                                                    <?php $i = 0;
+                                                    foreach ($transaction_data as $row) {
+                                                        if ($row->vat_id != NULL) { ?>
+                                                            <tr>
+                                                                <td><?php echo ++$i; ?></td>
+                                                                <td><?php echo get_data_by_id('name', 'vat_register', 'vat_id', $row->vat_id); ?></td>
+                                                                <td><?php echo $row->trangaction_type; ?></td>
+                                                                <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
+                                                                <td>
+                                                                    <?php if (edit_expire_check($row->createdDtm) == true) { ?>
+                                                                        <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="vatTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
+                                                                    <?php } ?>
+                                                                    <a href="javascript:void(0)"
+                                                                        onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
+                                                                        class="btn btn-xs btn-success">View</a>
+                                                                </td>
+                                                            </tr>
+                                                    <?php }
+                                                    } ?>
                                                 </tbody>
 
                                             </table>
+
+                                            <div class="row no-print">
+                                                <div class="col-xs-12">
+                                                    <button onclick="printDiv('vatPrint')" class="print_line btn btn-primary pull-right"><i class="fa fa-print "></i> Print Now</button>
+                                                    <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('vatPrint','vat')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                                    <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('vatPrint','vat')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-12" id="vatPrint" style="display: none; text-transform: capitalize; ">
+                                                <div class="col-xs-12" style="margin-bottom: 20px;   ">
+                                                    <div class="col-xs-6">
+                                                        <?php if (logo_image() == NULL) { ?>
+                                                            <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg" alt="User Image">
+                                                        <?php } else { ?>
+                                                            <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
+                                                        <?php } ?>
+                                                    </div>
+                                                    <div class="col-xs-6">
+                                                        <?php print address(); ?>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-12">
+                                                    <table class="table table-bordered table-striped">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>No</th>
+                                                                <th>Vat Register Name</th>
+                                                                <th>Transaction Type</th>
+                                                                <th>Amount</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <?php $i = 0;
+                                                            foreach ($transaction_data as $row) {
+                                                                if ($row->vat_id != NULL) { ?>
+                                                                    <tr>
+                                                                        <td><?php echo ++$i; ?></td>
+                                                                        <td><?php echo get_data_by_id('name', 'vat_register', 'vat_id', $row->vat_id); ?></td>
+                                                                        <td><?php echo $row->trangaction_type; ?></td>
+                                                                        <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
+                                                                    </tr>
+                                                            <?php }
+                                                            } ?>
+                                                        </tbody>
+
+                                                    </table>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -424,96 +833,111 @@
 </div>
 
 <script>
-    function cusTranEdit(tranId){
+    function cusTranEdit(tranId) {
         $.ajax({
             type: "POST",
             url: "<?php echo site_url('Admin/Transaction/cusDataEdit') ?>",
-            data: {id: tranId},
-            success: function(data){
+            data: {
+                id: tranId
+            },
+            success: function(data) {
                 $('#formData').html(data);
             }
         });
     }
 
-    function submitForm(formId){
-        $('#'+formId).submit();
+    function submitForm(formId) {
+        $('#' + formId).submit();
     }
 
-    function supplierTranEdit(tranId){
+    function supplierTranEdit(tranId) {
         $.ajax({
             type: "POST",
             url: "<?php echo site_url('Admin/Transaction/supplierDataEdit') ?>",
-            data: {id: tranId},
-            success: function(data){
+            data: {
+                id: tranId
+            },
+            success: function(data) {
                 $('#formData').html(data);
             }
         });
     }
 
-    function accountTranEdit(tranId){
+    function accountTranEdit(tranId) {
         $.ajax({
             type: "POST",
             url: "<?php echo site_url('Admin/Transaction/accountDataEdit') ?>",
-            data: {id: tranId},
-            success: function(data){
+            data: {
+                id: tranId
+            },
+            success: function(data) {
                 $('#formData').html(data);
             }
         });
     }
 
-    function fundTranEdit(tranId){
+    function fundTranEdit(tranId) {
         $.ajax({
             type: "POST",
             url: "<?php echo site_url('Admin/Transaction/fundDataEdit') ?>",
-            data: {id: tranId},
-            success: function(data){
+            data: {
+                id: tranId
+            },
+            success: function(data) {
                 $('#formData').html(data);
             }
         });
     }
 
-    function expenseTranEdit(tranId){
+    function expenseTranEdit(tranId) {
         $.ajax({
             type: "POST",
             url: "<?php echo site_url('Admin/Transaction/expenseDataEdit') ?>",
-            data: {id: tranId},
-            success: function(data){
+            data: {
+                id: tranId
+            },
+            success: function(data) {
                 $('#formData').html(data);
             }
         });
     }
-    function employeeTranEdit(tranId){
+
+    function employeeTranEdit(tranId) {
         $.ajax({
             type: "POST",
             url: "<?php echo site_url('Admin/Transaction/employeeDataEdit') ?>",
-            data: {id: tranId},
-            success: function(data){
+            data: {
+                id: tranId
+            },
+            success: function(data) {
                 $('#formData').html(data);
             }
         });
     }
-    function otherSalesTranEdit(tranId){
+
+    function otherSalesTranEdit(tranId) {
         $.ajax({
             type: "POST",
             url: "<?php echo site_url('Admin/Transaction/otherSalesDataEdit') ?>",
-            data: {id: tranId},
-            success: function(data){
+            data: {
+                id: tranId
+            },
+            success: function(data) {
                 $('#formData').html(data);
             }
         });
     }
-    function vatTranEdit(tranId){
+
+    function vatTranEdit(tranId) {
         $.ajax({
             type: "POST",
             url: "<?php echo site_url('Admin/Transaction/vatDataEdit') ?>",
-            data: {id: tranId},
-            success: function(data){
+            data: {
+                id: tranId
+            },
+            success: function(data) {
                 $('#formData').html(data);
             }
         });
     }
-
-
-
-
 </script>

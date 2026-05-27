@@ -57,7 +57,7 @@
                                     <td><?php echo $val->affiliate_user_id ?></td>
                                     <td><?php echo $val->name ?></td>
                                     <td><?php echo showWithPhoneNummberCountryCode($val->phone) ?></td>
-                                    <td><?php echo $val->commission ?></td>
+                                    <td><?php echo $val->commission ?> %</td>
                                     <td><?php echo showWithCurrencySymbol($val->balance) ?></td>
                                     <td>
                                         <a href="<?= base_url('Admin/Affiliate_commission?affiliate_user_id='. $val->affiliate_user_id)?>" class="btn btn-primary btn-xs">Commission List</a>
@@ -76,6 +76,54 @@
 
                             </tbody>
                         </table>
+
+                        <div class="row no-print" >
+                            <div class="col-xs-12">
+                                <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
+                                <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','affiliateUser')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','affiliateUser')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12" id="ledgPrint" style="display: none; text-transform: capitalize; " >
+                            <div class="col-xs-12" style="margin-bottom: 20px;   ">
+                                <div class="col-xs-6">
+                                    <?php if(logo_image() == NULL){ ?>
+                                        <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg" alt="User Image" >
+                                    <?php }else{ ?>
+                                        <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
+                                    <?php } ?>
+                                </div>
+                                <div class="col-xs-6">
+                                    <?php print address(); ?>
+                                </div>
+                            </div>
+                            <div class="col-md-12" >
+                                <table class="table table-bordered table-striped text-capitalize">
+                                    <thead>
+                                    <tr>
+                                        <th>User Id</th>
+                                        <th>Name</th>
+                                        <th>Phone</th>
+                                        <th>Commission</th>
+                                        <th>Balance</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php foreach ($user as $val) { ?>
+                                        <tr>
+                                            <td><?php echo $val->affiliate_user_id ?></td>
+                                            <td><?php echo $val->name ?></td>
+                                            <td><?php echo showWithPhoneNummberCountryCode($val->phone) ?></td>
+                                            <td><?php echo $val->commission ?> %</td>
+                                            <td><?php echo showWithCurrencySymbol($val->balance) ?></td>
+                                        </tr>
+                                    <?php } ?>
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                     <!-- /.box-body -->
                 </div>

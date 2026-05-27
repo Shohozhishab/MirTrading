@@ -59,40 +59,85 @@
                     <div class="box-body">
                         <table id="example1" class="table table-bordered table-striped text-capitalize">
                             <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Name</th>
-                                <th>Commission</th>
-                                <th>Commission Amount</th>
-                                <th>Invoice</th>
-                                <th>Date</th>
-                            </tr>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Name</th>
+                                    <th>Commission</th>
+                                    <th>Commission Amount</th>
+                                    <th>Date</th>
+                                    <th>Invoice</th>
+                                </tr>
                             </thead>
                             <tbody>
-                            <?php $start=1; foreach ($commission as $val) {
-                                ?>
+                            <?php $start=1; foreach ($commission as $val) { ?>
                                 <tr>
                                     <td width="80px"><?php echo $start++ ?></td>
                                     <td><?php echo get_data_by_id('name','affiliate_user','affiliate_user_id',$val->affiliate_user_id); ?></td>
                                     <td><?php echo $val->commission ?> %</td>
                                     <td><?php echo showWithCurrencySymbol($val->commission_amount) ?></td>
+                                    <td><?php echo $val->date ?></td>
                                     <td><?php $invoice_id = get_data_by_id('invoice_id','sales','sales_id',$val->sales_id);?>
                                         <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Invoice_ajax/view/'.$invoice_id); ?>','<?php echo '/Admin/Invoice/view/'.$invoice_id; ?>')" class="btn btn-warning btn-xs">View</a>
                                     </td>
-                                    <td><?php echo $val->date ?></td>
                                 </tr>
                             <?php } ?>
                             </tbody>
                         </table>
+
+                        <div class="row no-print" >
+                            <div class="col-xs-12">
+                                <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
+                                <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','affiliateCommission')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','affiliateCommission')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12" id="ledgPrint" style="display: none; text-transform: capitalize; " >
+                            <div class="col-xs-12" style="margin-bottom: 20px;   ">
+                                <div class="col-xs-6">
+                                    <?php if(logo_image() == NULL){ ?>
+                                        <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg" alt="User Image" >
+                                    <?php }else{ ?>
+                                        <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
+                                    <?php } ?>
+                                </div>
+                                <div class="col-xs-6">
+                                    <?php print address(); ?>
+                                </div>
+                            </div>
+                            <div class="col-md-12" >
+                                <table class="table table-bordered table-striped text-capitalize">
+                                    <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Name</th>
+                                        <th>Commission</th>
+                                        <th>Commission Amount</th>
+                                        <th>Date</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php $start=1; foreach ($commission as $val) {
+                                        ?>
+                                        <tr>
+                                            <td width="80px"><?php echo $start++ ?></td>
+                                            <td><?php echo get_data_by_id('name','affiliate_user','affiliate_user_id',$val->affiliate_user_id); ?></td>
+                                            <td><?php echo $val->commission ?> %</td>
+                                            <td><?php echo showWithCurrencySymbol($val->commission_amount) ?></td>
+                                            <td><?php echo $val->date ?></td>
+                                        </tr>
+                                    <?php } ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                     <!-- /.box-body -->
                 </div>
                 <!-- /.box -->
             </div>
-
         </div>
         <!-- /.row -->
-
     </section>
     <!-- /.content -->
 </div>

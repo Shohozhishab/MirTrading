@@ -102,6 +102,8 @@ class Purchase_report extends BaseController
             $i++;
         }
         $data['purchase'] = $purchaseItem;
+        $data['st_date'] = $st_date;
+        $data['en_date'] = $en_date;
 
         $data['menu'] = view('Admin/menu_report');
         echo view('Admin/header');

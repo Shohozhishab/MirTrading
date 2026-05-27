@@ -1821,3 +1821,40 @@ function get_available_quantity_to_return($invoiceId,$prod_id,$invQuantity){
     $result = $invQuantity - $returnData->quantity;
     return $result ?? 0;
 }
+
+function get_exchange_status_by_id($exchange_pro_id){
+
+    $statusArray = [
+        '1' => 'Received From Customer',
+        '2' => 'Sent to Warehouse',
+        '3' => 'Received From Warehouse',
+        '4' => 'Complete',
+        '5' => 'Canceled with no return',
+    ];
+
+    $table = DB()->table('exchange_status_info');
+    // Order by ID descending to get the latest status update
+    $query = $table->where('exchange_pro_id', $exchange_pro_id)->orderBy('exchange_status_info_id', 'DESC')->get()->getRow();
+
+    if (!empty($query) && isset($statusArray[$query->status])){
+        return $statusArray[$query->status];
+    }
+
+    return '';
+}
+function get_stock_transfer_qty_by_id($stock_transfer_id){
+    return DB()->table('stock_transfer_item')
+        ->selectSum('quantity')
+        ->where('stock_transfer_id',$stock_transfer_id)
+        ->get()->getRow()->quantity;
+}
+
+function storeIdByQuantity($storeId){
+    $totalQty = DB()->table('product_stock_relation')
+        ->selectSum('quantity')
+        ->where('store_id', $storeId)
+        ->get()
+        ->getRow()
+        ->quantity;
+    return $totalQty;
+}

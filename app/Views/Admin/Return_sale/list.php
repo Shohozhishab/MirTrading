@@ -27,10 +27,10 @@
                             <div class="col-lg-6">
                                 <form method="post" action="<?php echo site_url('Admin/Return_sale/invoice_search') ?>"  >
                                     <div class="col-lg-4 pull-right">
-                                        <button style="margin-top: 25px;" class="btn btn-primary " type="submit">search</button>
+                                        <button style="margin-top: 25px;" class="btn btn-primary " type="submit">Search</button>
                                     </div>
                                     <div class="col-lg-8 pull-right">
-                                        <label>Input InvoiceId</label>
+                                        <label>Input Invoice ID</label>
                                         <input type="text" class="form-control" name="invoiceId" id="invoiceId"  required>
                                     </div>
                                 </form>
@@ -45,8 +45,7 @@
                     <!-- /.box-header -->
                     <div class="box-body">
                         <div class="row">
-                            <div class="col-lg-3"></div>
-                            <div class="col-lg-6">
+                            <div class="col-lg-4">
                                 <form method="get" action="<?php echo site_url('Admin/Return_sale') ?>">
                                     <div class="col-lg-4 pull-right">
                                         <button style="margin-top: 25px;" class="btn btn-primary" type="submit">
@@ -64,7 +63,23 @@
 
                                 </form>
                             </div>
-                            <div class="col-lg-3"></div>
+
+                            <div class="col-lg-8">
+                                <form action="<?= base_url('Admin/Return_sale')?>" method="get">
+                                    <div class="col-xs-4" >
+                                        <label>Start Date</label>
+                                        <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>" id="st_date" required>
+                                    </div>
+                                    <div class="col-xs-4" >
+                                        <label>End Date</label>
+                                        <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>" id="en_date" required>
+                                    </div>
+                                    <div class="col-xs-3" >
+                                        <button style="margin-top: 22px;" class="btn btn-primary " type="submit">Filter </button>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="col-lg-12" style="margin-top: 30px"></div>
 
                         </div>
 
@@ -100,6 +115,59 @@
 
                             </tbody>
                         </table>
+
+                        <div class="row no-print" >
+                            <div class="col-xs-12">
+                                <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
+                                <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','returnSale')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','returnSale')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12" id="ledgPrint" style="display: none; text-transform: capitalize; " >
+                            <div class="col-xs-12" style="margin-bottom: 20px;   ">
+                                <div class="col-xs-6">
+                                    <?php if(logo_image() == NULL){ ?>
+                                        <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg" alt="User Image" >
+                                    <?php }else{ ?>
+                                        <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
+                                    <?php } ?>
+                                </div>
+                                <div class="col-xs-6">
+                                    <?php print address(); ?>
+                                </div>
+                            </div>
+                            <div class="col-md-12" >
+                                <table class="table table-bordered table-striped text-capitalize" >
+                                    <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Date</th>
+                                        <th>Customer</th>
+                                        <th>Total Amount</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php $i = 1; foreach ($return_sale_data as $return) { ?>
+                                        <tr>
+                                            <td><?php echo $i++ ?></td>
+                                            <td><?php echo invoiceDateFormat($return->createdDtm) ?></td>
+                                            <td><?php
+                                                if ($return->customer_id) {
+                                                    echo get_data_by_id('customer_name', 'customers', 'customer_id', $return->customer_id) ;
+                                                }else{
+                                                    echo $return->customer_name;
+                                                }
+
+                                                ?></td>
+                                            <td><?php echo showWithCurrencySymbol($return->amount) ?></td>
+                                        </tr>
+                                    <?php } ?>
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                     <!-- /.box-body -->
                 </div>

@@ -36,15 +36,33 @@ class Exchange_product extends BaseController
             return redirect()->to(site_url('Admin/login'));
         } else {
             $customer_id = $this->request->getGet('customer');
+            $status = $this->request->getGet('status');
+            $st_date = $this->request->getGet('st_date');
+            $en_date = $this->request->getGet('en_date');
+
 
             $shopId = $this->session->shopId;
             $table = DB()->table('exchange_product');
-            $table->where('sch_id', $shopId);
+            $table->where('exchange_product.sch_id', $shopId);
             if (!empty($customer_id)) {
-                $table->where('customer_id', $customer_id);
+                $table->where('exchange_product.customer_id', $customer_id);
+            }
+            if (!empty($status)){
+                $table->join('exchange_status_info', 'exchange_status_info.exchange_pro_id = exchange_product.exchange_pro_id');
+                $table->where('exchange_status_info.status',$status);
+            }
+            // Apply date filters only if they are present in the request
+            if (!empty($st_date) && !empty($en_date)) {
+                // Assuming your database column name is 'date'
+                $table->where('createdDtm >=', $st_date . ' 00:00:00');
+                $table->where('createdDtm <=', $en_date . ' 23:59:59');
             }
             $data['exchangeProduct'] = $table->get()->getResult();
+
             $data['customerId'] = $customer_id ?? '';
+            $data['status'] = $status ?? '';
+            $data['st_date'] = isset($st_date)?$st_date:'';
+            $data['en_date'] = isset($en_date)?$en_date:'';
 
             $data['menu'] = view('Admin/menu_stock');
             // All Permissions

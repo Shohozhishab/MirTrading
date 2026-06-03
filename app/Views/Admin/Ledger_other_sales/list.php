@@ -121,13 +121,11 @@
                                 <th>Particulars</th>
                                 <th>Debit</th>
                                 <th>Credit</th>
-                                <th>Balance</th>
                             </tr>
                             </thead>
                             <tbody>
                             <?php
                             foreach ($ledger_data as $row) {
-
                                 $particulars = ($row->particulars == NULL) ? "Payment" : $row->particulars;
                                 $amountCr = ($row->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($row->amount);
                                 $amountDr =($row->trangaction_type != "Dr.")?"---":showWithCurrencySymbol($row->amount);
@@ -137,7 +135,6 @@
                                     <td><?php echo $particulars ?></td>
                                     <td><?php echo $amountDr ?></td>
                                     <td><?php echo $amountCr ?></td>
-                                    <td><?php echo showWithCurrencySymbol($row->rest_balance) ?></td>
                                 </tr>
                             <?php }?>
 

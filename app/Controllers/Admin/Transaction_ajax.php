@@ -36,8 +36,22 @@ class Transaction_ajax extends BaseController
             return redirect()->to(site_url('Admin/login'));
         } else {
             $shopId = $this->session->shopId;
-            $transactionTable = DB()->table('transaction');
-            $data['transaction_data'] = $transactionTable->where('sch_id', $shopId)->get()->getResult();
+
+            $st_date = $this->request->getGet('st_date');
+            $en_date = $this->request->getGet('en_date');
+
+            $table = DB()->table('transaction');
+            $table->where('sch_id', $shopId);
+            // Apply date filters only if they are present in the request
+            if (!empty($st_date) && !empty($en_date)) {
+                // Assuming your database column name is 'date'
+                $table->where('createdDtm >=', $st_date . ' 00:00:00');
+                $table->where('createdDtm <=', $en_date . ' 23:59:59');
+            }
+            $data['transaction_data'] = $table->get()->getResult();
+
+            $data['st_date'] = isset($st_date)?$st_date:'';
+            $data['en_date'] = isset($en_date)?$en_date:'';
 
 
             // All Permissions

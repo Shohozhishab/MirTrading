@@ -98,15 +98,14 @@ class Product_category extends BaseController
         $userId = $this->session->userId;
 
         $data['product_category'] = $this->request->getPost('product_category');
-        $data['parent_pro_cat'] = $this->request->getPost('parent_pro_cat');
-        $data['status'] = $this->request->getPost('status');
+        $data['parent_pro_cat'] = $this->request->getPost('parent_pro_cat') ?? 0;
+        $data['status'] = '1';
         $data['sch_id'] = $shopId;
         $data['createdBy'] = $userId;
         $data['createdDtm'] = date('Y-m-d h:i:s');
 
         $this->validation->setRules([
             'product_category' => ['label' => 'product_category', 'rules' => 'required|only_numeric_not_allow|validusername|max_length[32]'],
-            'status' => ['label' => 'status', 'rules' => 'required'],
         ]);
 
         if ($this->validation->run($data) == FALSE) {

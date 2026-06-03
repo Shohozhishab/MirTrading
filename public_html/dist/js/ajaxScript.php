@@ -1545,6 +1545,7 @@ function calculateDueAndShowBtn() {
       success: function(val){
         $("#loading-image").hide();
         $("#product").html(val).show();
+        $("#prentView").html(val).show();
       }
     });
   }

@@ -28,11 +28,11 @@
                                     <div class="input-group col-xs-12" style="padding: 20px;">
                                         <div class="col-xs-5">
                                             <label>Start Date</label>
-                                            <input type="date" class="form-control" name="st_date" id="date"  required>
+                                            <input type="date" class="form-control" name="st_date" id="date" value="<?= $st_date;?>" required>
                                         </div>
                                         <div class="col-xs-5">
                                             <label>End Date</label>
-                                            <input type="date" class="form-control" name="en_date" id="date"  required>
+                                            <input type="date" class="form-control" name="en_date" id="date" value="<?= $en_date;?>" required>
                                         </div>
                                         <div class="col-xs-2" style="margin-top: 30px">
                                             <button  class="btn btn-primary " type="submit">Filter</button>
@@ -71,7 +71,9 @@
                     <!-- /.box-body -->
                     <div class="row no-print" >
                         <div class="col-xs-12" style="margin-bottom: 20px;">
-                            <button onclick="printDiv('ledgPrint')"    class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
+                            <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
+                            <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','purchaseReport')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                            <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','purchaseReport')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
                         </div>
                     </div>
                 </div>

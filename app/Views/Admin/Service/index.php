@@ -16,43 +16,53 @@
                 <?php echo $menu;?>
             </div>
 
+            <div class="col-xs-12" >
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"><i class="fa fa-filter"></i> Filter </h3>
+                    </div>
+                    <div class="box-body">
+                        <form action="<?= base_url('Admin/Service') ?>" method="get">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label>Start Date</label>
+                                    <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>"
+                                           id="st_date" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>End Date</label>
+                                    <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>"
+                                           id="en_date" required>
+                                </div>
+
+                                <div class="col-md-2" style="margin-top: 25px;">
+                                    <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-search"></i>
+                                        Filter
+                                    </button>
+                                </div>
+                                <div class="col-md-2" style="margin-top: 25px;">
+                                    <a href="<?= base_url('Admin/Service') ?>" class="btn btn-default btn-block"><i
+                                                class="fa fa-refresh"></i> Reset</a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12" style="margin-bottom: 15px;">
+                <a href="javascript:void(0)"
+                    onclick="showData('<?php echo site_url('/Admin/Service_ajax/create/'); ?>','<?php echo '/Admin/Service/create/'; ?>'),activeTab(this)"
+                    class="btn btn-success"><i class="fa fa-plus"></i> Add Service</a>
+            </div>
             <div class="col-xs-12">
 
                 <div class="box">
-                    <div class="box-header">
-                        <div class="row">
-                            <div class="col-lg-9">
-                                <h3 class="box-title">Service List</h3>
-                            </div>
-                            <div class="col-lg-3">
-                                <a href="javascript:void(0)"
-                                   onclick="showData('<?php echo site_url('/Admin/Service_ajax/create/'); ?>','<?php echo '/Admin/Service/create/'; ?>'),activeTab(this)"
-                                   class="btn btn-block btn-primary">Add</a>
-                            </div>
-                            <div class="col-lg-12" style="margin-top: 20px;">
-                                <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
-                            </div>
-                        </div>
-
-
-                    </div>
                     <!-- /.box-header -->
                     <div class="box-body">
-                        <div class="col-lg-12">
-                            <form action="<?= base_url('Admin/Service')?>" method="get">
-                                <div class="col-xs-3" style="padding: 17px;">
-                                    <label>Start Date</label>
-                                    <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>" id="st_date" required>
-                                </div>
-                                <div class="col-xs-3" style="padding: 17px;">
-                                    <label>End Date</label>
-                                    <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>" id="en_date" required>
-                                </div>
-                                <div class="col-xs-3" style="padding: 18px;">
-                                    <button style="margin-top: 22px;" class="btn btn-primary " type="submit">Filter </button>
-                                </div>
-                            </form>
+                        <div class="col-lg-12" style="margin-top: 20px;">
+                            <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
                         </div>
+
                         <table id="example1" class="table table-bordered table-striped text-capitalize">
                             <thead>
                             <tr>

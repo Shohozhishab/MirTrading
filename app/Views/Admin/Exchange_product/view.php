@@ -2,10 +2,10 @@
 <div class="content-wrapper" id="viewpage">
     <!-- Content Header (Page header) -->
     <section class="content-header">
-        <h1> Exchange Product <small>View</small></h1>
+        <h1> Replace Product <small>View</small></h1>
         <ol class="breadcrumb">
             <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-            <li class="active">Exchange Product</li>
+            <li class="active">Replace Product</li>
         </ol>
     </section>
 

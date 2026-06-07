@@ -592,6 +592,16 @@
                         </select>
                         <div class="error"></div>
                     </div>
+                    <div class="form-group">
+                        <label for="int">Affiliate User</label>
+                        <select class="form-control" name="affiliate_user_id" id="affiliate_user_id" required>
+                            <option value="">Please Select</option>
+                            <?php foreach ($affiliateUser as $item){ ?>
+                                <option value="<?= $item->affiliate_user_id;?>"><?= $item->name;?></option>
+                            <?php } ?>
+                        </select>
+                        <div class="error"></div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>

@@ -517,6 +517,7 @@ class Customers extends BaseController
             $data['mobile'] = $this->request->getPost('mobile');
             $data['customer_name'] = $this->request->getPost('customer_name');
             $data['cus_type_id'] = $this->request->getPost('cus_type_id');
+            $data['affiliate_user_id'] = $this->request->getPost('affiliate_user_id');
             $data['sch_id'] = $shopId;
             $data['createdBy'] = $userId;
             $data['createdDtm'] = date('Y-m-d h:i:s');
@@ -525,6 +526,7 @@ class Customers extends BaseController
                 'mobile' => ['label' => 'Mobile', 'rules' => 'required|alpha_numeric|is_natural_no_zero|min_length[5]|max_length[12]'],
                 'customer_name' => ['label' => 'Name', 'rules' => 'required|only_numeric_not_allow|max_length[60]'],
                 'cus_type_id' => ['label' => 'cus_type_id', 'rules' => 'required'],
+                'affiliate_user_id' => ['label' => 'Affiliate User', 'rules' => 'required'],
             ]);
             if ($this->validation->run($data) == FALSE) {
                 $datamess['message'] = '<div class="alert alert-danger alert-dismissible" role="alert">' . $this->validation->listErrors() . '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';

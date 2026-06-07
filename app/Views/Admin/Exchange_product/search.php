@@ -1,10 +1,10 @@
 <div class="content-wrapper" id="viewpage">
     <!-- Content Header (Page header) -->
     <section class="content-header">
-        <h1> Exchange Products <small>Exchange Products List</small></h1>
+        <h1> Replace Products <small>Replace Products List</small></h1>
         <ol class="breadcrumb">
             <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-            <li class="active">Exchange Products</li>
+            <li class="active">Replace Products</li>
         </ol>
     </section>
 
@@ -22,7 +22,7 @@
                         <div class="box-header">
                             <div class="row">
                                 <div class="col-lg-6">
-                                    <h3 class="box-title">Exchange Products List</h3>
+                                    <h3 class="box-title">Replace Products List</h3>
                                 </div>
                                 <div class="col-lg-6"></div>
                             </div>

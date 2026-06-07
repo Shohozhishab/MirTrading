@@ -100,9 +100,9 @@ class Ledger_bank extends BaseController
             $particulars = ($data[$i]->particulars == NULL) ? "Pay due" : $data[$i]->particulars;
             $amountCr = ($data[$i]->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($data[$i]->amount);
             $amountDr = ($data[$i]->trangaction_type != "Dr.") ? "---" : showWithCurrencySymbol($data[$i]->amount);
-            $transId = ($data[$i]->trans_id == NULL) ? "---" : $data[$i]->trans_id;
-            $purchaseId = ($data[$i]->purchase_id == NULL) ? "---" : $data[$i]->purchase_id;
-            $invoiceId = ($data[$i]->invoice_id == 0) ? "---" : $data[$i]->invoice_id;
+            $transId = ($data[$i]->trans_id == NULL) ? "---" : '<a href="'.base_url('Admin/Transaction/read/'.$data[$i]->trans_id).'"> TRNS_'.$data[$i]->trans_id.'</a>';
+            $purchaseId = ($data[$i]->purchase_id == NULL) ? "---" : '<a href="'.base_url('Admin/Purchase/view/'.$data[$i]->purchase_id).'"> PURS_'.$data[$i]->purchase_id.'</a>';
+            $invoiceId = ($data[$i]->invoice_id == 0) ? "---" : '<a href="'.base_url('Admin/Invoice/view/'.$data[$i]->invoice_id).'"> INV_'.$data[$i]->invoice_id.'</a>';
             $view .= '<tr>
                                     <td>' . $data[$i]->ledgBank_id . '</td>
                                     <td>' . $data[$i]->createdDtm . '</td>

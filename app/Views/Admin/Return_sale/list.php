@@ -16,10 +16,10 @@
             <div class="col-xs-12" style="margin-bottom: 15px;">
                 <?php echo $menu;?>
             </div>
-            <div class="col-xs-12">
 
-                <div class="box">
-                    <div class="box-header">
+            <div class="col-xs-12" >
+                <div class="box box-primary">
+                    <div class="box-body">
                         <div class="row">
                             <div class="col-lg-6">
                                 <h3 class="box-title">Return Sales List</h3>
@@ -35,53 +35,49 @@
                                     </div>
                                 </form>
                             </div>
-                            <div class="col-lg-12" style="margin-top: 20px;">
-                                <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
-                            </div>
                         </div>
-
-
                     </div>
+                </div>
+            </div>
+
+            <div class="col-xs-12">
+                <div class="box">
                     <!-- /.box-header -->
                     <div class="box-body">
-                        <div class="row">
-                            <div class="col-lg-4">
-                                <form method="get" action="<?php echo site_url('Admin/Return_sale') ?>">
-                                    <div class="col-lg-4 pull-right">
-                                        <button style="margin-top: 25px;" class="btn btn-primary" type="submit">
-                                            Search
-                                        </button>
-                                    </div>
-
-                                    <div class="col-lg-8 pull-right">
-                                        <label>Customer</label><br>
-                                        <select class="form-control select2" name="customer" required>
-                                            <option value="">Please Select</option>
-                                            <?= getAllListInOptionWithStatus( $customerId, 'customer_id', 'customer_name', 'customers', 'customer_name' );?>
-                                        </select>
-                                    </div>
-
-                                </form>
-                            </div>
-
-                            <div class="col-lg-8">
-                                <form action="<?= base_url('Admin/Return_sale')?>" method="get">
-                                    <div class="col-xs-4" >
-                                        <label>Start Date</label>
-                                        <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>" id="st_date" required>
-                                    </div>
-                                    <div class="col-xs-4" >
-                                        <label>End Date</label>
-                                        <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>" id="en_date" required>
-                                    </div>
-                                    <div class="col-xs-3" >
-                                        <button style="margin-top: 22px;" class="btn btn-primary " type="submit">Filter </button>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="col-lg-12" style="margin-top: 30px"></div>
-
+                        <div class="col-lg-12" style="margin-top: 20px;">
+                            <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
                         </div>
+
+
+
+                        <div class="col-lg-12">
+                            <form action="<?= base_url('Admin/Return_sale')?>" method="get">
+                                <div class="col-lg-3 ">
+                                    <label>Customer</label><br>
+                                    <select class="form-control select2" name="customer" >
+                                        <option value="">Please Select</option>
+                                        <?= getAllListInOptionWithStatus( $customerId, 'customer_id', 'customer_name', 'customers', 'customer_name' );?>
+                                    </select>
+                                </div>
+                                <div class="col-xs-3" >
+                                    <label>Start Date</label>
+                                    <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>" id="st_date" >
+                                </div>
+                                <div class="col-xs-3" >
+                                    <label>End Date</label>
+                                    <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>" id="en_date" >
+                                </div>
+                                <div class="col-lg-1 ">
+                                    <button style="margin-top: 25px;" class="btn btn-primary" type="submit"> <i class="fa fa-search"></i> Filter </button>
+                                </div>
+                                <div class="col-lg-2 ">
+                                    <a href="<?= base_url('Admin/Return_sale') ?>" style="margin-top: 25px;" class="btn btn-default btn-block"><i class="fa fa-refresh"></i> Reset</a>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-lg-12" style="margin-top: 30px"></div>
+
+
 
                         <table id="example1" class="table table-bordered table-striped text-capitalize" style="margin-top: 20px;">
                             <thead>

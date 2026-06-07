@@ -188,7 +188,7 @@ class Bank extends BaseController
         if ($this->validation->run($data) == FALSE) {
             print '<div class="alert alert-danger alert-dismissible" role="alert">' . $this->validation->listErrors() . ' <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
         } else {
-            $accCheck = is_unique_update('bank', 'account_no', $data['account_no'], 'name', $data['name']);
+            $accCheck = is_unique_update('bank', 'account_no', $data['account_no'], 'bank_id', $bank_id);
             if ($accCheck == true) {
                 $bankTable = DB()->table('bank');
                 if ($bankTable->where('bank_id', $bank_id)->update($data)) {

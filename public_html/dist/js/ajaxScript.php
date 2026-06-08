@@ -1954,6 +1954,7 @@ function calculateDueAndShowBtn() {
       var name = $('#customer_name').val();
       var mobile = $('#mobile').val();
       var cus_type = $('#cus_type_id').val();
+      var affiliate_user_id = $('#affiliate_user_id').val();
 
       if (required(name) == false){
           $('#customer_name').parent().find('.error').html('<div style="color:red;" id="mesWrong">Customer name field cannot be empty</div>');
@@ -1979,6 +1980,13 @@ function calculateDueAndShowBtn() {
           $('#cus_type_id').parent().find('.error').html('<div style="color:red;" id="mesWrong">Customer Type field cannot be empty</div>');
       }else{
           $('#cus_type_id').parent().find('.error').html('<div style="color:green;" id="mesWrong">Success</div>');
+          var cus_type_validation = true;
+      }
+
+      if (required(affiliate_user_id) == false){
+          $('#affiliate_user_id').parent().find('.error').html('<div style="color:red;" id="mesWrong">Affiliate user field cannot be empty</div>');
+      }else{
+          $('#affiliate_user_id').parent().find('.error').html('<div style="color:green;" id="mesWrong">Success</div>');
           var cus_type_validation = true;
       }
 

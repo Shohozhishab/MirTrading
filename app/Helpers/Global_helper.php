@@ -1858,3 +1858,21 @@ function storeIdByQuantity($storeId){
         ->quantity;
     return $totalQty;
 }
+
+function get_exchange_conditional_product_qty_by_id($exchange_pro_id){
+    return DB()->table('exchange_product_item')
+        ->selectSum('quantity')
+        ->where('exchange_pro_id',$exchange_pro_id)
+        ->get()->getRow()->quantity;
+}
+
+function get_exchange_unconditional_product_qty_by_id($exchange_pro_id){
+    $query = DB()->table('exchange_stock_relation')
+        ->where('exchange_pro_id',$exchange_pro_id)
+        ->get()
+        ->getRow();
+
+    if (!empty($query)) {
+        return get_stock_transfer_qty_by_id($query->stock_transfer_id);
+    }
+}

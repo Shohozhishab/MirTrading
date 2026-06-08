@@ -2,10 +2,10 @@
 <div class="content-wrapper" id="viewpage">
     <!-- Content Header (Page header) -->
     <section class="content-header">
-        <h1> Exchange Product <small>List</small></h1>
+        <h1> Replace Product <small>List</small></h1>
         <ol class="breadcrumb">
             <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-            <li class="active">Exchange Product</li>
+            <li class="active">Replace Product</li>
         </ol>
     </section>
 
@@ -16,53 +16,15 @@
             <div class="col-xs-12" style="margin-bottom: 15px;">
                 <?php echo $menu;?>
             </div>
-            <div class="col-xs-12">
 
-                <div class="box">
-                    <div class="box-header">
+            <div class="col-xs-12" >
+                <div class="box box-primary">
+                    <div class="box-body">
                         <div class="row">
                             <div class="col-lg-6">
-                                <h3 class="box-title">Exchange Product List</h3>
+                                <h3 class="box-title">Replace Product List</h3>
                             </div>
-
-                            <div class="col-lg-12" style="margin-top: 20px;">
-                                <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
-                            </div>
-                        </div>
-
-
-                    </div>
-                    <!-- /.box-header -->
-                    <div class="box-body">
-
-                        <form method="get" action="<?php echo site_url('Admin/Exchange_product') ?>">
-                            <div class="col-lg-4" >
-                                <label>Customer</label><br>
-                                <select class="form-control select2" name="customer" >
-                                    <option value="">Please Select</option>
-                                    <?= getAllListInOptionWithStatus( $customerId, 'customer_id', 'customer_name', 'customers', 'customer_name' );?>
-                                </select>
-                            </div>
-                            <div class="col-lg-4" style="border-right: 1px solid;">
-                                <div class="col-lg-4 pull-right">
-                                    <button style="margin-top: 25px;" class="btn btn-primary" type="submit">
-                                        Search
-                                    </button>
-                                </div>
-                                <div class="col-lg-8 pull-right">
-                                    <label for="varchar">Conditional Status </label><br>
-                                    <select class="form-control select2" name="status" id="status"  >
-                                        <option value="" >Please Select</option>
-                                        <option value="1" <?= ($status == '1')?'selected':'';?> >Received From Customer</option>
-                                        <option value="2" <?= ($status == '2')?'selected':'';?> >Sent to Warehouse</option>
-                                        <option value="3" <?= ($status == '3')?'selected':'';?> >Received From Warehouse</option>
-                                        <option value="4" <?= ($status == '4')?'selected':'';?> >Complete</option>
-                                        <option value="5" <?= ($status == '5')?'selected':'';?> >Canceled with no return</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </form>
-                            <div class="col-lg-4">
+                            <div class="col-lg-6">
                                 <form method="post" action="<?php echo site_url('Admin/Exchange_product/invoice_search') ?>"  >
                                     <div class="col-lg-4 pull-right">
                                         <button style="margin-top: 25px;" class="btn btn-primary " type="submit">Search</button>
@@ -73,22 +35,54 @@
                                     </div>
                                 </form>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                            <div class="col-lg-12">
-                                <form action="<?= base_url('Admin/Exchange_product')?>" method="get">
-                                    <div class="col-xs-3" style="padding: 17px;">
-                                        <label>Start Date</label>
-                                        <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>" id="st_date" required>
-                                    </div>
-                                    <div class="col-xs-3" style="padding: 17px;">
-                                        <label>End Date</label>
-                                        <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>" id="en_date" required>
-                                    </div>
-                                    <div class="col-xs-3" style="padding: 18px;">
-                                        <button style="margin-top: 22px;" class="btn btn-primary " type="submit">Filter </button>
-                                    </div>
-                                </form>
+            <div class="col-xs-12">
+
+                <div class="box">
+                    <!-- /.box-header -->
+                    <div class="box-body">
+                        <div class="col-lg-12" style="margin-top: 20px;">
+                            <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
+                        </div>
+                        <form action="<?= base_url('Admin/Exchange_product')?>" method="get">
+                            <div class="col-lg-6" style="margin-bottom: 15px;">
+                                <label>Customer</label><br>
+                                <select class="form-control select2" name="customer" >
+                                    <option value="">Please Select</option>
+                                    <?= getAllListInOptionWithStatus( $customerId, 'customer_id', 'customer_name', 'customers', 'customer_name' );?>
+                                </select>
                             </div>
+                            <div class="col-lg-6" style="margin-bottom: 15px;">
+                                <label for="varchar">Conditional Status </label><br>
+                                <select class="form-control select2" name="status" id="status"  >
+                                    <option value="" >Please Select</option>
+                                    <option value="1" <?= ($status == '1')?'selected':'';?> >Received From Customer</option>
+                                    <option value="2" <?= ($status == '2')?'selected':'';?> >Sent to Warehouse</option>
+                                    <option value="3" <?= ($status == '3')?'selected':'';?> >Received From Warehouse</option>
+                                    <option value="4" <?= ($status == '4')?'selected':'';?> >Complete</option>
+                                    <option value="5" <?= ($status == '5')?'selected':'';?> >Canceled with no return</option>
+                                </select>
+                            </div>
+                            <div class="col-xs-4" >
+                                <label>Start Date</label>
+                                <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>" id="st_date" >
+                            </div>
+                            <div class="col-xs-4" >
+                                <label>End Date</label>
+                                <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>" id="en_date" >
+                            </div>
+                            <div class="col-xs-1" >
+                                <button style="margin-top: 22px;" class="btn btn-primary " type="submit">Filter </button>
+                            </div>
+                            <div class="col-lg-3 ">
+                                <a href="<?= base_url('Admin/Exchange_product') ?>" style="margin-top: 25px;" class="btn btn-default btn-block"><i class="fa fa-refresh"></i> Reset</a>
+                            </div>
+                        </form>
+
 
                         <div class="col-lg-12" style="margin-top: 30px;"></div>
                         <table id="example1" class="table table-bordered table-striped text-capitalize">
@@ -99,6 +93,7 @@
                                 <th>Type</th>
                                 <th>Status</th>
                                 <th>Customer</th>
+                                <th>Quantity</th>
                                 <th>Comment</th>
                                 <th>Action</th>
                             </tr>
@@ -118,6 +113,13 @@
                                         }
 
                                         ?></td>
+                                    <td>
+                                        <?php if ($item->type == 'Conditional'){ ?>
+                                            <?= get_exchange_conditional_product_qty_by_id($item->exchange_pro_id); ?>
+                                        <?php }else{ ?>
+                                            <?= get_exchange_unconditional_product_qty_by_id($item->exchange_pro_id); ?>
+                                        <?php } ?>
+                                    </td>
 
                                     <td><?php echo $item->comment; ?></td>
                                     <td>

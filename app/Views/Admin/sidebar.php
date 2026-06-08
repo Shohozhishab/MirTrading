@@ -44,7 +44,7 @@
                     <?php echo add_main_ajax_based_menu_with_permission('Sales List', '/Admin/Sales', $role_id, 'fa fa-cart-plus', '/Admin/Sales_ajax','Sales'); ?>
                     <?php echo add_main_ajax_based_menu_with_permission('Invoice', '/Admin/Invoice', $role_id, 'fa fa fa-tasks', '/Admin/Invoice_ajax','Invoice'); ?>
                     <?php echo add_main_ajax_based_menu_with_permission('Return  Sales', '/Admin/Return_sale', $role_id, 'fa fa-cart-plus', '/Admin/Return_sale_ajax','Return_sale'); ?>
-                    <?php echo add_main_ajax_based_menu_with_permission('Exchange Product', '/Admin/Exchange_product', $role_id, 'fa fa-tasks', '/Admin/Exchange_product_ajax','ExchangeProduct'); ?>
+                    <?php echo add_main_ajax_based_menu_with_permission('Replace Product', '/Admin/Exchange_product', $role_id, 'fa fa-tasks', '/Admin/Exchange_product_ajax','ExchangeProduct'); ?>
                     <?php echo add_main_ajax_based_menu_with_permission('Stock Transfer', '/Admin/Stock_transfer', $role_id, 'fa fa-tasks', '/Admin/Stock_transfer_ajax','StockTransfer'); ?>
                 </ul>
             </li>
@@ -128,7 +128,7 @@
                     <?php echo add_main_ajax_based_menu_with_permission('Products', '/Admin/Products', $role_id, 'fa fa-tasks', '/Admin/Products_ajax','Products'); ?>
                     <?php echo add_main_ajax_based_menu_with_permission('Product Category', '/Admin/Product_category', $role_id, 'fa fa-tasks', '/Admin/Product_category_ajax','Product_category'); ?>
                     <?php echo add_main_ajax_based_menu_with_permission('Brand', '/Admin/Brand', $role_id, 'fa fa-tasks', '/Admin/Brand_ajax','Brand'); ?>
-                    <?php echo add_main_ajax_based_menu_with_permission('Exchange Product', '/Admin/Exchange_product', $role_id, 'fa fa-tasks', '/Admin/Exchange_product_ajax','ExchangeProduct'); ?>
+                    <?php echo add_main_ajax_based_menu_with_permission('Replace Product', '/Admin/Exchange_product', $role_id, 'fa fa-tasks', '/Admin/Exchange_product_ajax','ExchangeProduct'); ?>
                     <?php echo add_main_ajax_based_menu_with_permission('Stock Transfer', '/Admin/Stock_transfer', $role_id, 'fa fa-tasks', '/Admin/Stock_transfer_ajax','StockTransfer'); ?>
                 </ul>
             </li>

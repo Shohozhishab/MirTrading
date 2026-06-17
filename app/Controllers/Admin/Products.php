@@ -256,7 +256,7 @@ class Products extends BaseController
         $data['unit'] = $this->request->getPost('unit');
         $data['purchase_price'] = $this->request->getPost('price');
         $data['selling_price'] = $this->request->getPost('selling_price');
-        $data['quantity'] = $this->request->getPost('qty');
+        $data2['quantity'] = $this->request->getPost('qty');
 
         $this->validation->setRules([
             'prod_cat_id' => ['label' => 'Category', 'rules' => 'required'],
@@ -264,7 +264,6 @@ class Products extends BaseController
             'unit' => ['label' => 'unit', 'rules' => 'required'],
             'purchase_price' => ['label' => 'price', 'rules' => 'required'],
             'selling_price' => ['label' => 'salePrice', 'rules' => 'required'],
-            'quantity' => ['label' => 'qty', 'rules' => 'required|is_natural_no_zero'],
         ]);
 
         if ($this->validation->run($data) == FALSE) {
@@ -278,15 +277,22 @@ class Products extends BaseController
                 $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
 
                 //insert product
-                $data['store_id'] = $store->store_id;
                 $data['sch_id'] = $shopId;
                 $data['createdBy'] = $this->session->userId;
                 $data['createdDtm'] = date('Y-m-d H:i:s');
                 $productTable = DB()->table('products');
                 $productTable->insert($data);
+                $prodId = DB()->insertID();
+
+                //product stock relation insert
+                DB()->table('product_stock_relation')->insert([
+                    'store_id' => $store->store_id,
+                    'product_id' => $prodId,
+                    'quantity' => $data2['quantity'],
+                ]);
 
                 //total amount product
-                $totalAmountPro = $data['purchase_price'] * $data['quantity'];
+                $totalAmountPro = $data['purchase_price'] * $data2['quantity'];
 
                 //capital last balance
                 $oldCapital = get_data_by_id('capital', 'shops', 'sch_id', $shopId);

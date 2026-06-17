@@ -24,7 +24,7 @@
                             <div class="col-lg-3">
                                 <a href="javascript:void(0)"
                                    onclick="showData('<?php echo site_url('/Admin/Loan_provider_ajax/create/'); ?>','<?php echo '/Admin/Loan_provider/create/'; ?>')"
-                                   class="btn btn-block btn-primary">Add</a>
+                                   class="btn btn-block btn-primary"><i class="fa fa-plus"></i> Create Account Head</a>
                             </div>
                             <div class="col-lg-12" style="margin-top: 20px;">
                                 <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
@@ -59,8 +59,7 @@
                                     <td><?php echo showWithCurrencySymbol($val->balance) ?></td>
                                     <td><?php echo $val->address ?></td>
                                     <td>
-<!--                                        <a href="javascript:void(0)" onclick="showData('<?php //echo site_url('/Admin/Loan_provider_ajax/transaction/' . $val->loan_pro_id); ?>','<?php //echo '/Admin/Loan_provider/transaction/' . $val->loan_pro_id; ?>')" class="btn btn-primary btn-xs">Transaction</a>-->
-
+                                        <a href="<?= base_url('Admin/Ledger_loan?loan_pro_id='.$val->loan_pro_id)?>"  class="btn btn-primary btn-xs"><i class="fa fa-book"></i> Ledger </a>
                                         <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Loan_provider_ajax/update/' . $val->loan_pro_id); ?>','<?php echo '/Admin/Loan_provider/update/' . $val->loan_pro_id; ?>')"
                                            class="btn btn-warning btn-xs">Update</a>
                                         <?php if($isDeletable == true){ ?>

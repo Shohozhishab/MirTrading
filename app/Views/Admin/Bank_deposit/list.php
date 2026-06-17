@@ -59,6 +59,10 @@
                                             <td><?php echo showWithCurrencySymbol($val->amount) ?></td>
                                             <td><?php echo $val->commont ?></td>
                                             <td>
+                                                <a href="javascript:void(0)"
+                                                   onclick="showData('<?php echo site_url('/Admin/Bank_deposit_ajax/transaction_flow/' . $val->dep_id); ?>','<?php echo '/Admin/Bank_deposit/transaction_flow/' . $val->dep_id; ?>')"
+                                                   class="btn btn-success btn-xs">Transaction Flow </a>
+
                                                 <?php if(edit_expire_check($val->createdDtm) == true){ ?>
                                                 <a href="javascript:void(0)" class="btn btn-xs btn-warning"  onclick="depositEdit('<?= $val->dep_id;?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
                                                 <?php } ?>

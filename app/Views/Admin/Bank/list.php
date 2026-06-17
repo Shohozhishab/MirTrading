@@ -27,7 +27,7 @@
                             <div class="col-lg-3">
                                 <a href="javascript:void(0)"
                                    onclick="showData('<?php echo site_url('/Admin/Bank_ajax/create/'); ?>','<?php echo '/Admin/Bank/create/'; ?>'),activeTab(this)"
-                                   class="btn btn-block btn-primary">Add</a>
+                                   class="btn btn-block btn-primary"><i class="fa fa-plus"></i> Create Bank</a>
                             </div>
                             <div class="col-lg-12" style="margin-top: 20px;">
                                 <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
@@ -58,6 +58,7 @@
                                     <td><?php echo $val->account_no ?></td>
                                     <td><?php echo showWithCurrencySymbol($val->balance) ?></td>
                                     <td width="180px">
+                                        <a href="<?= base_url('Admin/Ledger_bank?bank_id='.$val->bank_id)?>"  class="btn btn-primary btn-xs"><i class="fa fa-book"></i> Ledger </a>
                                         <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Bank_ajax/update/'.$val->bank_id); ?>','<?php echo '/Admin/Bank/update/'.$val->bank_id; ?>')"  class="btn btn-xs btn-info">Update</a>
                                         <?php if($isDeletable == true){ ?>
                                             <a href="<?php echo site_url('/Admin/Bank/delete/' . $val->bank_id); ?>" onclick="return confirm('Are you sure you want to delete this item?');"  class="btn btn-danger btn-xs">Delete</a>

@@ -39,8 +39,8 @@ class Transaction_ajax extends BaseController
             $transactionTable = DB()->table('transaction');
 
             // Date Filter
-            $start_date = $this->request->getGet('start_date');
-            $end_date = $this->request->getGet('end_date');
+            $start_date = $this->request->getGet('st_date');
+            $end_date = $this->request->getGet('en_date');
             $category = $this->request->getGet('category');
 
             if ($start_date) {
@@ -94,14 +94,11 @@ class Transaction_ajax extends BaseController
                     ->where('bank_id', NULL)
                     ->where('lc_id', NULL)
                     ->where('trangaction_type', 'Dr.');
-            } else {
-                $category = 'customer';
-                $transactionTable->where('customer_id !=', NULL);
             }
 
             $data['transaction_data'] = $transactionTable->where('sch_id', $shopId)->get()->getResult();
-            $data['st_date'] = isset($st_date)?$st_date:'';
-            $data['en_date'] = isset($en_date)?$en_date:'';
+            $data['st_date'] = isset($start_date)?$start_date:'';
+            $data['en_date'] = isset($end_date)?$end_date:'';
             $data['active_category'] = $category;
 
             $data['customer_id_filter'] = $customer_id;
@@ -266,6 +263,39 @@ class Transaction_ajax extends BaseController
             }
             if ($data['mod_access'] == 1) {
                 echo view('Admin/Transaction/salaryreceipt', $data);
+            } else {
+                echo view('no_permission');
+            }
+        }
+    }
+
+    public function transaction_flow($trans_id){
+        $isLoggedIn = $this->session->isLoggedIn;
+        $role_id = $this->session->role;
+        if (!isset($isLoggedIn) || $isLoggedIn != TRUE) {
+            return redirect()->to(site_url('Admin/login'));
+        } else {
+            $shopId = $this->session->shopId;
+
+            $data['flow'] = DB()->table('transaction_entries')
+                ->where('trans_id',$trans_id)
+                ->get()
+                ->getResult();
+
+            $data['transaction'] = DB()->table('transaction')
+                ->where('trans_id',$trans_id)
+                ->get()
+                ->getRow();
+
+
+            // All Permissions
+            //$perm = array('create','read','update','delete','mod_access');
+            $perm = $this->permission->module_permission_list($role_id, $this->module_name);
+            foreach ($perm as $key => $val) {
+                $data[$key] = $this->permission->have_access($role_id, $this->module_name, $key);
+            }
+            if (isset($data['mod_access']) and $data['mod_access'] == 1) {
+                echo view('Admin/Transaction/transaction_flow', $data);
             } else {
                 echo view('no_permission');
             }

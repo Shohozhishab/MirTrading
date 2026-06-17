@@ -13,7 +13,7 @@
         <!-- Small boxes (Stat box) -->
         <div class="row">
             <div class="col-xs-12" style="margin-bottom: 15px;">
-                <a href="#" onclick="showData('<?php echo site_url('/Admin/Employee_ajax/create/'); ?>','<?php echo '/Admin/Employee/create/';?>')"  class="btn btn-default">Register</a>
+                <a href="#" onclick="showData('<?php echo site_url('/Admin/Employee_ajax/create/'); ?>','<?php echo '/Admin/Employee/create/';?>')"  class="btn btn-default"><i class="fa fa-plus"></i> Create Employee</a>
 
                 <a href="#" onclick="showData('<?php echo site_url('/Admin/Ledger_employee_ajax') ?>','/Admin/Ledger_employee')" class="btn btn-default">Salary</a>
             </div>
@@ -28,7 +28,7 @@
                             <div class="col-lg-3">
                                 <a href="javascript:void(0)"
                                    onclick="showData('<?php echo site_url('/Admin/Employee_ajax/create/'); ?>','<?php echo '/Admin/Employee/create/'; ?>')"
-                                   class="btn btn-block btn-primary">Add</a>
+                                   class="btn btn-block btn-primary"><i class="fa fa-plus"></i> Create Employee</a>
                             </div>
                             <div class="col-lg-12" style="margin-top: 20px;">
                                 <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
@@ -57,7 +57,7 @@
                                     <td><?php echo showWithCurrencySymbol($employee->salary) ?></td>
                                     <td><?php echo $employee->age ?></td>
                                     <td width="180px">
-
+                                        <a href="<?= base_url('Admin/Ledger_employee?employee_id='.$employee->employee_id)?>"  class="btn btn-primary btn-xs"><i class="fa fa-book"></i> Ledger </a>
                                         <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Employee_ajax/update/'.$employee->employee_id); ?>','<?php echo '/Admin/Employee/update/'.$employee->employee_id; ?>')"  class="btn btn-xs btn-info">Update</a>
 
 

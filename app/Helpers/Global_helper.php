@@ -309,7 +309,7 @@ function getTwoValueInOption($selected, $tblId,$needCol,$needCol2, $table)
     foreach ($query->getResult() as $value) {
         $options .= '<option value="' . $value->$tblId . '" ';
         $options .= ($value->$tblId == $selected ) ? ' selected="selected"' : '';
-        $options .= '>' .$value->$needCol.'--'.$value->$needCol2. '</option>';
+        $options .= '>' .$value->$needCol.'--'.$value->$needCol2. '('.showWithCurrencySymbol($value->balance).')</option>';
     }
     return $options;
 }
@@ -1875,4 +1875,64 @@ function get_exchange_unconditional_product_qty_by_id($exchange_pro_id){
     if (!empty($query)) {
         return get_stock_transfer_qty_by_id($query->stock_transfer_id);
     }
+}
+
+function getPrimaryKeyByTable($tableName){
+    $db = DB();
+
+    $primaryKey = null;
+    // Check if the table actually exists in the database first
+    if (!$db->tableExists($tableName)) {
+        return $primaryKey;
+    }
+
+    $fields = $db->getFieldData($tableName);
+    foreach ($fields as $field) {
+        if (isset($field->primary_key) && $field->primary_key === 1) {
+            $primaryKey = $field->name;
+            break;
+        }
+    }
+
+    return $primaryKey;
+}
+
+function tableNameOrIdByAmount($table,$ledger_id){
+    $whereId = getPrimaryKeyByTable($table);
+    $result = DB()->table($table)->where($whereId,$ledger_id)->get()->getRow();
+    return !empty($result)?$result->amount:0;
+}
+
+function tableNameArrayKeyByValue($index){
+    $array = [
+        'ledger_discount' => 'Discount',
+        'ledger_vat' => 'Vat',
+        'ledger_sales' => 'Sales',
+        'ledger_profit' => 'Profit',
+        'ledger_stock' => 'Stock',
+        'ledger' => 'Customer',
+        'ledger_nagodan' => 'Cash',
+        'ledger_bank' => 'Bank',
+        'ledger_suppliers' => 'Suppliers',
+        'ledger_purchase' => 'Purchase',
+        'ledger_employee' => 'Employee',
+        'ledger_expense' => 'Expense',
+        'ledger_loan' => 'Account Head',
+        'ledger_other_sales' => 'Other Sales',
+    ];
+
+    return $array[$index] ?? null;
+}
+
+function totalProductInStoreByProductIdOrStoreId($prod_id,$store_id){
+    $query = DB()->table('product_stock_relation')
+        ->where('store_id',$store_id)
+        ->where('product_id',$prod_id)
+        ->get()
+        ->getRow();
+
+    return !empty($query)?$query->quantity:0;
+}
+function getTotalRow($table,$whereCol, $whereInfo){
+    return DB()->table($table)->where($whereCol,$whereInfo)->get()->getRow();
 }

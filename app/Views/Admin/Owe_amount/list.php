@@ -51,7 +51,7 @@
                                         ?>
                                         <tr>
                                             <td><?php echo $i++ ?></td>
-                                            <td><?php echo $row->customer_name ?></td>
+                                            <td><a href="<?= base_url('Admin/Ledger?customer_id='.$row->customer_id)?>" class="text-black" ><?php echo $row->customer_name ?></a></td>
                                             <td><?php echo showWithCurrencySymbol($row->balance) ?></td>
                                         </tr>
                                     <?php } }?>
@@ -132,7 +132,7 @@
                                         ?>
                                         <tr>
                                             <td><?php echo $j++ ?></td>
-                                            <td><?php echo $view->name ?></td>
+                                            <td><a href="<?= base_url('Admin/Ledger_suppliers?supplier_id='.$view->supplier_id)?>" class="text-black" ><?php echo $view->name ?></a></td>
                                             <td><?php echo showWithCurrencySymbol($view->balance) ?></td>
                                         </tr>
                                     <?php } }?>
@@ -212,7 +212,7 @@
                                         ?>
                                         <tr>
                                             <td><?php echo $l++ ?></td>
-                                            <td><?php echo $value->name ?></td>
+                                            <td><a href="<?= base_url('Admin/Ledger_loan?loan_pro_id='.$value->loan_pro_id)?>" class="text-black" ><?php echo $value->name ?></a></td>
                                             <td><?php echo showWithCurrencySymbol($value->balance) ?></td>
                                         </tr>
                                     <?php } }?>

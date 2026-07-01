@@ -14,7 +14,7 @@
             <!-- Small boxes (Stat box) -->
             <div class="row">
                 <div class="col-xs-12" style="margin-bottom: 15px;">
-                    <a href="#" onclick="showData('<?php echo site_url('/Admin/Customer_type_ajax/create/') ?>','/Admin/Customer_type/create/')" class="btn btn-default">Add</a>
+                    <a href="#" onclick="showData('<?php echo site_url('/Admin/Customer_type_ajax/create/') ?>','/Admin/Customer_type/create/')" class="btn btn-default"><i class="fa fa-plus"></i> Create Customer Type</a>
 
                     <a href="#" onclick="showData('<?php echo site_url('/Admin/Customers_ajax'); ?>','<?php echo '/Admin/Customers';?>')"  class="btn btn-default">Customer</a>
 
@@ -29,7 +29,7 @@
                                     <h3 class="box-title">Customer Type List</h3>
                                 </div>
                                 <div class="col-lg-3">
-                                    <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Customer_type_ajax/create/'); ?>','<?php echo '/Admin/Customer_type/create/'; ?>')" class="btn btn-block btn-primary">Add</a>
+                                    <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Customer_type_ajax/create/'); ?>','<?php echo '/Admin/Customer_type/create/'; ?>')" class="btn btn-block btn-primary"><i class="fa fa-plus"></i> Create Customer Type</a>
                                 </div>
                                 <div class="col-lg-12" style="margin-top: 20px;">
                                     <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>

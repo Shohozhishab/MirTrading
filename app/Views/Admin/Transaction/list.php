@@ -29,7 +29,7 @@
                                     <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>" id="en_date" required>
                                 </div>
 
-                                <input type="hidden" name="category" id="hidden_category" value="<?php echo $active_category ?? 'customer'; ?>">
+                                <input type="hidden" name="category" id="hidden_category" value="<?php echo $active_category ?? ''; ?>">
                                 <input type="hidden" name="customer_id" id="hidden_customer_id" value="<?php echo $customer_id_filter ?? ''; ?>">
                                 <input type="hidden" name="supplier_id" id="hidden_supplier_id" value="<?php echo $supplier_id_filter ?? ''; ?>">
                                 <input type="hidden" name="loan_pro_id" id="hidden_loan_pro_id" value="<?php echo $loan_pro_id_filter ?? ''; ?>">
@@ -121,6 +121,9 @@
                                                                 <td><?php echo $row->trangaction_type; ?></td>
                                                                 <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
                                                                 <td>
+                                                                    <a href="javascript:void(0)"
+                                                                       onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/transaction_flow/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/transaction_flow/' . $row->trans_id; ?>')"
+                                                                       class="btn btn-success btn-xs">Transaction Flow </a>
                                                                     <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/moneyReceipt/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/moneyReceipt/' . $row->trans_id; ?>')"
                                                                         class="btn btn-xs btn-info">Money Receipt</a>
                                                                     <?php if (edit_expire_check($row->createdDtm) == true) { ?>
@@ -224,6 +227,10 @@
                                                                 <td><?php echo $row->trangaction_type; ?></td>
                                                                 <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
                                                                 <td>
+                                                                    <a href="javascript:void(0)"
+                                                                       onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/transaction_flow/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/transaction_flow/' . $row->trans_id; ?>')"
+                                                                       class="btn btn-success btn-xs">Transaction Flow </a>
+
                                                                     <?php if (edit_expire_check($row->createdDtm) == true) { ?>
                                                                         <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="supplierTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
                                                                     <?php } ?>
@@ -323,6 +330,9 @@
                                                                 <td><?php echo $row->trangaction_type; ?></td>
                                                                 <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
                                                                 <td>
+                                                                    <a href="javascript:void(0)"
+                                                                       onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/transaction_flow/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/transaction_flow/' . $row->trans_id; ?>')"
+                                                                       class="btn btn-success btn-xs">Transaction Flow </a>
                                                                     <?php if (edit_expire_check($row->createdDtm) == true) { ?>
                                                                         <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="accountTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
                                                                     <?php } ?>
@@ -421,6 +431,9 @@
                                                                 <td><?php echo $row->trangaction_type; ?></td>
                                                                 <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
                                                                 <td>
+                                                                    <a href="javascript:void(0)"
+                                                                       onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/transaction_flow/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/transaction_flow/' . $row->trans_id; ?>')"
+                                                                       class="btn btn-success btn-xs">Transaction Flow </a>
                                                                     <?php if (edit_expire_check($row->createdDtm) == true) { ?>
                                                                         <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="fundTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
                                                                     <?php } ?>
@@ -509,6 +522,9 @@
                                                                 <td><?php echo $row->trangaction_type; ?></td>
                                                                 <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
                                                                 <td>
+                                                                    <a href="javascript:void(0)"
+                                                                       onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/transaction_flow/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/transaction_flow/' . $row->trans_id; ?>')"
+                                                                       class="btn btn-success btn-xs">Transaction Flow </a>
                                                                     <?php if (edit_expire_check($row->createdDtm) == true) { ?>
                                                                         <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="expenseTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
                                                                     <?php } ?>
@@ -599,6 +615,9 @@
                                                                 <td><?php echo $row->trangaction_type; ?></td>
                                                                 <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
                                                                 <td>
+                                                                    <a href="javascript:void(0)"
+                                                                       onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/transaction_flow/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/transaction_flow/' . $row->trans_id; ?>')"
+                                                                       class="btn btn-success btn-xs">Transaction Flow </a>
                                                                     <?php if (edit_expire_check($row->createdDtm) == true) { ?>
                                                                         <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="otherSalesTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
                                                                     <?php } ?>
@@ -699,6 +718,9 @@
                                                                 <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
                                                                 <td>
                                                                     <a href="javascript:void(0)"
+                                                                       onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/transaction_flow/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/transaction_flow/' . $row->trans_id; ?>')"
+                                                                       class="btn btn-success btn-xs">Transaction Flow </a>
+                                                                    <a href="javascript:void(0)"
                                                                         onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/salaryreceipt/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/salaryreceipt/' . $row->trans_id; ?>')"
                                                                         class="btn btn-xs btn-info">Salary Receipt</a>
                                                                     <?php if (edit_expire_check($row->createdDtm) == true) { ?>
@@ -792,6 +814,9 @@
                                                                 <td><?php echo $row->trangaction_type; ?></td>
                                                                 <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
                                                                 <td>
+                                                                    <a href="javascript:void(0)"
+                                                                       onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/transaction_flow/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/transaction_flow/' . $row->trans_id; ?>')"
+                                                                       class="btn btn-success btn-xs">Transaction Flow </a>
                                                                     <?php if (edit_expire_check($row->createdDtm) == true) { ?>
                                                                         <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="vatTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
                                                                     <?php } ?>

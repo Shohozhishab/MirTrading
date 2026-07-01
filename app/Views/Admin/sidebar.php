@@ -170,7 +170,7 @@
 
             <?php echo add_main_ajax_based_menu_with_permission('Daily Book', '/Admin/Daily_book', $role_id, 'fa fa-book', '/Admin/Daily_book_ajax','Daily_book'); ?>
 
-
+            <?php echo add_main_ajax_based_menu_with_permission('Transaction Events', '/Admin/Transaction_events', $role_id, 'fa fa-book', '/Admin/Transaction_events_ajax','TransactionEvents'); ?>
 
             <li><?php echo add_main_ajax_based_menu_with_permission('Trial Balance', '/Admin/Trial_balance', $role_id, 'fa fa-list-alt', '/Admin/Trial_balance_ajax','Trial_balance'); ?> </li>
 
@@ -290,6 +290,8 @@
             <?php echo add_main_ajax_based_menu_with_permission('Affiliate User', '/Admin/Affiliate_user', $role_id, 'fa fa-user', '/Admin/Affiliate_user_ajax','AffiliateUser'); ?>
             <?php echo add_main_ajax_based_menu_with_permission('Affiliate Commission', '/Admin/Affiliate_commission', $role_id, 'fa fa-user', '/Admin/Affiliate_commission_ajax','AffiliateUser'); ?>
             <?php echo add_main_ajax_based_menu_with_permission('Affiliate Commission Pay', '/Admin/Affiliate_commission_pay', $role_id, 'fa fa-user', '/Admin/Affiliate_commission_pay_ajax','AffiliateUser'); ?>
+
+            <?php echo add_main_ajax_based_menu_with_permission('Capital List', '/Admin/Capital/list', $role_id, 'fa fa-book', '/Admin/Capital_ajax/list','Capital'); ?>
 
             <?php echo add_main_ajax_based_menu_with_permission('Settings', '/Admin/Settings', $role_id, 'fa fa-hospital-o', '/Admin/Settings_ajax','Settings'); ?>
 

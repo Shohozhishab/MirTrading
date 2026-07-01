@@ -28,7 +28,7 @@
                             <div class="col-lg-3">
                                 <a href="javascript:void(0)"
                                    onclick="showData('<?php echo site_url('/Admin/Customers_ajax/create/'); ?>','<?php echo '/Admin/Customers/create/'; ?>')"
-                                   class="btn btn-block btn-primary">Register</a>
+                                   class="btn btn-block btn-primary"><i class="fa fa-plus"></i> Create Customer</a>
                             </div>
                             <div class="col-lg-12" style="margin-top: 20px;">
                                 <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
@@ -67,9 +67,7 @@
                                         <a href="<?= site_url('/Admin/Return_sale?customer=' . $val->customer_id)?>" class="btn btn-warning btn-xs">Return List</a>
                                         <a href="<?= site_url('/Admin/Exchange_product?customer=' . $val->customer_id)?>" class="btn btn-warning btn-xs">Exchange List</a>
 
-                                        <a href="javascript:void(0)"
-                                           onclick="showData('<?php echo site_url('/Admin/Customers_ajax/transaction/' . $val->customer_id); ?>','<?php echo '/Admin/Customers/transaction/' . $val->customer_id; ?>')"
-                                           class="btn btn-primary btn-xs">Transaction</a>
+                                        <a href="<?= base_url('Admin/Ledger?customer_id='.$val->customer_id)?>"  class="btn btn-primary btn-xs"><i class="fa fa-book"></i> Ledger </a>
 
                                         <a href="javascript:void(0)"
                                            onclick="showData('<?php echo site_url('/Admin/Customers_ajax/update/' . $val->customer_id); ?>','<?php echo '/Admin/Customers/update/' . $val->customer_id; ?>')"

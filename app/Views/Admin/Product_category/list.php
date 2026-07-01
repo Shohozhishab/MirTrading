@@ -26,7 +26,7 @@
                             <div class="col-lg-3">
                                 <a href="javascript:void(0)"
                                    onclick="showData('<?php echo site_url('/Admin/Product_category_ajax/create/'); ?>','<?php echo '/Admin/Product_category/create/'; ?>')"
-                                   class="btn btn-block btn-primary">Add</a>
+                                   class="btn btn-block btn-primary"><i class="fa fa-plus"></i> Create Category</a>
                             </div>
                             <div class="col-lg-12" style="margin-top: 20px;">
                                 <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>

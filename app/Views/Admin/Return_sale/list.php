@@ -47,9 +47,6 @@
                         <div class="col-lg-12" style="margin-top: 20px;">
                             <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
                         </div>
-
-
-
                         <div class="col-lg-12">
                             <form action="<?= base_url('Admin/Return_sale')?>" method="get">
                                 <div class="col-lg-3 ">
@@ -76,8 +73,6 @@
                             </form>
                         </div>
                         <div class="col-lg-12" style="margin-top: 30px"></div>
-
-
 
                         <table id="example1" class="table table-bordered table-striped text-capitalize" style="margin-top: 20px;">
                             <thead>

@@ -33,7 +33,7 @@
                     <!-- /.box-header -->
                     <div class="box-body">
                         <div class="row">
-                            <div class="col-lg-6">
+                            <div class="col-lg-6 trail">
                                 <h4>All Debit</h4>
                                 <table class="table table-bordered table-striped" id="">
                                     <tr>
@@ -60,7 +60,7 @@
                                 <table class="table table-bordered table-striped">
                                     <?php foreach ($bankData as $rowbank) { ?>
                                         <tr>
-                                            <td style="width: 50%;"><?php echo $rowbank->name ?></td>
+                                            <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_bank?bank_id='.$rowbank->bank_id)?>" class="text-black" ><?php echo $rowbank->name ?></a></td>
                                             <td><?php echo showWithCurrencySymbol($rowbank->balance) ?></td>
                                         </tr>
                                     <?php } ?>
@@ -71,19 +71,19 @@
                                     <?php foreach ($customerData as $rowcus) {
                                         if ($rowcus->balance > 0) { ?>
                                             <tr>
-                                                <td style="width: 50%;"><?php echo $rowcus->customer_name ?></td>
+                                                <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger?customer_id='.$rowcus->customer_id)?>" class="text-black" ><?php echo $rowcus->customer_name ?></a></td>
                                                 <td><?php echo showWithCurrencySymbol($rowcus->balance) ?></td>
                                             </tr>
                                         <?php }
                                     } ?>
                                 </table>
 
-                                <h5><b>Account Head</b></h5>
+                                <h5><b>Expense/Account Head</b></h5>
                                 <table class="table table-bordered table-striped" id="">
                                     <?php foreach ($loanProData as $rowlon) {
                                         if ($rowlon->balance > 0) { ?>
                                             <tr>
-                                                <td style="width: 50%;"><?php echo $rowlon->name ?></td>
+                                                <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_loan?loan_pro_id='.$rowlon->loan_pro_id)?>" class="text-black" ><?php echo $rowlon->name ?></a></td>
                                                 <td><?php echo showWithCurrencySymbol($rowlon->balance) ?></td>
                                             </tr>
                                         <?php }
@@ -95,7 +95,7 @@
                                     <?php foreach ($supplierData as $rowsup) {
                                         if ($rowsup->balance > 0) { ?>
                                             <tr>
-                                                <td style="width: 50%;"><?php echo $rowsup->name ?></td>
+                                                <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_suppliers?supplier_id='.$rowsup->supplier_id)?>" class="text-black" ><?php echo $rowsup->name ?></a></td>
                                                 <td><?php echo showWithCurrencySymbol($rowsup->balance) ?></td>
                                             </tr>
                                         <?php }
@@ -106,7 +106,7 @@
                                 <table class="table table-bordered table-striped" id="">
                                     <?php foreach ($employee as $rowem) { ?>
                                         <tr>
-                                            <td style="width: 50%;"><?php echo $rowem->name ?></td>
+                                            <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_employee?employee_id='.$rowem->employee_id)?>" class="text-black" ><?php echo $rowem->name ?></a></td>
                                             <td><?php echo showWithCurrencySymbol($rowem->balance) ?></td>
                                         </tr>
                                     <?php } ?>
@@ -119,7 +119,7 @@
                                     </tr>
                                 </table>
                             </div>
-                            <div class="col-lg-6">
+                            <div class="col-lg-6 trail">
                                 <h4>All Credit</h4>
                                 <table class="table table-bordered table-striped" id="">
                                     <tr>
@@ -146,7 +146,7 @@
                                 <table class="table table-bordered table-striped" id="">
                                     <?php foreach ($loanProData as $rowlonc) { if ($rowlonc->balance < 0) {  ?>
                                         <tr>
-                                            <td style="width: 50%;"><?php echo $rowlonc->name ?></td>
+                                            <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_loan?loan_pro_id='.$rowlonc->loan_pro_id)?>" class="text-black" ><?php echo $rowlonc->name ?></a></td>
                                             <td><?php echo showWithCurrencySymbol($rowlonc->balance) ?></td>
                                         </tr>
                                     <?php }} ?>
@@ -156,7 +156,7 @@
                                 <table class="table table-bordered table-striped" id="">
                                     <?php foreach ($supplierData as $rowsupc) { if ($rowsupc->balance < 0) {  ?>
                                         <tr>
-                                            <td style="width: 50%;"><?php echo $rowsupc->name ?></td>
+                                            <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_suppliers?supplier_id='.$rowsupc->supplier_id)?>" class="text-black" ><?php echo $rowsupc->name ?></a></td>
                                             <td><?php echo showWithCurrencySymbol($rowsupc->balance) ?></td>
                                         </tr>
                                     <?php }} ?>
@@ -166,7 +166,7 @@
                                 <table class="table table-bordered table-striped" id="">
                                     <?php foreach ($customerData as $rowcusc) { if ($rowcusc->balance < 0) {  ?>
                                         <tr>
-                                            <td style="width: 50%;"><?php echo $rowcusc->customer_name ?></td>
+                                            <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger?customer_id='.$rowcusc->customer_id)?>" class="text-black" ><?php echo $rowcusc->customer_name ?></a></td>
                                             <td><?php echo showWithCurrencySymbol($rowcusc->balance) ?></td>
                                         </tr>
                                     <?php } } ?>

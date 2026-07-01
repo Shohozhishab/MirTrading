@@ -101,6 +101,9 @@
                                     <td><?php echo showWithCurrencySymbol(get_data_by_id('due', 'invoice', 'invoice_id', $val->invoice_id)) ?></td>
                                     <td><?php echo showWithCurrencySymbol($profit) ?></td>
                                     <td>
+                                        <a href="javascript:void(0)"
+                                           onclick="showData('<?php echo site_url('/Admin/Sales_ajax/transaction_flow/' . $val->sales_id); ?>','<?php echo '/Admin/Sales/transaction_flow/' . $val->sales_id; ?>')"
+                                           class="btn btn-success btn-xs">Transaction Flow </a>
 
                                         <a href="javascript:void(0)"
                                            onclick="showData('<?php echo site_url('/Admin/Invoice_ajax/view/' . $val->invoice_id); ?>','<?php echo '/Admin/Invoice/view/' . $val->invoice_id; ?>')"

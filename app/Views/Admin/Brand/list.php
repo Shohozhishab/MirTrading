@@ -25,7 +25,7 @@
                                 <h3 class="box-title">Brand List</h3>
                             </div>
                             <div class="col-lg-3">
-                                <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Brand_ajax/create/'); ?>','<?php echo '/Admin/Brand/create/'; ?>')" class="btn btn-block btn-primary">Add</a>
+                                <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Brand_ajax/create/'); ?>','<?php echo '/Admin/Brand/create/'; ?>')" class="btn btn-block btn-primary"><i class="fa fa-plus"></i> Create Brand</a>
                             </div>
                             <div class="col-lg-12" style="margin-top: 20px;">
                                 <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>

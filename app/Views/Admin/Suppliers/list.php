@@ -24,7 +24,7 @@
                             <div class="col-lg-3">
                                 <a href="javascript:void(0)"
                                    onclick="showData('<?php echo site_url('/Admin/Suppliers_ajax/create/'); ?>','<?php echo '/Admin/Suppliers/create/'; ?>')"
-                                   class="btn btn-block btn-primary">Add</a>
+                                   class="btn btn-block btn-primary"><i class="fa fa-plus"></i> Create Supplier</a>
                             </div>
                             <div class="col-lg-12" style="margin-top: 20px;">
                                 <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
@@ -60,8 +60,7 @@
                                     <td><?php echo $suppliers->address ?></td>
                                     <td><?php echo showWithPhoneNummberCountryCode($suppliers->phone) ?></td>
                                     <td>
-                                        <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Suppliers_ajax/transaction/' . $suppliers->supplier_id); ?>','<?php echo '/Admin/Suppliers/transaction/' . $suppliers->supplier_id; ?>')"
-                                           class="btn btn-primary btn-xs">Transaction</a>
+                                        <a href="<?= base_url('Admin/Ledger_suppliers?supplier_id='.$suppliers->supplier_id)?>"  class="btn btn-primary btn-xs"><i class="fa fa-book"></i> Ledger </a>
 
                                         <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Suppliers_ajax/update/' . $suppliers->supplier_id); ?>','<?php echo '/Admin/Suppliers/update/' . $suppliers->supplier_id; ?>')"
                                            class="btn btn-warning btn-xs">Update</a>

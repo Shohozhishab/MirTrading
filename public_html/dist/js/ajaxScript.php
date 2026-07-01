@@ -3615,7 +3615,9 @@ function opening_status(url){
       downloadLink.click();
       document.body.removeChild(downloadLink);
   }
-
+  function formSubmit(){
+      $('form').submit();
+  }
 </script>
 
 

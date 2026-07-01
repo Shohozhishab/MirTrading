@@ -60,6 +60,9 @@
                                             <td><?php echo showWithCurrencySymbol($val->amount) ?></td>
                                             <td><?php echo $val->commont ?></td>
                                             <td>
+                                                <a href="javascript:void(0)"
+                                                   onclick="showData('<?php echo site_url('/Admin/Bank_withdraw_ajax/transaction_flow/' . $val->wthd_id); ?>','<?php echo '/Admin/Bank_withdraw/transaction_flow/' . $val->wthd_id; ?>')"
+                                                   class="btn btn-success btn-xs">Transaction Flow </a>
                                                 <?php if(edit_expire_check($val->createdDtm) == true){ ?>
                                                 <a href="javascript:void(0)" class="btn btn-xs btn-warning"  onclick="withdrawEdit('<?= $val->wthd_id;?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
                                                 <?php } ?>

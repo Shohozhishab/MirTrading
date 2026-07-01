@@ -84,7 +84,9 @@
                                     <td><?php echo showWithCurrencySymbol(get_data_by_id('amount','purchase','purchase_id',$purchase->purchase_id)); ?></td>
                                     <td><?php echo showWithCurrencySymbol(get_data_by_id('due','purchase','purchase_id',$purchase->purchase_id)); ?></td>
                                     <td>
-
+                                        <a href="javascript:void(0)"
+                                           onclick="showData('<?php echo site_url('/Admin/Purchase_ajax/transaction_flow/' . $purchase->purchase_id); ?>','<?php echo '/Admin/Purchase/transaction_flow/' . $purchase->purchase_id; ?>')"
+                                           class="btn btn-success btn-xs">Transaction Flow </a>
                                         <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Purchase_ajax/view/' . $purchase->purchase_id); ?>','<?php echo '/Admin/Purchase/view/' . $purchase->purchase_id; ?>')"
                                            class="btn btn-primary btn-xs">View</a>
                                         <?php if(edit_expire_check($purchase->createdDtm) == true){ ?>

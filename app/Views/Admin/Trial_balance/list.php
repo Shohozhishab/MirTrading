@@ -37,21 +37,21 @@
                                 <h4>All Debit</h4>
                                 <table class="table table-bordered table-striped" id="">
                                     <tr>
-                                        <td style="width: 50%;">Cash</td>
+                                        <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_nagodan')?>" class="text-black" >Cash</a></td>
                                         <td><?php echo showWithCurrencySymbol($cash); ?></td>
                                     </tr>
 
                                     <tr>
-                                        <td style="width: 50%;">Stock Amount</td>
+                                        <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_stock')?>" class="text-black" >Stock Amount</a></td>
                                         <td><?php echo showWithCurrencySymbol($stockAmount); ?></td>
                                     </tr>
 
                                     <tr>
-                                        <td style="width: 50%;">Expense</td>
+                                        <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_expense')?>" class="text-black" >Expense</a></td>
                                         <td><?php echo showWithCurrencySymbol($expensedata); ?></td>
                                     </tr>
                                     <tr>
-                                        <td style="width: 50%;">Expense Commission</td>
+                                        <td style="width: 50%;"><a href="<?= base_url('Admin/Affiliate_commission_pay')?>" class="text-black" >Expense Commission</a></td>
                                         <td><?php echo showWithCurrencySymbol($commission); ?></td>
                                     </tr>
                                 </table>
@@ -123,20 +123,20 @@
                                 <h4>All Credit</h4>
                                 <table class="table table-bordered table-striped" id="">
                                     <tr>
-                                        <td style="width: 50%;">Capital</td>
+                                        <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_capital')?>" class="text-black" >Capital</a></td>
                                         <td><?php echo showWithCurrencySymbol($capitalcr); ?></td>
                                     </tr>
                                     <tr>
-                                        <td style="width: 50%;">Profit</td>
+                                        <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_profit')?>" class="text-black" >Profit</a></td>
                                         <td><?php echo showWithCurrencySymbol($profit); ?></td>
                                     </tr>
                                     <tr>
-                                        <td style="width: 50%;">Vat</td>
+                                        <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_vat')?>" class="text-black" >Vat</a></td>
                                         <td><?php echo showWithCurrencySymbol($vatEarn); ?></td>
                                     </tr>
 
                                     <tr>
-                                        <td style="width: 50%;">Service Charge</td>
+                                        <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_service_charge')?>" class="text-black" >Service Charge</a></td>
                                         <td><?php echo showWithCurrencySymbol($service_charge); ?></td>
                                     </tr>
 

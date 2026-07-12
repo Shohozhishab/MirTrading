@@ -557,6 +557,7 @@ class Purchase extends BaseController
                 $purItemData = array(
                     'prod_id' => $product_id,
                     'purchase_id' => $purchaseId,
+                    'quantity' => $quantity,
                     'purchase_price' => $price,
                     'total_price' => $total_price,
                     'createdBy' => $userId,
@@ -565,11 +566,6 @@ class Purchase extends BaseController
                 $tabpurchase_item = DB()->table('purchase_item');
                 $tabpurchase_item->insert($purItemData);
 
-                $dataQty = array(
-                    'quantity' => $quantity,
-                );
-                $tableQty = DB()->table('product_stock_relation');
-                $tableQty->where('store_id',$storeId)->where('product_id',$product_id)->update($dataQty);
             }
             //purchase product insert in product table and purchase item table (end)
 

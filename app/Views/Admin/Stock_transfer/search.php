@@ -44,7 +44,7 @@
                                     <tr role="row" class="odd">
                                         <td><input type="checkbox" name="returnchecked[]" class="datatables" id="checkedProd" value="<?= $row->prod_id; ?>"> </td>
                                         <td><?= $row->name;?></td>
-                                        <td><input type="number" class="quantity form-control" id="quantity" name="quantity[]" min="1" max="<?= $row->quantity ?>" placeholder="Quantity" value="<?php echo $row->quantity ?>"></td>
+                                        <td><input type="number" class="quantity form-control" id="quantity" name="quantity[<?= $row->prod_id; ?>]" min="1" max="<?= $row->quantity ?>" placeholder="Quantity" value="<?php echo $row->quantity ?>"></td>
                                     </tr>
                                 <?php } ?>
                                 </tbody>

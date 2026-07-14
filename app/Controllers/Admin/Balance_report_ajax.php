@@ -83,6 +83,17 @@ class Balance_report_ajax extends BaseController
             }
             //total Lone provider balance calculet(end)
 
+            //total supplier  balance calculate (start)
+            $suppliersTab = DB()->table('suppliers');
+            $suppl = $suppliersTab->where('sch_id', $shopId)->get()->getResult();
+            $suppGetCash = 0;
+            foreach ($suppl as $result) {
+                if ($result->balance > 0) {
+                    $suppGetCash += $result->balance;
+                }
+            }
+            //total supplier  balance calculate (end)
+
 
             //total invoice profite calculet (start)
             $invoiceCash = 0;
@@ -121,7 +132,7 @@ class Balance_report_ajax extends BaseController
 
 
             //Total balance calculet (start)
-            $totalGetCash = $customerCash + $loanProGetCash;
+            $totalGetCash = $customerCash + $loanProGetCash + $suppGetCash;
             $totalCash = $cash + $bankCash + $totalGetCash + $totalProdPrice;
             //Total balance calculet (end)
 

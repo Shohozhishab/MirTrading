@@ -165,11 +165,13 @@ class Stock_transfer extends BaseController
             //exchange product items add
             foreach ($proId as $key => $pid) {
                 if (!empty($pid)) {
+
+                    $qty = $quantity[$pid];
                     $db->table('stock_transfer_item')->insert([
                         'sch_id' => $shopId,
                         'stock_transfer_id' => $stockTransferId,
                         'prod_id'  => $pid,
-                        'quantity'    => $quantity[$key] ?? 0,
+                        'quantity'    => $qty ?? 0,
                         'createdBy'    => $userId,
                     ]);
 
@@ -177,7 +179,7 @@ class Stock_transfer extends BaseController
                     $productQty = $db->table('product_stock_relation')->where('store_id',$defaultStoreId)->where('product_id',$pid)->get()->getRow();
                     $upQty = 0;
                     if (!empty($productQty)){
-                        $upQty = $productQty->quantity - $quantity[$key];
+                        $upQty = $productQty->quantity - $qty;
                     }
                     $storeQtyUpdateData = array(
                         'quantity' => $upQty
@@ -188,7 +190,7 @@ class Stock_transfer extends BaseController
                     //new store quantity update
                     $productNewQty = $db->table('product_stock_relation')->where('store_id',$toStockId)->where('product_id',$pid)->get()->getRow();
                     if (!empty($productNewQty)){
-                        $newQty = $productNewQty->quantity + $quantity[$key];
+                        $newQty = $productNewQty->quantity + $qty;
                         $newQtyData = array(
                             'quantity' => $newQty
                         );
@@ -197,7 +199,7 @@ class Stock_transfer extends BaseController
                         $newQtyData = array(
                             'store_id' => $toStockId,
                             'product_id' => $pid,
-                            'quantity' => $quantity[$key]
+                            'quantity' => $qty
                         );
                         $db->table('product_stock_relation')->insert($newQtyData);
                     }

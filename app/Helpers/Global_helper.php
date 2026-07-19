@@ -1936,3 +1936,21 @@ function totalProductInStoreByProductIdOrStoreId($prod_id,$store_id){
 function getTotalRow($table,$whereCol, $whereInfo){
     return DB()->table($table)->where($whereCol,$whereInfo)->get()->getRow();
 }
+function userRole(){
+    return DB()->table('roles')
+        ->where('sch_id',$_SESSION['shopId'])
+        ->where('is_default','0')
+        ->get()
+        ->getResult();
+}
+function isDefaultRole() {
+    if (!isset($_SESSION['role'])) {
+        return false;
+    }
+
+    $query = DB()->table('roles')
+        ->where('role_id', $_SESSION['role'])
+        ->get()
+        ->getRow();
+    return (!empty($query) && $query->is_default == 1);
+}

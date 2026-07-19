@@ -3618,6 +3618,88 @@ function opening_status(url){
   function formSubmit(){
       $('form').submit();
   }
+
+  function checkedFunction(targetModule, button) {
+      // Find all checkboxes belonging to this module array group
+      const checkboxes = document.querySelectorAll(`input[type="checkbox"][name^="permission[${targetModule}]"]`);
+
+      // Check if they are already all checked
+      const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+
+      // If all are checked, uncheck them. Otherwise, check them all.
+      checkboxes.forEach(cb => {
+          cb.checked = !allChecked;
+      });
+
+      // Toggle button text visually using the passed button reference
+      button.textContent = allChecked ? 'Checked' : 'Unchecked';
+  }
+  function selectAll(button){
+      // Find all checkboxes belonging to this module array group
+      const checkboxes = document.querySelectorAll(`input[type="checkbox"]`);
+
+      // Check if they are already all checked
+      const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+
+      // If all are checked, uncheck them. Otherwise, check them all.
+      checkboxes.forEach(cb => {
+          cb.checked = !allChecked;
+      });
+
+      // Optional: Toggle button text visually
+      button.textContent = allChecked ? 'Select All' : 'Unselect All';
+  }
+
+  function rollPermissionBtn() {
+      $('#permissionDiv').fadeToggle(500);
+  }
+
+  function rolePermission(role_id,module){
+      $.ajax({
+          method: "POST",
+          url: '<?= base_url("Admin/Role/modulePermission")?>',
+          data: {role_id:role_id,module:module},
+          beforeSend: function() {
+              $("#loading-image").show();
+          },
+          success: function(data) {
+              $("#loading-image").hide();
+              $('#rolView').html(data);
+          }
+      });
+  }
+
+  $(document).on('submit', '#roleUpdateform', function(e) {
+      e.preventDefault();
+
+      $('#message').html("<div class='alert alert-secondary'>Loading..... please wait</div>");
+      var fd = new FormData(this);
+
+      var roleUpdateform = $(this);
+
+      $.ajax({
+          method: "POST",
+          url: $(this).prop('action'),
+          data: fd,
+          contentType: false,
+          cache: false,
+          processData: false,
+          beforeSend: function() {
+              $("#loading-image").show();
+          },
+          success: function(data) {
+              $("#loading-image").hide();
+              $('#message').hide();
+              $('#message').show();
+              $('#message').html(data);
+
+              $('#reloadRoleDiv').load(document.URL + ' #reloadRoleDiv');
+          }
+
+      });
+
+  });
+
 </script>
 
 

@@ -11,10 +11,34 @@
     <!-- Main content -->
     <section class="content">
         <!-- Small boxes (Stat box) -->
+        <?php if (isDefaultRole() == true){ ?>
+            <div class="row" id="reloadRoleDiv" style="margin-bottom:20px; ">
+                <div class="col-lg-12" >
+                    <button class="btn btn-sm btn-info " style="float: right;" onclick="rollPermissionBtn()">Roll Permission</button>
+                </div>
+                <div class="col-lg-12" id="permissionDiv" style="display: none; margin-top: 20px">
+                    <form id="roleUpdateform" action="<?= base_url('Admin/Role/modulePermissionAction')?>" method="post">
+                        <div class="box box-primary">
+                            <div class="box-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <select class="form-control" onchange="rolePermission(this.value,'Purchase')" name="role_id">
+                                            <option value="">Please Select</option>
+                                            <?php  foreach (userRole() as $val ){ ?>
+                                                <option value="<?= $val->role_id;?>"><?= $val->role;?></option>
+                                            <?php } ?>
+                                        </select>
+                                        <input type="hidden" name="moduleName" value="Purchase">
+                                    </div>
+                                    <div class="col-md-12" id="rolView"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        <?php } ?>
         <div class="row">
-
-
-
             <div class="col-xs-12" >
                 <div class="box box-primary">
                     <div class="box-header with-border">
@@ -53,15 +77,17 @@
                    onclick="showData('<?php echo site_url('/Admin/Purchase_ajax/create/'); ?>','<?php echo '/Admin/Purchase/create/'; ?>')"
                    class="btn btn-success"><i class="fa fa-plus"></i> Add Purchase</a>
             </div>
+            <div class="col-lg-12" style="margin-top: 20px;">
+                <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
+                <div id="message"></div>
+            </div>
             <div class="col-xs-12">
 
                 <div class="box">
 
                     <!-- /.box-header -->
                     <div class="box-body">
-                        <div class="col-lg-12" style="margin-top: 20px;">
-                            <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
-                        </div>
+
 
                         <table id="example1" class="table table-bordered table-striped text-capitalize">
                             <thead>

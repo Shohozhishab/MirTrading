@@ -44,7 +44,7 @@
         <div class="row">
 
             <div class="col-xs-12">
-
+                <?php if (isset($filter) && $filter == 1){ ?>
                 <div class="box box-primary">
                     <div class="box-header with-border">
                         <h3 class="box-title"><i class="fa fa-filter"></i> Filter </h3>
@@ -83,6 +83,7 @@
                     </div>
                     <!-- /.box-body -->
                 </div>
+                <?php } ?>
                 <?php
                     $name = get_data_by_id('name', 'bank', 'bank_id', $bank_id);
                     $account = get_data_by_id('account_no', 'bank', 'bank_id', $bank_id);
@@ -195,9 +196,15 @@
                 </div>
                 <div class="row no-print">
                     <div class="col-xs-12">
+                        <?php if (isset($print) && $print == 1){ ?>
                         <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right"><i class="fa fa-print "></i> Print Now </button>
+                        <?php } ?>
+                        <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
                         <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','bank')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                        <?php } ?>
+                        <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
                         <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','bank')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                        <?php } ?>
                     </div>
                 </div>
 

@@ -39,6 +39,7 @@
             </div>
         <?php } ?>
         <div class="row">
+            <?php if (isset($filter) && $filter == 1){ ?>
             <div class="col-xs-12" style="margin-bottom: 15px;">
                 <div class="box box-primary">
                     <div class="box-header with-border">
@@ -75,13 +76,14 @@
                     </div>
                 </div>
             </div>
-
+            <?php } ?>
+            <?php if (isset($create) && $create == 1){ ?>
             <div class="col-xs-12" style="margin-bottom: 15px;">
                 <a href="javascript:void(0)"
                    onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/create/'); ?>','<?php echo '/Admin/Transaction/create/'; ?>')"
                    class="btn btn-success"><i class="fa fa-plus"></i> Add Transaction</a>
             </div>
-
+            <?php } ?>
             <div class="col-xs-12">
 
                 <div class="box">
@@ -149,18 +151,23 @@
                                                                 <td><?php echo $row->trangaction_type; ?></td>
                                                                 <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
                                                                 <td>
+                                                            <?php if (isset($transaction_flow) && $transaction_flow == 1){ ?>
                                                                     <a href="javascript:void(0)"
                                                                        onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/transaction_flow/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/transaction_flow/' . $row->trans_id; ?>')"
                                                                        class="btn btn-success btn-xs">Transaction Flow </a>
+                                                            <?php } ?>
                                                                     <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/moneyReceipt/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/moneyReceipt/' . $row->trans_id; ?>')"
                                                                         class="btn btn-xs btn-info">Money Receipt</a>
+                                                            <?php if (isset($update) && $update == 1){ ?>
                                                                     <?php if (edit_expire_check($row->createdDtm) == true) { ?>
                                                                         <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="cusTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
                                                                     <?php } ?>
+                                                            <?php } ?>
+                                                            <?php if (isset($read) && $read == 1){ ?>
 
                                                                     <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
                                                                         class="btn btn-xs btn-success">View</a>
-
+                                                            <?php } ?>
                                                                 </td>
                                                             </tr>
                                                     <?php }
@@ -170,9 +177,15 @@
                                             </table>
                                             <div class="row no-print">
                                                 <div class="col-xs-12">
+                                                    <?php if (isset($print) && $print == 1){ ?>
                                                     <button onclick="printDiv('cusPrint')" class="print_line btn btn-primary pull-right"><i class="fa fa-print "></i> Print Now</button>
+                                                    <?php } ?>
+                                                    <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
                                                     <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('cusPrint','customer')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                                    <?php } ?>
+                                                    <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
                                                     <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('cusPrint','customer')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                                    <?php } ?>
                                                 </div>
                                             </div>
 
@@ -255,17 +268,21 @@
                                                                 <td><?php echo $row->trangaction_type; ?></td>
                                                                 <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
                                                                 <td>
+                                                            <?php if (isset($transaction_flow) && $transaction_flow == 1){ ?>
                                                                     <a href="javascript:void(0)"
                                                                        onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/transaction_flow/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/transaction_flow/' . $row->trans_id; ?>')"
                                                                        class="btn btn-success btn-xs">Transaction Flow </a>
-
+                                                            <?php } ?>
+                                                            <?php if (isset($update) && $update == 1){ ?>
                                                                     <?php if (edit_expire_check($row->createdDtm) == true) { ?>
                                                                         <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="supplierTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
                                                                     <?php } ?>
+                                                            <?php } ?>
+                                                            <?php if (isset($read) && $read == 1){ ?>
                                                                     <a href="javascript:void(0)"
                                                                         onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
                                                                         class="btn btn-xs btn-success">View</a>
-
+                                                            <?php } ?>
                                                                 </td>
                                                             </tr>
                                                     <?php }
@@ -276,9 +293,15 @@
 
                                             <div class="row no-print">
                                                 <div class="col-xs-12">
+                                                    <?php if (isset($print) && $print == 1){ ?>
                                                     <button onclick="printDiv('supplierPrint')" class="print_line btn btn-primary pull-right"><i class="fa fa-print "></i> Print Now</button>
+                                                    <?php } ?>
+                                                    <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
                                                     <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('supplierPrint','supplier')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                                    <?php } ?>
+                                                    <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
                                                     <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('supplierPrint','supplier')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                                    <?php } ?>
                                                 </div>
                                             </div>
 
@@ -358,16 +381,21 @@
                                                                 <td><?php echo $row->trangaction_type; ?></td>
                                                                 <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
                                                                 <td>
+                                                            <?php if (isset($transaction_flow) && $transaction_flow == 1){ ?>
                                                                     <a href="javascript:void(0)"
                                                                        onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/transaction_flow/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/transaction_flow/' . $row->trans_id; ?>')"
                                                                        class="btn btn-success btn-xs">Transaction Flow </a>
+                                                            <?php } ?>
+                                                            <?php if (isset($update) && $update == 1){ ?>
                                                                     <?php if (edit_expire_check($row->createdDtm) == true) { ?>
                                                                         <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="accountTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
                                                                     <?php } ?>
+                                                            <?php } ?>
+                                                            <?php if (isset($read) && $read == 1){ ?>
                                                                     <a href="javascript:void(0)"
                                                                         onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
                                                                         class="btn btn-xs btn-success">View</a>
-
+                                                            <?php } ?>
                                                                 </td>
                                                             </tr>
                                                     <?php }
@@ -377,9 +405,15 @@
                                             </table>
                                             <div class="row no-print">
                                                 <div class="col-xs-12">
+                                                    <?php if (isset($print) && $print == 1){ ?>
                                                     <button onclick="printDiv('accountPrint')" class="print_line btn btn-primary pull-right"><i class="fa fa-print "></i> Print Now</button>
+                                                    <?php } ?>
+                                                    <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
                                                     <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('accountPrint','account')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                                    <?php } ?>
+                                                    <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
                                                     <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('accountPrint','account')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                                    <?php } ?>
                                                 </div>
                                             </div>
 
@@ -459,14 +493,20 @@
                                                                 <td><?php echo $row->trangaction_type; ?></td>
                                                                 <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
                                                                 <td>
+                                                            <?php if (isset($transaction_flow) && $transaction_flow == 1){ ?>
                                                                     <a href="javascript:void(0)"
                                                                        onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/transaction_flow/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/transaction_flow/' . $row->trans_id; ?>')"
                                                                        class="btn btn-success btn-xs">Transaction Flow </a>
+                                                            <?php } ?>
+                                                            <?php if (isset($update) && $update == 1){ ?>
                                                                     <?php if (edit_expire_check($row->createdDtm) == true) { ?>
                                                                         <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="fundTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
                                                                     <?php } ?>
+                                                            <?php } ?>
+                                                            <?php if (isset($read) && $read == 1){ ?>
                                                                     <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
                                                                         class="btn btn-xs btn-success">View</a>
+                                                            <?php } ?>
                                                                 </td>
                                                             </tr>
                                                     <?php }
@@ -476,9 +516,15 @@
                                             </table>
                                             <div class="row no-print">
                                                 <div class="col-xs-12">
+                                                    <?php if (isset($print) && $print == 1){ ?>
                                                     <button onclick="printDiv('fundPrint')" class="print_line btn btn-primary pull-right"><i class="fa fa-print "></i> Print Now</button>
+                                                    <?php } ?>
+                                                    <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
                                                     <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('fundPrint','fund')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                                    <?php } ?>
+                                                    <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
                                                     <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('fundPrint','fund')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                                    <?php } ?>
                                                 </div>
                                             </div>
 
@@ -550,15 +596,21 @@
                                                                 <td><?php echo $row->trangaction_type; ?></td>
                                                                 <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
                                                                 <td>
+                                                            <?php if (isset($transaction_flow) && $transaction_flow == 1){ ?>
                                                                     <a href="javascript:void(0)"
                                                                        onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/transaction_flow/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/transaction_flow/' . $row->trans_id; ?>')"
                                                                        class="btn btn-success btn-xs">Transaction Flow </a>
+                                                            <?php } ?>
+                                                            <?php if (isset($update) && $update == 1){ ?>
                                                                     <?php if (edit_expire_check($row->createdDtm) == true) { ?>
                                                                         <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="expenseTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
                                                                     <?php } ?>
+                                                            <?php } ?>
+                                                            <?php if (isset($read) && $read == 1){ ?>
                                                                     <a href="javascript:void(0)"
                                                                         onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
                                                                         class="btn btn-xs btn-success">View</a>
+                                                            <?php } ?>
                                                                 </td>
                                                             </tr>
                                                     <?php }
@@ -569,9 +621,15 @@
 
                                             <div class="row no-print">
                                                 <div class="col-xs-12">
+                                                    <?php if (isset($print) && $print == 1){ ?>
                                                     <button onclick="printDiv('expensePrint')" class="print_line btn btn-primary pull-right"><i class="fa fa-print "></i> Print Now</button>
+                                                    <?php } ?>
+                                                    <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
                                                     <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('expensePrint','expense')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                                    <?php } ?>
+                                                    <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
                                                     <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('expensePrint','expense')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                                    <?php } ?>
                                                 </div>
                                             </div>
 
@@ -643,16 +701,21 @@
                                                                 <td><?php echo $row->trangaction_type; ?></td>
                                                                 <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
                                                                 <td>
+                                                            <?php if (isset($transaction_flow) && $transaction_flow == 1){ ?>
                                                                     <a href="javascript:void(0)"
                                                                        onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/transaction_flow/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/transaction_flow/' . $row->trans_id; ?>')"
                                                                        class="btn btn-success btn-xs">Transaction Flow </a>
+                                                            <?php } ?>
+                                                            <?php if (isset($update) && $update == 1){ ?>
                                                                     <?php if (edit_expire_check($row->createdDtm) == true) { ?>
                                                                         <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="otherSalesTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
                                                                     <?php } ?>
+                                                            <?php } ?>
+                                                            <?php if (isset($read) && $read == 1){ ?>
                                                                     <a href="javascript:void(0)"
                                                                         onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
                                                                         class="btn btn-xs btn-success">View</a>
-
+                                                            <?php } ?>
                                                                 </td>
                                                             </tr>
                                                     <?php }
@@ -663,9 +726,15 @@
 
                                             <div class="row no-print">
                                                 <div class="col-xs-12">
+                                                    <?php if (isset($print) && $print == 1){ ?>
                                                     <button onclick="printDiv('otherSalesPrint')" class="print_line btn btn-primary pull-right"><i class="fa fa-print "></i> Print Now</button>
+                                                    <?php } ?>
+                                                    <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
                                                     <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('otherSalesPrint','otherSales')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                                    <?php } ?>
+                                                    <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
                                                     <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('otherSalesPrint','otherSales')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                                    <?php } ?>
                                                 </div>
                                             </div>
 
@@ -745,19 +814,24 @@
                                                                 <td><?php echo $row->trangaction_type; ?></td>
                                                                 <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
                                                                 <td>
+                                                            <?php if (isset($transaction_flow) && $transaction_flow == 1){ ?>
                                                                     <a href="javascript:void(0)"
                                                                        onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/transaction_flow/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/transaction_flow/' . $row->trans_id; ?>')"
                                                                        class="btn btn-success btn-xs">Transaction Flow </a>
+                                                            <?php } ?>
                                                                     <a href="javascript:void(0)"
                                                                         onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/salaryreceipt/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/salaryreceipt/' . $row->trans_id; ?>')"
                                                                         class="btn btn-xs btn-info">Salary Receipt</a>
+                                                            <?php if (isset($update) && $update == 1){ ?>
                                                                     <?php if (edit_expire_check($row->createdDtm) == true) { ?>
                                                                         <a href="javascript:void(0)" class="btn btn-xs btn-warning " onclick="employeeTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
                                                                     <?php } ?>
+                                                            <?php } ?>
+                                                            <?php if (isset($read) && $read == 1){ ?>
                                                                     <a href="javascript:void(0)"
                                                                         onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
                                                                         class="btn btn-xs btn-success">View</a>
-
+                                                            <?php } ?>
                                                                 </td>
                                                             </tr>
                                                     <?php }
@@ -768,9 +842,15 @@
 
                                             <div class="row no-print">
                                                 <div class="col-xs-12">
+                                                    <?php if (isset($print) && $print == 1){ ?>
                                                     <button onclick="printDiv('employeePrint')" class="print_line btn btn-primary pull-right"><i class="fa fa-print "></i> Print Now</button>
+                                                    <?php } ?>
+                                                    <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
                                                     <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('employeePrint','employee')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                                    <?php } ?>
+                                                    <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
                                                     <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('employeePrint','employee')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                                    <?php } ?>
                                                 </div>
                                             </div>
 
@@ -842,15 +922,21 @@
                                                                 <td><?php echo $row->trangaction_type; ?></td>
                                                                 <td><?php echo showWithCurrencySymbol($row->amount); ?></td>
                                                                 <td>
+                                                            <?php if (isset($transaction_flow) && $transaction_flow == 1){ ?>
                                                                     <a href="javascript:void(0)"
                                                                        onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/transaction_flow/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/transaction_flow/' . $row->trans_id; ?>')"
                                                                        class="btn btn-success btn-xs">Transaction Flow </a>
+                                                            <?php } ?>
+                                                            <?php if (isset($update) && $update == 1){ ?>
                                                                     <?php if (edit_expire_check($row->createdDtm) == true) { ?>
                                                                         <a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="vatTranEdit('<?= $row->trans_id; ?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
                                                                     <?php } ?>
+                                                            <?php } ?>
+                                                            <?php if (isset($read) && $read == 1){ ?>
                                                                     <a href="javascript:void(0)"
                                                                         onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $row->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $row->trans_id; ?>')"
                                                                         class="btn btn-xs btn-success">View</a>
+                                                            <?php } ?>
                                                                 </td>
                                                             </tr>
                                                     <?php }
@@ -861,9 +947,15 @@
 
                                             <div class="row no-print">
                                                 <div class="col-xs-12">
+                                                    <?php if (isset($print) && $print == 1){ ?>
                                                     <button onclick="printDiv('vatPrint')" class="print_line btn btn-primary pull-right"><i class="fa fa-print "></i> Print Now</button>
+                                                    <?php } ?>
+                                                    <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
                                                     <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('vatPrint','vat')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                                    <?php } ?>
+                                                    <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
                                                     <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('vatPrint','vat')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                                    <?php } ?>
                                                 </div>
                                             </div>
 

@@ -4,14 +4,42 @@
         <h1> Commission  <small>Commission List</small></h1>
         <ol class="breadcrumb">
             <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-            <li class="active">Bank</li>
+            <li class="active">Commission</li>
         </ol>
     </section>
 
     <!-- Main content -->
     <section class="content">
         <!-- Small boxes (Stat box) -->
+        <?php if (isDefaultRole() == true){ ?>
+            <div class="row" id="reloadRoleDiv" style="margin-bottom:20px; ">
+                <div class="col-lg-12" >
+                    <button class="btn btn-sm btn-info " style="float: right;" onclick="rollPermissionBtn()">Roll Permission</button>
+                </div>
+                <div class="col-lg-12" id="permissionDiv" style="display: none; margin-top: 20px">
+                    <form id="roleUpdateform" action="<?= base_url('Admin/Role/modulePermissionAction')?>" method="post">
+                        <div class="box box-primary">
+                            <div class="box-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <select class="form-control" onchange="rolePermission(this.value,'AffiliateUser')" name="role_id">
+                                            <option value="">Please Select</option>
+                                            <?php  foreach (userRole() as $val ){ ?>
+                                                <option value="<?= $val->role_id;?>"><?= $val->role;?></option>
+                                            <?php } ?>
+                                        </select>
+                                        <input type="hidden" name="moduleName" value="AffiliateUser">
+                                    </div>
+                                    <div class="col-md-12" id="rolView"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        <?php } ?>
         <div class="row">
+            <?php if (isset($filter) && $filter == 1){ ?>
             <div class="col-xs-12" >
                 <div class="box box-primary">
                     <div class="box-header with-border">
@@ -55,6 +83,7 @@
                     </div>
                 </div>
             </div>
+            <?php } ?>
             <div class="col-xs-12">
 
                 <div class="box">
@@ -80,7 +109,9 @@
                                     <td><?php echo showWithCurrencySymbol($val->commission_amount) ?></td>
                                     <td><?php echo $val->date ?></td>
                                     <td><?php $invoice_id = get_data_by_id('invoice_id','sales','sales_id',$val->sales_id);?>
+                                        <?php if (isset($read) && $read == 1){ ?>
                                         <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Invoice_ajax/view/'.$invoice_id); ?>','<?php echo '/Admin/Invoice/view/'.$invoice_id; ?>')" class="btn btn-warning btn-xs">View</a>
+                                        <?php } ?>
                                     </td>
                                 </tr>
                             <?php } ?>
@@ -89,9 +120,15 @@
 
                         <div class="row no-print" >
                             <div class="col-xs-12">
+                                <?php if (isset($print) && $print == 1){ ?>
                                 <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
+                                <?php } ?>
+                                <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
                                 <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','affiliateCommission')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                <?php } ?>
+                                <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
                                 <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','affiliateCommission')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                <?php } ?>
                             </div>
                         </div>
 

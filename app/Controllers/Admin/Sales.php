@@ -1336,7 +1336,7 @@ class Sales extends BaseController
                     $stockTable = DB()->table('product_stock_relation');
                     $stock = $stockTable->where('store_id',$store->store_id)->where('product_id', $proId[$i])->get()->getRow();
 
-                    $qnt = $stock->quantity - $quantity[$i];
+                    $qnt = ($stock->quantity + $pro->amount) - $quantity[$i];
                     $qntProData = array(
                         'quantity' => $qnt,
                     );

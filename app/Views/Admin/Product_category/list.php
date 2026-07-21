@@ -10,12 +10,11 @@
 
     <!-- Main content -->
     <section class="content">
-        <!-- Small boxes (Stat box) -->
         <div class="col-xs-12" style="margin-bottom: 15px;">
             <?php echo $menu;?>
         </div>
         <?php if (isDefaultRole() == true){ ?>
-            <div class="row" id="reloadRoleDiv" style="margin-bottom:20px; ">
+            <div class="row" id="reloadRoleDiv">
                 <div class="col-lg-12" >
                     <button class="btn btn-sm btn-info " style="float: right;" onclick="rollPermissionBtn()">Roll Permission</button>
                 </div>
@@ -41,7 +40,7 @@
                 </div>
             </div>
         <?php } ?>
-        <div class="row">
+        <div class="row" style="margin-top: 20px;">
 
             <div class="col-xs-12">
 
@@ -52,9 +51,11 @@
                                 <h3 class="box-title">Product Category List</h3>
                             </div>
                             <div class="col-lg-3">
-                                <a href="javascript:void(0)"
-                                   onclick="showData('<?php echo site_url('/Admin/Product_category_ajax/create/'); ?>','<?php echo '/Admin/Product_category/create/'; ?>')"
-                                   class="btn btn-block btn-primary"><i class="fa fa-plus"></i> Create Category</a>
+                                <?php if (isset($create) && $create == 1){ ?>
+                                    <a href="javascript:void(0)"
+                                       onclick="showData('<?php echo site_url('/Admin/Product_category_ajax/create/'); ?>','<?php echo '/Admin/Product_category/create/'; ?>')"
+                                       class="btn btn-block btn-primary">Add</a>
+                                <?php } ?>
                             </div>
                             <div class="col-lg-12" style="margin-top: 20px;">
                                 <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
@@ -82,14 +83,16 @@
                                 }else{
                                     $pCat = '';
                                 }
-                            ?>
+                                ?>
                                 <tr>
                                     <td width="80px"><?php echo $start++ ?></td>
                                     <td><?php echo $product_category->prod_cat_id ?></td>
                                     <td><?php echo $pCat;?> <?php echo $product_category->product_category ?> </td>
                                     <td><?php echo ($product_category->status == 1) ? '<button class="btn btn-xs btn-info">Active</button>' : '<button class="btn btn-xs btn-danger">Inactive</button>'; ?></td>
                                     <td width="180px">
-                                        <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Product_category_ajax/update/'.$product_category->prod_cat_id); ?>','<?php echo '/Admin/Product_category/update/'.$product_category->prod_cat_id; ?>')"  class="btn btn-xs btn-info">Update</a>
+                                        <?php if (isset($update) && $update == 1){ ?>
+                                            <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Product_category_ajax/update/'.$product_category->prod_cat_id); ?>','<?php echo '/Admin/Product_category/update/'.$product_category->prod_cat_id; ?>')"  class="btn btn-xs btn-info">Update</a>
+                                        <?php } ?>
                                     </td>
                                 </tr>
                             <?php } ?>

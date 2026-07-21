@@ -11,12 +11,11 @@
 
     <!-- Main content -->
     <section class="content">
-        <!-- Small boxes (Stat box) -->
         <div class="col-xs-12" style="margin-bottom: 15px;">
             <?php echo $menu;?>
         </div>
         <?php if (isDefaultRole() == true){ ?>
-            <div class="row" id="reloadRoleDiv" style="margin-bottom:20px; ">
+            <div class="row" id="reloadRoleDiv">
                 <div class="col-lg-12" >
                     <button class="btn btn-sm btn-info " style="float: right;" onclick="rollPermissionBtn()">Roll Permission</button>
                 </div>
@@ -42,7 +41,7 @@
                 </div>
             </div>
         <?php } ?>
-        <div class="row">
+        <div class="row" style="margin-top: 20px;">
 
             <div class="col-xs-12">
 
@@ -53,7 +52,9 @@
                                 <h3 class="box-title">Brand List</h3>
                             </div>
                             <div class="col-lg-3">
-                                <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Brand_ajax/create/'); ?>','<?php echo '/Admin/Brand/create/'; ?>')" class="btn btn-block btn-primary"><i class="fa fa-plus"></i> Create Brand</a>
+                                <?php if (isset($create) && $create == 1){ ?>
+                                    <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Brand_ajax/create/'); ?>','<?php echo '/Admin/Brand/create/'; ?>')" class="btn btn-block btn-primary">Add</a>
+                                <?php } ?>
                             </div>
                             <div class="col-lg-12" style="margin-top: 20px;">
                                 <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
@@ -86,7 +87,9 @@
                                         <?php } ?>
                                     </td>
                                     <td>
-                                        <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Brand_ajax/update/'.$brand->brand_id); ?>','<?php echo '/Admin/Brand/update/'.$brand->brand_id; ?>')" class="btn btn-warning btn-xs">Update</a>
+                                        <?php if (isset($update) && $update == 1){ ?>
+                                            <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Brand_ajax/update/'.$brand->brand_id); ?>','<?php echo '/Admin/Brand/update/'.$brand->brand_id; ?>')" class="btn btn-warning btn-xs">Update</a>
+                                        <?php } ?>
                                     </td>
                                 </tr>
                             <?php } ?>

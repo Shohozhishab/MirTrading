@@ -81,7 +81,9 @@
                                     <td><?php echo showWithCurrencySymbol($invoice->final_amount) ?></td>
                                     <td><?php echo ($invoice->due == 0) ? "<button class='btn btn-xs btn-success'>Paid</button>" : showWithCurrencySymbol($invoice->due); ?></td>
                                     <td>
+                                        <?php if (isset($read) && $read == 1){ ?>
                                         <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Invoice_ajax/view/'.$invoice->invoice_id); ?>','<?php echo '/Admin/Invoice/view/'.$invoice->invoice_id; ?>')" class="btn btn-warning btn-xs">View</a>
+                                        <?php } ?>
                                     </td>
                                 </tr>
                             <?php } ?>

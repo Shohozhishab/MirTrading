@@ -11,12 +11,40 @@
     <!-- Main content -->
     <section class="content">
         <!-- Small boxes (Stat box) -->
-        <div class="row">
-            <div class="col-xs-12" style="margin-bottom: 15px;">
-                <a href="#" onclick="showData('<?php echo site_url('/Admin/Employee_ajax/'); ?>','<?php echo '/Admin/Employee/';?>')"  class="btn btn-default">Employee</a>
+        <div class="col-xs-12" style="margin-bottom: 15px;">
+            <a href="#" onclick="showData('<?php echo site_url('/Admin/Employee_ajax/'); ?>','<?php echo '/Admin/Employee/';?>')"  class="btn btn-default">Employee</a>
+        </div>
+        <?php if (isDefaultRole() == true){ ?>
+            <div class="row" id="reloadRoleDiv" style="margin-bottom:20px; ">
+                <div class="col-lg-12" >
+                    <button class="btn btn-sm btn-info " style="float: right;" onclick="rollPermissionBtn()">Roll Permission</button>
+                </div>
+                <div class="col-lg-12" id="permissionDiv" style="display: none; margin-top: 20px">
+                    <form id="roleUpdateform" action="<?= base_url('Admin/Role/modulePermissionAction')?>" method="post">
+                        <div class="box box-primary">
+                            <div class="box-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <select class="form-control" onchange="rolePermission(this.value,'Ledger_employee')" name="role_id">
+                                            <option value="">Please Select</option>
+                                            <?php  foreach (userRole() as $val ){ ?>
+                                                <option value="<?= $val->role_id;?>"><?= $val->role;?></option>
+                                            <?php } ?>
+                                        </select>
+                                        <input type="hidden" name="moduleName" value="Ledger_employee">
+                                    </div>
+                                    <div class="col-md-12" id="rolView"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="col-xs-12">
+        <?php } ?>
+        <div class="row">
 
+            <div class="col-xs-12">
+                <?php if (isset($filter) && $filter == 1){ ?>
                 <div class="box box-primary">
                     <div class="box-header with-border">
                         <h3 class="box-title"><i class="fa fa-filter"></i> Filter </h3>
@@ -55,6 +83,7 @@
                     <!-- /.box-header -->
                     <!-- /.box-body -->
                 </div>
+                <?php } ?>
                 <!-- /.box -->
                 <div class="box" >
                     <div class="box-body">

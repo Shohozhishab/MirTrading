@@ -52,9 +52,11 @@
                             <div class="col-lg-9">
                                 <h3 class="box-title">Stores List</h3>
                             </div>
+                            <?php if (isset($create) && $create == 1){ ?>
                             <div class="col-lg-3">
                                 <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Stores_ajax/create/'); ?>','<?php echo '/Admin/Stores/create/'; ?>')" class="btn btn-block btn-primary"><i class="fa fa-plus"></i> Create Store</a>
                             </div>
+                            <?php } ?>
                             <div class="col-lg-12" style="margin-top: 20px;">
                                 <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
                                 <div id="message"></div>
@@ -83,8 +85,10 @@
                                     <td><?php echo $val->description ?></td>
                                     <td><?php echo storeIdByQuantity($val->store_id) ?></td>
                                     <td>
-                                        <?php if (is_default($val->store_id,'store_id', 'stores') != 1) {?>
-                                        <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Stores_ajax/update/'.$val->store_id); ?>','<?php echo '/Admin/Stores/update/'.$val->store_id; ?>')" class="btn btn-warning btn-xs">Update</a>
+                                        <?php if (isset($update) && $update == 1){ ?>
+                                            <?php if (is_default($val->store_id,'store_id', 'stores') != 1) {?>
+                                            <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Stores_ajax/update/'.$val->store_id); ?>','<?php echo '/Admin/Stores/update/'.$val->store_id; ?>')" class="btn btn-warning btn-xs">Update</a>
+                                            <?php } ?>
                                         <?php } ?>
                                     </td>
                                 </tr>
@@ -95,9 +99,15 @@
 
                         <div class="row no-print" >
                             <div class="col-xs-12">
+                                <?php if (isset($print) && $print == 1){ ?>
                                 <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
+                                <?php } ?>
+                                <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
                                 <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','store')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                <?php } ?>
+                                <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
                                 <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','store')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                <?php } ?>
                             </div>
                         </div>
 

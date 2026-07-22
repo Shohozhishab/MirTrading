@@ -125,6 +125,7 @@
                         <div class="col-lg-12" style="margin-top: 10px;">
                             <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
                         </div>
+                        <?php if (isset($filter) && $filter == 1){ ?>
                         <div class="col-lg-12">
                             <form action="<?= base_url('Admin/Stock_transfer')?>" method="get">
                                 <div class="col-xs-4" >
@@ -143,6 +144,7 @@
                                 </div>
                             </form>
                         </div>
+                        <?php } ?>
                         <div class="col-lg-12" style="margin-top: 30px"></div>
                         <table id="example1" class="table table-bordered table-striped text-capitalize">
                             <thead>
@@ -164,7 +166,9 @@
                                     <td><?php echo get_data_by_id('name','stores','store_id',$item->to_stock_id);?></td>
                                     <td><?php echo get_stock_transfer_qty_by_id($item->stock_transfer_id);?></td>
                                     <td>
+                                        <?php if (isset($read) && $read == 1){ ?>
                                         <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Stock_transfer_ajax/view/'.$item->stock_transfer_id); ?>','<?php echo '/Admin/Stock_transfer/view/'.$item->stock_transfer_id; ?>')" class="btn btn-primary btn-xs">View</a>
+                                        <?php } ?>
                                     </td>
                                 </tr>
                             <?php } ?>
@@ -174,9 +178,15 @@
 
                         <div class="row no-print" >
                             <div class="col-xs-12">
+                                <?php if (isset($print) && $print == 1){ ?>
                                 <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
+                                <?php } ?>
+                                <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
                                 <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','stockTransfer')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                <?php } ?>
+                                <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
                                 <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','stockTransfer')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                <?php } ?>
                             </div>
                         </div>
 

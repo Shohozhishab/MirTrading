@@ -76,6 +76,7 @@
                         <div class="col-lg-12" style="margin-top: 20px;">
                             <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
                         </div>
+                        <?php if (isset($filter) && $filter == 1){ ?>
                         <form action="<?= base_url('Admin/Exchange_product')?>" method="get">
                             <div class="col-lg-6" style="margin-bottom: 15px;">
                                 <label>Customer</label><br>
@@ -110,7 +111,7 @@
                                 <a href="<?= base_url('Admin/Exchange_product') ?>" style="margin-top: 25px;" class="btn btn-default btn-block"><i class="fa fa-refresh"></i> Reset</a>
                             </div>
                         </form>
-
+                        <?php } ?>
 
                         <div class="col-lg-12" style="margin-top: 30px;"></div>
                         <table id="example1" class="table table-bordered table-striped text-capitalize">
@@ -151,9 +152,12 @@
 
                                     <td><?php echo $item->comment; ?></td>
                                     <td>
+                                        <?php if (isset($read) && $read == 1){ ?>
                                         <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Exchange_product_ajax/view/'.$item->exchange_pro_id); ?>','<?php echo '/Admin/Exchange_product/view/'.$item->exchange_pro_id; ?>')" class="btn btn-primary btn-xs">View</a>
+                                        <?php } ?>
+                                        <?php if (isset($update) && $update == 1){ ?>
                                         <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Exchange_product_ajax/update/' . $item->exchange_pro_id); ?>','<?php echo '/Admin/Exchange_product/update/' . $item->exchange_pro_id; ?>')" class="btn btn-warning btn-xs">Update</a>
-
+                                        <?php } ?>
                                     </td>
                                 </tr>
                             <?php } ?>
@@ -163,9 +167,15 @@
 
                         <div class="row no-print" >
                             <div class="col-xs-12">
+                                <?php if (isset($print) && $print == 1){ ?>
                                 <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
+                                <?php } ?>
+                                <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
                                 <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','exchangeProduct')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                <?php } ?>
+                                <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
                                 <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','exchangeProduct')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                <?php } ?>
                             </div>
                         </div>
 

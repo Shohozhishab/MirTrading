@@ -10,12 +10,11 @@
 
     <!-- Main content -->
     <section class="content">
-        <!-- Small boxes (Stat box) -->
         <div class="col-xs-12" style="margin-bottom: 15px;">
             <?php echo $menu;?>
         </div>
         <?php if (isDefaultRole() == true){ ?>
-            <div class="row" id="reloadRoleDiv" style="margin-bottom:20px; ">
+            <div class="row" id="reloadRoleDiv">
                 <div class="col-lg-12" >
                     <button class="btn btn-sm btn-info " style="float: right;" onclick="rollPermissionBtn()">Roll Permission</button>
                 </div>
@@ -41,59 +40,60 @@
                 </div>
             </div>
         <?php } ?>
-        <div class="row">
+        <div class="row" style="margin-top: 20px;">
 
             <div class="col-xs-12">
+                <?php if (isset($filter) && $filter == 1){ ?>
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <h3 class="box-title"><i class="fa fa-filter"></i> Filter </h3>
+                        </div>
+                        <!-- /.box-header -->
+                        <div class="box-body">
+                            <form action="<?= base_url('Admin/Ledger')?>" method="get">
+                                <div class="col-md-2" >
+                                    <label>Customer name</label>
+                                    <select class="form-control select2 select2-hidden-accessible" name="customer_id" onchange="formSubmit(this)" id="customerId" style=" width: 100%;" tabindex="-1" aria-hidden="true" required>
+                                        <option selected="selected"  value="">Please Select</option>
+                                        <?php echo getAllListInOption($customer_id,'customer_id','customer_name','customers'); ?>
+                                    </select>
 
-                <div class="box box-primary">
-                    <div class="box-header with-border">
-                        <h3 class="box-title"><i class="fa fa-filter"></i> Filter </h3>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Start Date</label>
+                                    <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>"
+                                           id="st_date" >
+                                </div>
+                                <div class="col-md-3">
+                                    <label>End Date</label>
+                                    <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>"
+                                           id="en_date" >
+                                </div>
+                                <div class="col-md-2" style="margin-top: 25px;">
+                                    <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-search"></i>
+                                        Filter
+                                    </button>
+                                </div>
+                                <div class="col-md-2" style="margin-top: 25px;">
+                                    <a href="<?= base_url('Admin/Ledger') ?>" class="btn btn-default btn-block"><i
+                                                class="fa fa-refresh"></i> Reset</a>
+                                </div>
+                            </form>
+
+                        </div>
+                        <!-- /.box-body -->
                     </div>
-                    <!-- /.box-header -->
-                    <div class="box-body">
-                        <form action="<?= base_url('Admin/Ledger')?>" method="get">
-                            <div class="col-md-2" >
-                                <label>Customer name</label>
-                                <select class="form-control select2 select2-hidden-accessible" name="customer_id" onchange="formSubmit(this)" id="customerId" style=" width: 100%;" tabindex="-1" aria-hidden="true" required>
-                                    <option selected="selected"  value="">Please Select</option>
-                                    <?php echo getAllListInOption($customer_id,'customer_id','customer_name','customers'); ?>
-                                </select>
-
-                            </div>
-                            <div class="col-md-3">
-                                <label>Start Date</label>
-                                <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>"
-                                       id="st_date" >
-                            </div>
-                            <div class="col-md-3">
-                                <label>End Date</label>
-                                <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>"
-                                       id="en_date" >
-                            </div>
-                            <div class="col-md-2" style="margin-top: 25px;">
-                                <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-search"></i>
-                                    Filter
-                                </button>
-                            </div>
-                            <div class="col-md-2" style="margin-top: 25px;">
-                                <a href="<?= base_url('Admin/Ledger') ?>" class="btn btn-default btn-block"><i
-                                            class="fa fa-refresh"></i> Reset</a>
-                            </div>
-                        </form>
-
-                    </div>
-                    <!-- /.box-body -->
-                </div>
+                <?php } ?>
                 <?php
-                    $name = get_data_by_id('customer_name', 'customers', 'customer_id', $customer_id);
-                    $balance = get_data_by_id('balance', 'customers', 'customer_id', $customer_id);
+                $name = get_data_by_id('customer_name', 'customers', 'customer_id', $customer_id);
+                $balance = get_data_by_id('balance', 'customers', 'customer_id', $customer_id);
                 ?>
                 <div class="box">
                     <?php if (!empty($customer_id)){ ?>
-                    <div class="box-header">
-                        <h3 class="box-title">Customer: <?= $name ?></h3>
-                        <span class="pull-right"><table class="table table-bordered table-striped" id="TFtable"><tr><td> Total Buy:</td><td><?= showWithCurrencySymbol(get_total('ledger', 'amount', 'Dr.', 'customer_id', $customer_id)) ?></td></tr><tr><td>Total Pay:</td><td><?= showWithCurrencySymbol(get_total('ledger', 'amount', 'Cr.', 'customer_id', $customer_id))?></td></tr><tr><td>Last Balance:</td><td><?= showWithCurrencySymbol($balance)?></td></tr></table></span>
-                    </div>
+                        <div class="box-header">
+                            <h3 class="box-title">Customer: <?= $name ?></h3>
+                            <span class="pull-right"><table class="table table-bordered table-striped" id="TFtable"><tr><td> Total Buy:</td><td><?= showWithCurrencySymbol(get_total('ledger', 'amount', 'Dr.', 'customer_id', $customer_id)) ?></td></tr><tr><td>Total Pay:</td><td><?= showWithCurrencySymbol(get_total('ledger', 'amount', 'Cr.', 'customer_id', $customer_id))?></td></tr><tr><td>Last Balance:</td><td><?= showWithCurrencySymbol($balance)?></td></tr></table></span>
+                        </div>
                     <?php } ?>
 
                     <div class="box-body">
@@ -124,7 +124,7 @@
                                 }
                                 $bankName = led_id_by_bank_name($result[$i]->invoice_id);
                                 $checkNumber = led_id_by_chaque_number($result[$i]->invoice_id);
-                            ?>
+                                ?>
                                 <tr>
                                     <td><?= $result[$i]->ledg_id ?></td>
                                     <td><?= $result[$i]->createdDtm ?></td>
@@ -196,9 +196,15 @@
                 </div>
                 <div class="row no-print" >
                     <div class="col-xs-12">
-                        <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
-                        <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','customer')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
-                        <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','customer')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                        <?php if (isset($print) && $print == 1){ ?>
+                            <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
+                        <?php } ?>
+                        <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
+                            <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','customer')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                        <?php } ?>
+                        <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
+                            <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','customer')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                        <?php } ?>
                     </div>
                 </div>
             </div>

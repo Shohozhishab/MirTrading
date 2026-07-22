@@ -44,7 +44,7 @@
         <?php } ?>
         <div class="row">
 
-
+            <?php if (isset($filter) && $filter == 1){ ?>
             <div class="col-xs-12" >
                 <div class="box box-primary">
                     <div class="box-header with-border">
@@ -85,11 +85,14 @@
                     </div>
                 </div>
             </div>
+            <?php } ?>
+            <?php if (isset($create) && $create == 1){ ?>
             <div class="col-xs-12" style="margin-bottom: 15px;">
                 <a href="javascript:void(0)"
                    onclick="showData('<?php echo site_url('/Admin/Sales_ajax/create/'); ?>','<?php echo '/Admin/Sales/create/'; ?>')"
                    class="btn  btn-success"><i class="fa fa-plus"></i> Add Sales</a>
             </div>
+            <?php } ?>
             <div class="col-xs-12">
                 <div class="box">
                     <div class="box-header">
@@ -110,7 +113,9 @@
                                 <th>Invoice Id</th>
                                 <th>Total Amount</th>
                                 <th>Total Due</th>
+                                <?php if (isset($profit) && $profit == 1){ ?>
                                 <th>Profit</th>
+                                <?php } ?>
                                 <th>Action</th>
                             </tr>
                             </thead>
@@ -119,7 +124,7 @@
                             foreach ($sales as $val) {
                                 $cus_id = get_data_by_id('customer_id', 'invoice', 'invoice_id', $val->invoice_id);
                                 $cusName = !empty($cus_id) ? get_data_by_id('customer_name', 'customers', 'customer_id', $cus_id) : get_data_by_id('customer_name', 'invoice', 'invoice_id', $val->invoice_id);
-                                $profit = get_data_by_id('profit', 'invoice', 'invoice_id', $val->invoice_id);
+                                $profitOr = get_data_by_id('profit', 'invoice', 'invoice_id', $val->invoice_id);
                                 ?>
                                 <tr>
                                     <td><?php echo $i++ ?></td>
@@ -128,19 +133,26 @@
                                     <td><?php echo $val->invoice_id ?></td>
                                     <td><?php echo showWithCurrencySymbol(get_data_by_id('amount', 'invoice', 'invoice_id', $val->invoice_id)) ?></td>
                                     <td><?php echo showWithCurrencySymbol(get_data_by_id('due', 'invoice', 'invoice_id', $val->invoice_id)) ?></td>
-                                    <td><?php echo showWithCurrencySymbol($profit) ?></td>
+                                    <?php if (isset($profit) && $profit == 1){ ?>
+                                    <td><?php echo showWithCurrencySymbol($profitOr) ?></td>
+                                    <?php } ?>
                                     <td>
+                                        <?php if (isset($transaction_flow) && $transaction_flow == 1){ ?>
                                         <a href="javascript:void(0)"
                                            onclick="showData('<?php echo site_url('/Admin/Sales_ajax/transaction_flow/' . $val->sales_id); ?>','<?php echo '/Admin/Sales/transaction_flow/' . $val->sales_id; ?>')"
                                            class="btn btn-success btn-xs">Transaction Flow </a>
-
+                                        <?php } ?>
+                                        <?php if (isset($read) && $read == 1){ ?>
                                         <a href="javascript:void(0)"
                                            onclick="showData('<?php echo site_url('/Admin/Invoice_ajax/view/' . $val->invoice_id); ?>','<?php echo '/Admin/Invoice/view/' . $val->invoice_id; ?>')"
                                            class="btn btn-primary btn-xs">View</a>
-                                        <?php if (edit_expire_check($val->createdDtm) == true) { ?>
-                                            <a href="javascript:void(0)" class="btn btn-xs btn-warning"
-                                               onclick="saleEdit('<?= $val->sales_id; ?>')" data-toggle="modal"
-                                               data-target="#modal-default">Edit</a>
+                                        <?php } ?>
+                                        <?php if (isset($update) && $update == 1){ ?>
+                                            <?php if (edit_expire_check($val->createdDtm) == true) { ?>
+                                                <a href="javascript:void(0)" class="btn btn-xs btn-warning"
+                                                   onclick="saleEdit('<?= $val->sales_id; ?>')" data-toggle="modal"
+                                                   data-target="#modal-default">Edit</a>
+                                            <?php } ?>
                                         <?php } ?>
                                     </td>
                                 </tr>
@@ -151,17 +163,23 @@
 
                         <div class="row no-print">
                             <div class="col-xs-12">
-                                <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right"><i
-                                            class="fa fa-print "></i> Print Now
-                                </button>
-                                <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;"
-                                        onclick="downloadPDF('ledgPrint','sales')"><i class="fa fa-file-pdf-o "></i>
-                                    Download PDF
-                                </button>
-                                <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;"
-                                        onclick="downloadCSV('ledgPrint','sales')"><i class="fa fa-file-excel-o "></i>
-                                    Download CSV
-                                </button>
+                                <?php if (isset($print) && $print == 1){ ?>
+                                    <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right"><i
+                                                class="fa fa-print "></i> Print Now
+                                    </button>
+                                <?php } ?>
+                                <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
+                                    <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;"
+                                            onclick="downloadPDF('ledgPrint','sales')"><i class="fa fa-file-pdf-o "></i>
+                                        Download PDF
+                                    </button>
+                                <?php } ?>
+                                <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
+                                    <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;"
+                                            onclick="downloadCSV('ledgPrint','sales')"><i class="fa fa-file-excel-o "></i>
+                                        Download CSV
+                                    </button>
+                                <?php } ?>
                             </div>
                         </div>
 
@@ -190,7 +208,9 @@
                                         <th>Invoice Id</th>
                                         <th>Total Amount</th>
                                         <th>Total Due</th>
+                                        <?php if (isset($profit) && $profit == 1){ ?>
                                         <th>Profit</th>
+                                        <?php } ?>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -198,7 +218,7 @@
                                     foreach ($sales as $item) {
                                         $cus_id = get_data_by_id('customer_id', 'invoice', 'invoice_id', $item->invoice_id);
                                         $cusName = !empty($cus_id) ? get_data_by_id('customer_name', 'customers', 'customer_id', $cus_id) : get_data_by_id('customer_name', 'invoice', 'invoice_id', $item->invoice_id);
-                                        $profit = get_data_by_id('profit', 'invoice', 'invoice_id', $item->invoice_id);
+                                        $profitor = get_data_by_id('profit', 'invoice', 'invoice_id', $item->invoice_id);
                                         ?>
                                         <tr>
                                             <td><?php echo $j++ ?></td>
@@ -207,8 +227,9 @@
                                             <td><?php echo $item->invoice_id ?></td>
                                             <td><?php echo showWithCurrencySymbol(get_data_by_id('amount', 'invoice', 'invoice_id', $item->invoice_id)) ?></td>
                                             <td><?php echo showWithCurrencySymbol(get_data_by_id('due', 'invoice', 'invoice_id', $item->invoice_id)) ?></td>
-                                            <td><?php echo showWithCurrencySymbol($profit) ?></td>
-
+                                            <?php if (isset($profit) && $profit == 1){ ?>
+                                            <td><?php echo showWithCurrencySymbol($profitor) ?></td>
+                                            <?php } ?>
                                         </tr>
                                     <?php } ?>
 

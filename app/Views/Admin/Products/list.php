@@ -97,9 +97,11 @@
                                         <td><?php echo get_data_by_id('product_category', 'product_category', 'prod_cat_id', $products->prod_cat_id) ?></td>
                                         <td><?php echo $products->purchase_date ?></td>
                                         <td>
-                                            <a href="javascript:void(0)"
-                                               onclick="showData('<?php echo site_url('/Admin/Products_ajax/update/' . $products->prod_id); ?>','<?php echo '/Admin/Products/update/' . $products->prod_id; ?>')"
-                                               class="btn btn-warning btn-xs">Update</a>
+                                            <?php if (isset($update) && $update == 1){ ?>
+                                                <a href="javascript:void(0)"
+                                                   onclick="showData('<?php echo site_url('/Admin/Products_ajax/update/' . $products->prod_id); ?>','<?php echo '/Admin/Products/update/' . $products->prod_id; ?>')"
+                                                   class="btn btn-warning btn-xs">Update</a>
+                                            <?php } ?>
                                         </td>
                                     </tr>
                                 <?php } ?>
@@ -109,9 +111,15 @@
 
                             <div class="row no-print" >
                                 <div class="col-xs-12">
-                                    <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
-                                    <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','sales')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
-                                    <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','sales')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                    <?php if (isset($print) && $print == 1){ ?>
+                                        <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
+                                    <?php } ?>
+                                    <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
+                                        <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','sales')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                    <?php } ?>
+                                    <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
+                                        <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','sales')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                    <?php } ?>
                                 </div>
                             </div>
 

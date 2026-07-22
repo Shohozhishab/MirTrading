@@ -48,6 +48,7 @@
                                 <li class="tab-pane "><a href="#employeeSalary" data-toggle="tab">Employee Salary</a>
                                 </li>
                                 <li class="tab-pane "><a href="#vatPay" data-toggle="tab">Vat Pay</a></li>
+                                <li class="tab-pane "><a href="#assets" data-toggle="tab">Assets</a></li>
                             </ul>
                             <div class="panel-body">
                                 <div class="tab-content">
@@ -60,6 +61,10 @@
                                             <div class="row">
                                                 <div class="col-md-4">
                                                     <form id="geniusform" action="<?php echo $action; ?>" method="post">
+                                                        <div class="form-group">
+                                                            <label for="date">Transaction Date </label>
+                                                            <input type="date" class="form-control" name="date" value="<?= date('Y-m-d') ?>" >
+                                                        </div>
                                                         <div class="form-group">
                                                             <label for="int">Customer </label>
                                                             <select class="form-control select2 select2-hidden-accessible input" id="cusData" onchange="custoTranDet(this.value)" style=" width: 100%;" tabindex="-1" aria-hidden="true" name="customer_id" required>
@@ -133,7 +138,10 @@
                                                 <div class="col-md-4">
                                                     <form id="geniusform" action="<?php echo $actionsuppl; ?>"
                                                           method="post">
-
+                                                        <div class="form-group">
+                                                            <label for="date">Transaction Date </label>
+                                                            <input type="date" class="form-control" name="date" value="<?= date('Y-m-d') ?>" >
+                                                        </div>
                                                         <div class="form-group">
                                                             <label for="int">Supplier</label>
                                                             <select class="form-control select2 select2-hidden-accessible input"
@@ -208,13 +216,16 @@
                                         <div class="box-body">
                                             <div class="row">
                                                 <div class="col-md-4">
-                                                    <form id="geniusform" action="<?php echo $actionLoanPro; ?>"  method="post">
+                                                    <form id="geniusform" action="<?php echo $actionLoanPro; ?>" method="post">
+                                                        <div class="form-group">
+                                                            <label for="date">Transaction Date </label>
+                                                            <input type="date" class="form-control" name="date" value="<?= date('Y-m-d') ?>" >
+                                                        </div>
                                                         <div class="form-group">
                                                             <label for="int">Account
                                                                 Head</label>
                                                             <select class="form-control select2 select2-hidden-accessible input" onchange="lonProvTransView(this.value)" style=" width: 100%;" tabindex="-1" id="loanData"  aria-hidden="true" name="loan_pro_id" required>
-                                                                <option selected="selected" value="">Please Select
-                                                                </option>
+                                                                <option selected="selected" value="">Please Select </option>
                                                                 <?php echo getAllListInOptionWithStatus('', 'loan_pro_id', 'name', 'loan_provider','name'); ?>
                                                             </select>
                                                             <a href="javascript:void(0)" type="button" data-toggle="modal" data-target="#modal-account">Create new</a>
@@ -283,10 +294,12 @@
                                             <div class="col-md-4">
                                                 <form id="geniusform" action="<?php echo $actionBank; ?>" method="post">
                                                     <div class="form-group">
+                                                        <label for="date">Transaction Date </label>
+                                                        <input type="date" class="form-control" name="date" value="<?= date('Y-m-d') ?>" >
+                                                    </div>
+                                                    <div class="form-group">
                                                         <label for="int">Bank</label>
-                                                        <select class="form-control input"
-                                                                onchange="bankTransView(this.value)" name="bank_id"
-                                                                id="bank_id" required>
+                                                        <select class="form-control input" onchange="bankTransView(this.value)" name="bank_id" id="bank_id" required>
                                                             <option value="">Please select</option>
                                                             <?php echo getTwoValueInOptionWithStatus('bank_id', 'bank_id', 'name', 'account_no', 'bank'); ?>
                                                         </select>
@@ -326,21 +339,26 @@
                                         </div>
                                     </div>
 
-                                    <div class="tab-pane " id="expense">
+                                    <div class="tab-pane " id="expense" >
                                         <div class="box-header">
                                             <h3 class="box-title">Expense Transaction</h3>
                                         </div>
                                         <div class="box-body">
                                             <div class="row">
                                                 <div class="col-md-4">
-                                                    <form id="geniusform" action="<?php echo $actionExpense; ?>"
-                                                          method="post">
+                                                    <form id="geniusform" action="<?php echo $actionExpense; ?>" method="post">
                                                         <div class="form-group">
-                                                            <label for="particulars">Memo
-                                                                Number </label>
-
-                                                            <input type="text" class="form-control input"
-                                                                   name="memo_number" required>
+                                                            <label for="date">Transaction Date </label>
+                                                            <input type="date" class="form-control" name="date" value="<?= date('Y-m-d') ?>" >
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="int">Expenses</label>
+                                                            <select class="form-control select2 select2-hidden-accessible input" style=" width: 100%;"  name="account_id">
+                                                                <option selected="selected" value="">Please Select </option>
+                                                                <?php foreach ($expenses as $val){ ?>
+                                                                    <option value="<?= $val->account_id;?>"><?= $val->name;?> </option>
+                                                                <?php } ?>
+                                                            </select>
                                                         </div>
 
                                                         <div class="form-group">
@@ -391,6 +409,10 @@
                                                     <form id="geniusform" action="<?php echo $actionOtherSales; ?>"
                                                           method="post">
                                                         <div class="form-group">
+                                                            <label for="date">Transaction Date </label>
+                                                            <input type="date" class="form-control" name="date" value="<?= date('Y-m-d') ?>" >
+                                                        </div>
+                                                        <div class="form-group">
                                                             <label for="particulars">Particulars </label>
                                                             <textarea class="form-control" rows="3" name="particulars"
                                                                       id="particulars" placeholder="Particulars"
@@ -422,6 +444,10 @@
                                                 <div class="col-md-4">
                                                     <form id="geniusform" action="<?php echo $actionSalaryEmployee; ?>"
                                                           method="post">
+                                                        <div class="form-group">
+                                                            <label for="date">Transaction Date </label>
+                                                            <input type="date" class="form-control" name="date" value="<?= date('Y-m-d') ?>" >
+                                                        </div>
 
                                                         <div class="form-group">
                                                             <label for="int">Employee </label>
@@ -491,7 +517,10 @@
                                                 <div class="col-md-4">
 
                                                     <form id="geniusform" action="<?php echo $actionVatPay; ?>" method="post">
-
+                                                        <div class="form-group">
+                                                            <label for="date">Transaction Date </label>
+                                                            <input type="date" class="form-control" name="date" value="<?= date('Y-m-d') ?>" >
+                                                        </div>
 
                                                         <div class="form-group">
                                                             <label for="int">Vat
@@ -526,6 +555,66 @@
                                                         </div>
 
                                                         <div class="form-group" id="vatpayId">
+                                                            <label for="int">Amount </label>
+                                                            <input type="number" step=any class="form-control input"
+                                                                   name="amount" oninput="minusValueCheck(this.value,this)" id="amount" placeholder="Amount"
+                                                                   required/>
+                                                        </div>
+                                                        <button type="submit"
+                                                                class="btn btn-primary geniusSubmit-btn"><?php echo $button ?></button>
+                                                        <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/'); ?>','<?php echo '/Admin/Transaction/'; ?>')"
+                                                           class="btn btn-default">Cancel</a>
+                                                    </form>
+                                                </div>
+
+                                                <div class="col-md-8">
+                                                    <div id="vatledger"></div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="tab-pane " id="assets">
+                                        <div class="box-header">
+                                            <h3 class="box-title">Assets Transaction</h3>
+                                        </div>
+                                        <div class="box-body">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <form id="geniusform" action="<?= $actionAssetsPay ?>" method="post">
+                                                        <div class="form-group">
+                                                            <label for="date">Transaction Date </label>
+                                                            <input type="date" class="form-control" name="date" value="<?= date('Y-m-d') ?>" >
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label for="int">Assets</label>
+                                                            <select class="form-control select2 select2-hidden-accessible input" style=" width: 100%;"  name="account_id">
+                                                                <option selected="selected" value="">Please Select </option>
+                                                                <?php foreach ($assets as $val){ ?>
+                                                                    <option value="<?= $val->account_id;?>"><?= $val->name;?> </option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label for="particulars">Particulars </label>
+                                                            <textarea class="form-control input" rows="3" name="particulars" id="particulars" placeholder="Particulars" required></textarea>
+                                                        </div>
+
+                                                        <div class="form-group">
+                                                            <label for="payment_type">Payment Type</label>
+                                                            <select class="form-control input"
+                                                                    onchange="checkBank(this.value)" name="payment_type"
+                                                                    required>
+                                                                <option value="">Please Select</option>
+                                                                <option value="1">Chaque/Bank</option>
+                                                                <option value="2" selected>Cash</option>
+                                                            </select>
+                                                        </div>
+
+                                                        <div class="form-group" id="assetsId">
                                                             <label for="int">Amount </label>
                                                             <input type="number" step=any class="form-control input"
                                                                    name="amount" oninput="minusValueCheck(this.value,this)" id="amount" placeholder="Amount"

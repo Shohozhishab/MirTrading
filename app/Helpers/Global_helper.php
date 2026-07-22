@@ -676,7 +676,8 @@ function invoiceDateFormat($datetime = '0000-00-00 00:00:00') {
     if ($datetime == '0000-00-00 00:00:00' or $datetime == '0000-00-00' or $datetime == '') {
         return 'Unknown';
     }
-    return date('d M Y h:i A ', strtotime($datetime));
+//    return date('d M Y h:i A ', strtotime($datetime));
+    return date('d M Y', strtotime($datetime));
 }
 
 /**
@@ -1196,7 +1197,7 @@ function CustomerTotalSaleAmount($customerId){
     if (!empty($result)) {
         $balance = showWithCurrencySymbol($result->amount);
     }else{
-        $balance = "No Pursess Available Amount";
+        $balance = "No Purchases Available Amount";
     }
     return $balance;
 }
@@ -1919,6 +1920,7 @@ function tableNameArrayKeyByValue($index){
         'ledger_expense' => 'Expense',
         'ledger_loan' => 'Account Head',
         'ledger_other_sales' => 'Other Sales',
+        'ledger_accounts' => 'Accounts',
     ];
 
     return $array[$index] ?? null;
@@ -1953,4 +1955,30 @@ function isDefaultRole() {
         ->get()
         ->getRow();
     return (!empty($query) && $query->is_default == 1);
+}
+function accountIdByType($account_id)
+{
+    return DB()->table('accounts_account_type_map aatm')
+        ->select('at.account_type_id, at.type_key, at.type_name')
+        ->join('account_type at', 'at.account_type_id = aatm.account_type_id')
+        ->where('aatm.account_id', $account_id)
+        ->where('at.parent_account_type_id IS NULL')
+        ->get()
+        ->getRow();
+}
+function storeIdByTotalProductPrice($storeId){
+    $productsTb = DB()->table('products');
+    $productsTb->join('product_stock_relation relation', 'relation.product_id = products.prod_id');
+    $query = $productsTb->where('relation.store_id', $storeId)->where('products.sch_id', $_SESSION['shopId'])->orderBy('prod_id', "DESC")->get()->getResult();
+
+    $purchasePrice = 0;
+    foreach ($query as  $pur) {
+        $purchasePrice += $pur->quantity * $pur->purchase_price;
+    }
+    return $purchasePrice;
+}
+function permission_check($module_name,$role_id,$key){
+    $permission = new Permission();
+    $access = $permission->have_access($role_id, $module_name, $key);
+    return empty($access)?false:true;
 }

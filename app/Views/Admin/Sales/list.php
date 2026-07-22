@@ -128,7 +128,7 @@
                                 ?>
                                 <tr>
                                     <td><?php echo $i++ ?></td>
-                                    <td><?php echo invoiceDateFormat($val->createdDtm) ?></td>
+                                    <td><?php echo invoiceDateFormat($val->date) ?></td>
                                     <td><?php echo $cusName ?></td>
                                     <td><?php echo $val->invoice_id ?></td>
                                     <td><?php echo showWithCurrencySymbol(get_data_by_id('amount', 'invoice', 'invoice_id', $val->invoice_id)) ?></td>
@@ -222,7 +222,7 @@
                                         ?>
                                         <tr>
                                             <td><?php echo $j++ ?></td>
-                                            <td><?php echo invoiceDateFormat($item->createdDtm) ?></td>
+                                            <td><?php echo invoiceDateFormat($item->date) ?></td>
                                             <td><?php echo $cusName ?></td>
                                             <td><?php echo $item->invoice_id ?></td>
                                             <td><?php echo showWithCurrencySymbol(get_data_by_id('amount', 'invoice', 'invoice_id', $item->invoice_id)) ?></td>

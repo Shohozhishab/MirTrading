@@ -77,26 +77,23 @@ class Report_ajax extends BaseController
 
 
 
-//            $accountsAssets = DB()->table('accounts')
-//                ->join('accounts_account_type_map', 'accounts_account_type_map.account_id = accounts.account_id')
-//                ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
-//                ->where('accounts.sch_id', $shopId)
-//                ->where('account_type.type_key', 'assets')
-//                ->get()
-//                ->getResult();
-//
-//
-//
-//            $accountsExpenses = DB()->table('accounts')
-//                ->join('accounts_account_type_map', 'accounts_account_type_map.account_id = accounts.account_id')
-//                ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
-//                ->where('accounts.sch_id', $shopId)
-//                ->where('account_type.type_key', 'expenses')
-//                ->get()
-//                ->getResult();
+            $accountsAssets = DB()->table('accounts')
+                ->join('accounts_account_type_map', 'accounts_account_type_map.account_id = accounts.account_id')
+                ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
+                ->where('accounts.sch_id', $shopId)
+                ->where('account_type.type_key', 'assets')
+                ->get()
+                ->getResult();
 
-            $accountsAssets = array();
-            $accountsExpenses = array();
+
+
+            $accountsExpenses = DB()->table('accounts')
+                ->join('accounts_account_type_map', 'accounts_account_type_map.account_id = accounts.account_id')
+                ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
+                ->where('accounts.sch_id', $shopId)
+                ->where('account_type.type_key', 'expenses')
+                ->get()
+                ->getResult();
 
 
 

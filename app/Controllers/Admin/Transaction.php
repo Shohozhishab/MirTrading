@@ -47,10 +47,10 @@ class Transaction extends BaseController
             $category = $this->request->getGet('category');
 
             if ($start_date) {
-                $transactionTable->where('createdDtm >=', $start_date . ' 00:00:00');
+                $transactionTable->where('date >=', $start_date . ' 00:00:00');
             }
             if ($end_date) {
-                $transactionTable->where('createdDtm <=', $end_date . ' 23:59:59');
+                $transactionTable->where('date <=', $end_date . ' 23:59:59');
             }
 
             // Exclusive Entity Filters based on Category
@@ -157,6 +157,23 @@ class Transaction extends BaseController
             $data['actionOtherSales'] = base_url('Admin/Transaction/otherSales_transaction_action');
             $data['actionSalaryEmployee'] = base_url('Admin/Transaction/salaryEmployee_transaction_action');
             $data['actionVatPay'] = base_url('Admin/Transaction/vat_pay_action');
+            $data['actionAssetsPay'] = base_url('Admin/Transaction/assets_pay_action');
+
+            $data['assets'] = DB()->table('accounts')
+                ->join('accounts_account_type_map', 'accounts_account_type_map.account_id = accounts.account_id')
+                ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
+                ->where('accounts.sch_id', $shopId)
+                ->where('account_type.type_key', 'assets')
+                ->get()
+                ->getResult();
+
+            $data['expenses'] = DB()->table('accounts')
+                ->join('accounts_account_type_map', 'accounts_account_type_map.account_id = accounts.account_id')
+                ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
+                ->where('accounts.sch_id', $shopId)
+                ->where('account_type.type_key', 'expenses')
+                ->get()
+                ->getResult();
 
             $table = DB()->table('affiliate_user');
             $data['affiliateUser'] = $table->where('sch_id', $shopId)->get()->getResult();
@@ -273,6 +290,7 @@ class Transaction extends BaseController
                     //insert Transaction in transaction table (start)
                     $transdata = array(
                         'sch_id' => $shopId,
+                        'date' => $this->request->getPost('date'),
                         'customer_id' => $custId,
                         'title' => $this->request->getPost('particulars'),
                         'trangaction_type' => 'Cr.',
@@ -478,6 +496,7 @@ class Transaction extends BaseController
                     //insert Transaction in transaction table (start)
                     $transdata = array(
                         'sch_id' => $shopId,
+                        'date' => $this->request->getPost('date'),
                         'customer_id' => $custId,
                         'title' => $this->request->getPost('particulars'),
                         'trangaction_type' => 'Dr.',
@@ -748,6 +767,7 @@ class Transaction extends BaseController
                     //insert Transaction table
                     $transdata = array(
                         'sch_id' => $shopId,
+                        'date' => $this->request->getPost('date'),
                         'supplier_id' => $this->request->getPost('supplier_id'),
                         'title' => $this->request->getPost('particulars'),
                         'trangaction_type' => 'Cr.',
@@ -909,6 +929,7 @@ class Transaction extends BaseController
                         //insert Transaction table
                         $transdata = array(
                             'sch_id' => $shopId,
+                            'date' => $this->request->getPost('date'),
                             'supplier_id' => $supplierId,
                             'title' => $this->request->getPost('particulars'),
                             'trangaction_type' => 'Dr.',
@@ -1229,6 +1250,7 @@ class Transaction extends BaseController
                     //insert Transaction table
                     $transdata = array(
                         'sch_id' => $shopId,
+                        'date' => $this->request->getPost('date'),
                         'loan_pro_id' => $loanProId,
                         'title' => $this->request->getPost('particulars'),
                         'trangaction_type' => 'Dr.',
@@ -1384,6 +1406,7 @@ class Transaction extends BaseController
                     //insert Transaction table
                     $transdata = array(
                         'sch_id' => $shopId,
+                        'date' => $this->request->getPost('date'),
                         'loan_pro_id' => $loanProId,
                         'title' => $this->request->getPost('particulars'),
                         'trangaction_type' => 'Cr.',
@@ -1632,6 +1655,7 @@ class Transaction extends BaseController
                 //insert Transaction table
                 $transdata = array(
                     'sch_id' => $shopId,
+                    'date' => $this->request->getPost('date'),
                     'title' => 'Withdraw',
                     'bank_id' => $bank_id,
                     'bank_to_id' => $bank_id2,
@@ -1835,6 +1859,7 @@ class Transaction extends BaseController
 
         $amount = str_replace(',', '', $this->request->getPost('amount'));
         //Payment Type
+        $accountId = $this->request->getPost('account_id');
         $paymentType = $this->request->getPost('payment_type');
         //shop data
         $shopBalance = get_data_by_id('cash', 'shops', 'sch_id', $shopId);
@@ -1866,14 +1891,15 @@ class Transaction extends BaseController
         $exRestbalance = $exrest + $amount;
 
         if ($availableBalance == true) {
-
+            $db = DB();
             DB()->transStart();
             //insert Transaction table
             $transdata = array(
                 'sch_id' => $shopId,
+                'date' => $this->request->getPost('date'),
+                'account_id'=> $accountId,
                 'title' => $this->request->getPost('particulars'),
-                'memo_number' => $this->request->getPost('memo_number'),
-                'trangaction_type' => 'Cr.',
+                'trangaction_type' => 'Dr.',
                 'amount' => $amount,
                 'createdBy' => $userId,
                 'createdDtm' => date('Y-m-d h:i:s')
@@ -1893,39 +1919,37 @@ class Transaction extends BaseController
                 'createdDtm'   => date('Y-m-d H:i:s')
             ]);
 
-            $exData = array(
-                'expense' => $exRestbalance,
+            $previousBalance = get_data_by_id('balance', 'accounts', 'account_id', $accountId);
+            $restBalance = $previousBalance + $amount;
+
+            //Accounts Balance Update
+            $datavatBlan = array(
+                'balance' => $restBalance,
                 'updatedBy' => $userId,
             );
-            $shopsTab = DB()->table('shops');
-            $shopsTab->where('sch_id', $shopId)->update($exData);
-
+            $db->table('accounts')->where('account_id', $accountId)->update($datavatBlan);
             //insert log (start)
-            $this->transactionLog->insert_log_data('shops', $shopId, $ledgtranId, $amount);
+            $this->transactionLog->insert_log_data('accounts', $accountId, $ledgtranId, $amount);
             //insert log (end)
 
-
-            //insert data
+            //insert data ledger accounts
             $data = array(
                 'sch_id' => $shopId,
-                'memo_number' => $this->request->getPost('memo_number'),
                 'trans_id' => $ledgtranId,
+                'account_id' => $accountId,
                 'particulars' => $this->request->getPost('particulars'),
                 'trangaction_type' => 'Dr.',
                 'amount' => $amount,
-                'rest_balance' => $exRestbalance,
+                'rest_balance' => $restBalance,
                 'createdBy' => $userId,
                 'createdDtm' => date('Y-m-d h:i:s')
             );
-            $ledger_expenseTab = DB()->table('ledger_expense');
-            $ledger_expenseTab->insert($data);
-            $ledg_exp_id = DB()->insertID();
-
+            $db->table('ledger_accounts')->insert($data);
+            $ledger_id = $db->insertID();
             //insert transaction in ledger Transaction table (end)
-            $this->transaction_entries($ledgtranId, $ledg_exp_id, 'ledger_expense', 'Dr.');
-
+            $this->transaction_entries($ledgtranId, $ledger_id, 'ledger_accounts', 'Dr.');
             //insert log (start)
-            $this->transactionLog->insert_log_data('ledger_expense', $ledg_exp_id, $ledgtranId, $amount);
+            $this->transactionLog->insert_log_data('ledger_accounts', $ledger_id, $ledgtranId, $amount);
             //insert log (end)
 
             //admin transaction
@@ -2046,6 +2070,7 @@ class Transaction extends BaseController
         //insert Transaction table
         $transdata = array(
             'sch_id' => $shopId,
+            'date' => $this->request->getPost('date'),
             'title' => $this->request->getPost('particulars'),
             'trangaction_type' => 'Dr.',
             'amount' => $amount,
@@ -2182,6 +2207,7 @@ class Transaction extends BaseController
                 //insert Transaction table
                 $transdata = array(
                     'sch_id' => $shopId,
+                    'date' => $this->request->getPost('date'),
                     'employee_id' => $this->request->getPost('employee_id'),
                     'title' => 'Salary',
                     'trangaction_type' => 'Cr.',
@@ -2407,6 +2433,7 @@ class Transaction extends BaseController
                     //insert Transaction table
                     $transdata = array(
                         'sch_id' => $shopId,
+                        'date' => $this->request->getPost('date'),
                         'vat_id' => $this->request->getPost('vat_id'),
                         'title' => $this->request->getPost('particulars'),
                         'trangaction_type' => 'Dr.',
@@ -5049,6 +5076,188 @@ class Transaction extends BaseController
             }
             echo view('Admin/footer');
         }
+    }
+
+    public function assets_pay_action()
+    {
+        $shopId = $this->session->shopId;
+        $userId = $this->session->userId;
+
+        $amount = str_replace(',', '', $this->request->getPost('amount'));
+        $accountId = $this->request->getPost('account_id');
+        $paymentType = $this->request->getPost('payment_type');
+        $bankUpData = 0;
+        if ($paymentType == 1) {
+            $bankId = $this->request->getPost('bank_id');
+            if (empty($bankId)) {
+                print '<div class="alert alert-danger alert-dismissible" role="alert">Please select a bank <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
+                die();
+            }
+
+            $bankCash = get_data_by_id('balance', 'bank', 'bank_id', $bankId);
+            $bankUpData = $bankCash - $amount;
+            $availableBalance = checkBankBalance($bankId, $amount);
+        }elseif($paymentType == 2) {
+            $availableBalance = checkNagadBalance($amount);
+        }
+
+
+        if ($amount < 0) {
+            print '<div class="alert alert-danger alert-dismissible" role="alert">Please enter valid amount<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
+            die();
+        }
+
+
+        if ($availableBalance == true) {
+            $db = DB();
+            $db->transStart();
+
+            //insert Transaction table
+            $transdata = array(
+                'sch_id' => $shopId,
+                'account_id' => $accountId,
+                'date' => $this->request->getPost('date'),
+                'title' => $this->request->getPost('particulars'),
+                'trangaction_type' => 'Dr.',
+                'amount' => $amount,
+                'createdBy' => $userId,
+                'createdDtm' => date('Y-m-d h:i:s')
+            );
+            $db->table('transaction')->insert($transdata);
+            $transactionId = $db->insertID();
+
+            //insert log (start)
+            $this->transactionLog->insert_log_data('transaction', $transactionId, $transactionId, $amount);
+            //insert log (end)
+
+            // transaction events insert;
+            $db->table('transaction_events')->insert([
+                'sch_id' => $shopId,
+                'trans_id'     => $transactionId,
+                'createdDtm'   => date('Y-m-d H:i:s')
+            ]);
+
+            //Vat Balance
+            $previousBalance = get_data_by_id('balance', 'accounts', 'account_id', $accountId);
+            $restBalance = $previousBalance + $amount;
+
+            //Accounts Balance Update
+            $datavatBlan = array(
+                'balance' => $restBalance,
+                'updatedBy' => $userId,
+            );
+            $db->table('accounts')->where('account_id', $accountId)->update($datavatBlan);
+            //insert log (start)
+            $this->transactionLog->insert_log_data('accounts', $accountId, $transactionId, $amount);
+            //insert log (end)
+
+            //insert data ledger accounts
+            $data = array(
+                'sch_id' => $shopId,
+                'trans_id' => $transactionId,
+                'account_id' => $accountId,
+                'particulars' => $this->request->getPost('particulars'),
+                'trangaction_type' => 'Dr.',
+                'amount' => $amount,
+                'rest_balance' => $restBalance,
+                'createdBy' => $userId,
+                'createdDtm' => date('Y-m-d h:i:s')
+            );
+            $db->table('ledger_accounts')->insert($data);
+            $ledger_id = $db->insertID();
+            //insert transaction in ledger Transaction table (end)
+            $this->transaction_entries($transactionId, $ledger_id, 'ledger_accounts', 'Dr.');
+            //insert log (start)
+            $this->transactionLog->insert_log_data('ledger_accounts', $ledger_id, $transactionId, $amount);
+            //insert log (end)
+
+            //admin transaction
+            if ($paymentType == 2) {
+                //shop data
+                $shopBalance = get_data_by_id('cash', 'shops', 'sch_id', $shopId);
+                $shopUpdateBalance = $shopBalance - $amount;
+
+                //shop balance update
+                $shopData = array(
+                    'cash' => $shopUpdateBalance,
+                    'updatedBy' => $userId,
+                );
+                $db->table('shops')->where('sch_id', $shopId)->update($shopData);
+
+                //insert log (start)
+                $this->transactionLog->insert_log_data('shops', $shopId, $transactionId, $amount);
+                //insert log (end)
+
+                //insert ledger_nagodan
+                $lgNagData = array(
+                    'sch_id' => $shopId,
+                    'trans_id' => $transactionId,
+                    'trangaction_type' => 'Cr.',
+                    'particulars' => $this->request->getPost('particulars'),
+                    'amount' => $amount,
+                    'rest_balance' => $shopUpdateBalance,
+                    'createdBy' => $userId,
+                    'createdDtm' => date('Y-m-d h:i:s')
+                );
+                $db->table('ledger_nagodan')->insert($lgNagData);
+                $ledg_nagodan_id = DB()->insertID();
+
+                //insert transaction in ledger Transaction table (end)
+                $this->transaction_entries($transactionId, $ledg_nagodan_id, 'ledger_nagodan', 'Cr.');
+
+                //insert log (start)
+                $this->transactionLog->insert_log_data('ledger_nagodan', $ledg_nagodan_id, $transactionId, $amount);
+                //insert log (end)
+
+            } else {
+
+                $bankData = array(
+                    'balance' => $bankUpData,
+                    'updatedBy' => $userId,
+                );
+                $db->table('bank')->where('bank_id', $bankId)->update($bankData);
+
+                //insert log (start)
+                $this->transactionLog->insert_log_data('bank', $bankId, $transactionId, $amount);
+                //insert log (end)
+
+                //insert ledger_bank
+                $lgBankData = array(
+                    'sch_id' => $shopId,
+                    'bank_id' => $bankId,
+                    'trans_id' => $transactionId,
+                    'trangaction_type' => 'Cr.',
+                    'particulars' => $this->request->getPost('particulars'),
+                    'amount' => $amount,
+                    'rest_balance' => $bankUpData,
+                    'createdBy' => $userId,
+                    'createdDtm' => date('Y-m-d h:i:s')
+                );
+                $db->table('ledger_bank')->insert($lgBankData);
+                $ledgBank_id = $db->insertID();
+
+                //insert transaction in ledger Transaction table (end)
+                $this->transaction_entries($transactionId, $ledgBank_id, 'ledger_bank', 'Cr.');
+
+                //insert log (start)
+                $this->transactionLog->insert_log_data('ledger_bank', $ledgBank_id, $transactionId, $amount);
+                //insert log (end)
+
+                //bank id update in transaction table
+                $tranDataBank = array(
+                    'bank_id' => $bankId,
+                );
+                $db->table('transaction')->where('trans_id', $transactionId)->update($tranDataBank);
+            }
+            $db->transComplete();
+
+            print '<div class="alert alert-success alert-dismissible" role="alert">Your transaction is successful<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
+
+        } else {
+            print '<div class="alert alert-danger alert-dismissible" role="alert">Not Enough Balance<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
+        }
+
+
     }
 
 

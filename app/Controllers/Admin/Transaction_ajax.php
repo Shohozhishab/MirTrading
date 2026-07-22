@@ -44,10 +44,10 @@ class Transaction_ajax extends BaseController
             $category = $this->request->getGet('category');
 
             if ($start_date) {
-                $transactionTable->where('createdDtm >=', $start_date . ' 00:00:00');
+                $transactionTable->where('date >=', $start_date . ' 00:00:00');
             }
             if ($end_date) {
-                $transactionTable->where('createdDtm <=', $end_date . ' 23:59:59');
+                $transactionTable->where('date <=', $end_date . ' 23:59:59');
             }
 
             // Exclusive Entity Filters based on Category
@@ -151,6 +151,23 @@ class Transaction_ajax extends BaseController
             $data['actionOtherSales'] = base_url('Admin/Transaction/otherSales_transaction_action');
             $data['actionSalaryEmployee'] = base_url('Admin/Transaction/salaryEmployee_transaction_action');
             $data['actionVatPay'] = base_url('Admin/Transaction/vat_pay_action');
+            $data['actionAssetsPay'] = base_url('Admin/Transaction/assets_pay_action');
+
+            $data['assets'] = DB()->table('accounts')
+                ->join('accounts_account_type_map', 'accounts_account_type_map.account_id = accounts.account_id')
+                ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
+                ->where('accounts.sch_id', $shopId)
+                ->where('account_type.type_key', 'assets')
+                ->get()
+                ->getResult();
+
+            $data['expenses'] = DB()->table('accounts')
+                ->join('accounts_account_type_map', 'accounts_account_type_map.account_id = accounts.account_id')
+                ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
+                ->where('accounts.sch_id', $shopId)
+                ->where('account_type.type_key', 'expenses')
+                ->get()
+                ->getResult();
 
             $table = DB()->table('affiliate_user');
             $data['affiliateUser'] = $table->where('sch_id', $shopId)->get()->getResult();

@@ -72,9 +72,9 @@
                                     <thead>
                                     <tr>
                                         <th>No</th>
+                                        <th>Date</th>
                                         <th>Bank Name</th>
                                         <th>Amount</th>
-                                        <th>Comment</th>
                                         <th>Action</th>
                                     </tr>
                                     </thead>
@@ -83,9 +83,9 @@
                                     foreach ($bank_deposit as $val) { ?>
                                         <tr>
                                             <td width="80px"><?php echo ++$start ?></td>
+                                            <td><?php echo invoiceDateFormat($val->date) ?></td>
                                             <td><?php echo get_data_by_id('name', 'bank', 'bank_id', $val->bank_id) ?></td>
                                             <td><?php echo showWithCurrencySymbol($val->amount) ?></td>
-                                            <td><?php echo $val->commont ?></td>
                                             <td>
                                                 <?php if (isset($transaction_flow) && $transaction_flow == 1){ ?>
                                                     <a href="javascript:void(0)"

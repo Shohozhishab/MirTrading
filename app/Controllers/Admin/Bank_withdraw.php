@@ -102,6 +102,7 @@ class Bank_withdraw extends BaseController
         $shopId = $this->session->shopId;
         $userId = $this->session->userId;
 
+        $data['date'] = $this->request->getPost('date');
         $data['bank_id'] = $this->request->getPost('bank_id');
         $data['amount'] = $this->request->getPost('amount');
         $data['commont'] = $this->request->getPost('commont');
@@ -126,6 +127,7 @@ class Bank_withdraw extends BaseController
                         //insert data
                         $data = array(
                             'bank_id' => $data['bank_id'],
+                            'date' => $data['date'],
                             'sch_id' => $shopId,
                             'amount' => $data['amount'],
                             'commont' => $data['commont'],

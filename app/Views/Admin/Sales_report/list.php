@@ -10,12 +10,11 @@
 
     <!-- Main content -->
     <section class="content">
-        <!-- Small boxes (Stat box) -->
         <div class="col-xs-12" style="margin-bottom: 15px;">
             <?php echo $menu;?>
         </div>
         <?php if (isDefaultRole() == true){ ?>
-            <div class="row" id="reloadRoleDiv" style="margin-bottom:20px; ">
+            <div class="row" id="reloadRoleDiv">
                 <div class="col-lg-12" >
                     <button class="btn btn-sm btn-info " style="float: right;" onclick="rollPermissionBtn()">Roll Permission</button>
                 </div>
@@ -41,7 +40,7 @@
                 </div>
             </div>
         <?php } ?>
-        <div class="row">
+        <div class="row" style="margin-top: 20px;">
 
             <div class="col-lg-8">
 
@@ -50,31 +49,50 @@
                         <div class="row">
                             <div class="col-lg-12">
                                 <h3 class="box-title">Sale Report List</h3>
-                                <span class="pull-right"><b>Total Profit: <?php echo showWithCurrencySymbol($saleprofit)?></b></span>
+                                <span class="pull-right"><b style="color: green;">Total Profit: <?php echo showWithCurrencySymbol($saleprofit)?></b></span>
                             </div>
                             <?php if (isset($filter) && $filter == 1){ ?>
-                            <div class="col-lg-12" style="margin-top: 20px;">
-                                <form  action="<?php echo site_url('Admin/Sales_report/search'); ?>" method="post">
-                                    <div class="input-group col-xs-12" style="padding: 20px;">
-                                        <div class="col-xs-5">
-                                            <label>Start Date</label>
-                                            <input type="date" class="form-control" name="st_date" id="date"  required>
+                                <div class="col-lg-12" style="margin-top: 20px;">
+                                    <form  action="<?php echo site_url('Admin/Sales_report'); ?>" method="get">
+                                        <div class="input-group col-xs-12" style="padding: 20px;">
+
+                                            <div class="col-xs-6" style="margin-bottom: 20px;">
+                                                <label>Start Date</label>
+                                                <input type="date" class="form-control" name="st_date" id="date" value="<?= $st_date;?>" >
+                                            </div>
+                                            <div class="col-xs-6" style="margin-bottom: 20px;">
+                                                <label>End Date</label>
+                                                <input type="date" class="form-control" name="en_date" id="date" value="<?= $en_date;?>" >
+                                            </div>
+                                            <div class="col-md-4" >
+                                                <label>Customer name</label>
+                                                <select class="form-control select2 select2-hidden-accessible" name="customer_id" onchange="formSubmit(this)" id="customerId" style=" width: 100%;" >
+                                                    <option selected="selected"  value="">Please Select</option>
+                                                    <?php echo getAllListInOption($customer_id,'customer_id','customer_name','customers'); ?>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4" >
+                                                <label>Products</label>
+                                                <select class="form-control select2 select2-hidden-accessible" name="prod_id" onchange="formSubmit(this)" id="customerId" style=" width: 100%;" >
+                                                    <option selected="selected"  value="">Please Select</option>
+                                                    <?php echo getAllListInOption($prod_id,'prod_id','name','products'); ?>
+                                                </select>
+                                            </div>
+                                            <div class="col-xs-4" style="margin-top: 25px;display: flex " >
+                                                <button  class="btn btn-primary geniusSubmit-btn" type="submit">Filter</button>
+
+                                                <a href="<?= base_url('Admin/Sales_report') ?>" style="margin-left: 10px;" class="btn btn-default "><i
+                                                            class="fa fa-refresh"></i> Reset</a>
+                                            </div>
                                         </div>
-                                        <div class="col-xs-5">
-                                            <label>End Date</label>
-                                            <input type="date" class="form-control" name="en_date" id="date"  required>
-                                        </div>
-                                        <div class="col-xs-2" style="margin-top: 23px">
-                                            <button  class="btn btn-primary geniusSubmit-btn" type="submit">Filter</button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
+                                    </form>
+                                </div>
                             <?php } ?>
                         </div>
                     </div>
                     <!-- /.box-header -->
                     <div class="box-body">
+                        <?php $profit = permission_check('Sales',newSession()->role,'profit');?>
                         <table class="table table-bordered table-striped" id="example1">
                             <thead>
                             <tr>
@@ -85,22 +103,26 @@
                                 <th>Total Price</th>
                                 <th>Discount</th>
                                 <th>Final Price</th>
-                                <th>Profit</th>
+                                <?php if (isset($profit) && $profit == 1){ ?>
+                                    <th>Profit</th>
+                                <?php } ?>
                             </tr>
                             </thead>
                             <tbody><?php $i='';
-                            foreach ($sale as $sale)
+                            foreach ($sale as $val)
                             {
                                 ?>
                                 <tr>
                                     <td width="15px"><?php echo ++$i ?></td>
-                                    <td><?php echo get_data_by_id('name','products','prod_id',$sale->prod_id)?></td>
-                                    <td><?php echo showWithCurrencySymbol($sale->price) ?></td>
-                                    <td><?php echo $sale->quantity ?></td>
-                                    <td><?php echo showWithCurrencySymbol($sale->total_price) ?></td>
-                                    <td><?php echo $sale->discount ?></td>
-                                    <td><?php echo showWithCurrencySymbol($sale->final_price) ?></td>
-                                    <td><?php echo showWithCurrencySymbol($sale->profit) ?></td>
+                                    <td><?php echo get_data_by_id('name','products','prod_id',$val->prod_id)?></td>
+                                    <td><?php echo showWithCurrencySymbol($val->price) ?></td>
+                                    <td><?php echo $val->quantity ?></td>
+                                    <td><?php echo showWithCurrencySymbol($val->total_price) ?></td>
+                                    <td><?php echo $val->discount ?></td>
+                                    <td><?php echo showWithCurrencySymbol($val->final_price) ?></td>
+                                    <?php if (isset($profit) && $profit == 1){ ?>
+                                        <td><?php echo showWithCurrencySymbol($val->profit) ?></td>
+                                    <?php } ?>
                                 </tr>
                                 <?php
                             }
@@ -113,13 +135,13 @@
                     <div class="row no-print" >
                         <div class="col-xs-12" style="margin-bottom: 20px;">
                             <?php if (isset($print) && $print == 1){ ?>
-                            <button onclick="printDiv('ledgPrint')"    class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
+                                <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
                             <?php } ?>
                             <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
-                            <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','salesReport')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','salesReport')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
                             <?php } ?>
                             <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
-                            <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','salesReport')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','salesReport')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
                             <?php } ?>
                         </div>
                     </div>
@@ -185,7 +207,9 @@
                             <th>Total Price</th>
                             <th>Discount</th>
                             <th>Final Price</th>
-                            <th>Profit</th>
+                            <?php if (isset($profit) && $profit == 1){ ?>
+                                <th>Profit</th>
+                            <?php } ?>
                         </tr>
                         </thead>
                         <tbody><?php
@@ -199,7 +223,9 @@
                                 <td><?php echo showWithCurrencySymbol($row->total_price) ?></td>
                                 <td><?php echo $row->discount ?></td>
                                 <td><?php echo showWithCurrencySymbol($row->final_price) ?></td>
-                                <td><?php echo showWithCurrencySymbol($row->profit) ?></td>
+                                <?php if (isset($profit) && $profit == 1){ ?>
+                                    <td><?php echo showWithCurrencySymbol($row->profit) ?></td>
+                                <?php } ?>
                             </tr>
                             <?php
                         }

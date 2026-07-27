@@ -92,11 +92,17 @@
                                 <th>Credit</th>
                                 <!--		<th>Rest Balance</th>-->
                             </tr></thead><tbody><?php
+                            $restBalance = 0;
                             $totalRows = count($ledger_data)-1;
-                            for($i = $totalRows; $i >= 0; $i--) {
+                            for ($i = 0; $i <= $totalRows; $i++) {
 
                                 $amountCr = ($ledger_data[$i]->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($ledger_data[$i]->amount);
                                 $amountDr =($ledger_data[$i]->trangaction_type != "Dr.")?"---":showWithCurrencySymbol($ledger_data[$i]->amount);
+                                if ($ledger_data[$i]->trangaction_type == 'Dr.') {
+                                    $restBalance = $restBalance + $ledger_data[$i]->amount;
+                                }else {
+                                    $restBalance = $restBalance - $ledger_data[$i]->amount;
+                                }
                                 ?>
                                 <tr>
                                     <td width="80px"><?php echo $ledger_data[$i]->ledg_oth_sales_id;  ?></td>

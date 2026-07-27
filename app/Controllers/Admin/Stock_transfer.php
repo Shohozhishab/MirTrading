@@ -92,7 +92,7 @@ class Stock_transfer extends BaseController
         $result = array();
         $table = $db->table('products');
         $table->join('product_stock_relation', 'product_stock_relation.product_id = products.prod_id')
-            ->where('sch_id', $shopId)
+            ->where('products.sch_id', $shopId)
             ->where('product_stock_relation.store_id', $storeId)
             ->where('product_stock_relation.quantity !=', 0);
 

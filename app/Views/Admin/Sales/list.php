@@ -148,11 +148,9 @@
                                            class="btn btn-primary btn-xs">View</a>
                                         <?php } ?>
                                         <?php if (isset($update) && $update == 1){ ?>
-                                            <?php if (edit_expire_check($val->createdDtm) == true) { ?>
-                                                <a href="javascript:void(0)" class="btn btn-xs btn-warning"
+                                            <a href="javascript:void(0)" class="btn btn-xs btn-warning"
                                                    onclick="saleEdit('<?= $val->sales_id; ?>')" data-toggle="modal"
                                                    data-target="#modal-default">Edit</a>
-                                            <?php } ?>
                                         <?php } ?>
                                     </td>
                                 </tr>

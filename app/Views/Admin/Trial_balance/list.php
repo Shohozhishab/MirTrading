@@ -10,11 +10,10 @@
 
     <!-- Main content -->
     <section class="content">
-        <!-- Small boxes (Stat box) -->
         <?php if (isDefaultRole() == true){ ?>
-            <div class="row" id="reloadRoleDiv" style="margin-bottom:20px; ">
+            <div class="row" id="reloadRoleDiv">
                 <div class="col-lg-12" >
-                    <button class="btn btn-sm btn-info" style="float: right;" onclick="rollPermissionBtn()">Roll Permission</button>
+                    <button class="btn btn-sm btn-info " style="float: right;" onclick="rollPermissionBtn()">Roll Permission</button>
                 </div>
                 <div class="col-lg-12" id="permissionDiv" style="display: none; margin-top: 20px">
                     <form id="roleUpdateform" action="<?= base_url('Admin/Role/modulePermissionAction')?>" method="post">
@@ -38,7 +37,7 @@
                 </div>
             </div>
         <?php } ?>
-        <div class="row">
+        <div class="row" style="margin-top: 20px;">
 
             <div class="col-xs-12">
 
@@ -62,9 +61,10 @@
                         <div class="row">
                             <div class="col-lg-6 trail">
                                 <h4>All Debit</h4>
-                                <table class="table table-bordered table-striped" id="">
+                                <h5><b>Assets </b></h5>
+                                <table class="table table-bordered table-striped text-capitalize">
                                     <tr>
-                                        <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_nagodan')?>" class="text-black" >Cash</a></td>
+                                        <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_nagodan')?>" class="text-black ta-link" >Cash</a></td>
                                         <td><?php echo showWithCurrencySymbol($cash); ?></td>
                                     </tr>
 
@@ -72,16 +72,14 @@
                                         <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_stock')?>" class="text-black" >Stock Amount</a></td>
                                         <td><?php echo showWithCurrencySymbol($stockAmount); ?></td>
                                     </tr>
-
-                                    <tr>
-                                        <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_expense')?>" class="text-black" >Expense</a></td>
-                                        <td><?php echo showWithCurrencySymbol($expensedata); ?></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="width: 50%;"><a href="<?= base_url('Admin/Affiliate_commission_pay')?>" class="text-black" >Expense Commission</a></td>
-                                        <td><?php echo showWithCurrencySymbol($commission); ?></td>
-                                    </tr>
+                                    <?php foreach ($accountsAssets as $val){ ?>
+                                        <tr>
+                                            <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_accounts?account_id='.$val->account_id)?>" class="text-black" ><?= $val->name ?></a></td>
+                                            <td><?= showWithCurrencySymbol($val->balance) ?></td>
+                                        </tr>
+                                    <?php } ?>
                                 </table>
+
                                 <h5><b>Bank</b></h5>
 
                                 <table class="table table-bordered table-striped">
@@ -105,7 +103,7 @@
                                     } ?>
                                 </table>
 
-                                <h5><b>Expense/Account Head</b></h5>
+                                <h5><b>Account Head</b></h5>
                                 <table class="table table-bordered table-striped" id="">
                                     <?php foreach ($loanProData as $rowlon) {
                                         if ($rowlon->balance > 0) { ?>
@@ -138,7 +136,19 @@
                                         </tr>
                                     <?php } ?>
                                 </table>
-
+                                <h5><b>Expense </b></h5>
+                                <table class="table table-bordered table-striped" id="">
+                                    <!--                                    <tr>-->
+                                    <!--                                        <td style="width: 50%;">Expense</td>-->
+                                    <!--                                        <td>--><?php //echo showWithCurrencySymbol($expensedata); ?><!--</td>-->
+                                    <!--                                    </tr>-->
+                                    <?php foreach ($accountsExpenses as $val){ ?>
+                                        <tr>
+                                            <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_accounts?account_id='.$val->account_id)?>" class="text-black" ><?= $val->name ?></a></td>
+                                            <td><?= showWithCurrencySymbol($val->balance) ?></td>
+                                        </tr>
+                                    <?php } ?>
+                                </table>
                                 <table class="table table-bordered table-striped" id="">
                                     <tr style="background-color: #decf77;">
                                         <td style="width: 50%;">Total</td>
@@ -151,20 +161,20 @@
                                 <table class="table table-bordered table-striped" id="">
                                     <tr>
                                         <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_capital')?>" class="text-black" >Capital</a></td>
-                                        <td><?php echo showWithCurrencySymbol($capitalcr); ?></td>
+                                        <td><?php echo showWithCurrencySymbol(-$capitalcr); ?></td>
                                     </tr>
                                     <tr>
                                         <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_profit')?>" class="text-black" >Profit</a></td>
-                                        <td><?php echo showWithCurrencySymbol($profit); ?></td>
+                                        <td><?php echo showWithCurrencySymbol(-$profit); ?></td>
                                     </tr>
                                     <tr>
                                         <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_vat')?>" class="text-black" >Vat</a></td>
-                                        <td><?php echo showWithCurrencySymbol($vatEarn); ?></td>
+                                        <td><?php echo showWithCurrencySymbol(-$vatEarn); ?></td>
                                     </tr>
 
                                     <tr>
                                         <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_service_charge')?>" class="text-black" >Service Charge</a></td>
-                                        <td><?php echo showWithCurrencySymbol($service_charge); ?></td>
+                                        <td><?php echo showWithCurrencySymbol(-$service_charge); ?></td>
                                     </tr>
 
                                 </table>
@@ -174,7 +184,7 @@
                                     <?php foreach ($loanProData as $rowlonc) { if ($rowlonc->balance < 0) {  ?>
                                         <tr>
                                             <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_loan?loan_pro_id='.$rowlonc->loan_pro_id)?>" class="text-black" ><?php echo $rowlonc->name ?></a></td>
-                                            <td><?php echo showWithCurrencySymbol($rowlonc->balance) ?></td>
+                                            <td><?php echo showWithCurrencySymbol(-$rowlonc->balance) ?></td>
                                         </tr>
                                     <?php }} ?>
                                 </table>
@@ -184,7 +194,7 @@
                                     <?php foreach ($supplierData as $rowsupc) { if ($rowsupc->balance < 0) {  ?>
                                         <tr>
                                             <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_suppliers?supplier_id='.$rowsupc->supplier_id)?>" class="text-black" ><?php echo $rowsupc->name ?></a></td>
-                                            <td><?php echo showWithCurrencySymbol($rowsupc->balance) ?></td>
+                                            <td><?php echo showWithCurrencySymbol(-$rowsupc->balance) ?></td>
                                         </tr>
                                     <?php }} ?>
                                 </table>
@@ -194,7 +204,7 @@
                                     <?php foreach ($customerData as $rowcusc) { if ($rowcusc->balance < 0) {  ?>
                                         <tr>
                                             <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger?customer_id='.$rowcusc->customer_id)?>" class="text-black" ><?php echo $rowcusc->customer_name ?></a></td>
-                                            <td><?php echo showWithCurrencySymbol($rowcusc->balance) ?></td>
+                                            <td><?php echo showWithCurrencySymbol(-$rowcusc->balance) ?></td>
                                         </tr>
                                     <?php } } ?>
                                 </table>
@@ -202,7 +212,7 @@
                                 <table class="table table-bordered table-striped" >
                                     <tr style="background-color: #decf77;">
                                         <td style="width: 50%;">Total</td>
-                                        <td><?php echo showWithCurrencySymbol($totalCredit); ?></td>
+                                        <td><?php echo showWithCurrencySymbol(-$totalCredit); ?></td>
                                     </tr>
                                 </table>
                             </div>

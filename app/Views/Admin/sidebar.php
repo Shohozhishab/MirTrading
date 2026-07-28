@@ -163,7 +163,7 @@
                     <?php echo add_main_ajax_based_menu_with_permission('Ledger other sales', '/Admin/Ledger_other_sales', $role_id, 'fa fa-book', '/Admin/Ledger_other_sales_ajax','Ledger_other_sales'); ?>
                     <?php echo add_main_ajax_based_menu_with_permission('Ledger Service Charge', '/Admin/Ledger_service_charge', $role_id, 'fa fa-book', '/Admin/Ledger_service_charge_ajax','Ledger_service_charge'); ?>
                     <?php echo add_main_ajax_based_menu_with_permission('Discount Ledger', '/Admin/Ledger_discount', $role_id, 'fa fa-book', '/Admin/Ledger_discount_ajax','Ledger_discount'); ?>
-
+                    <?php echo add_main_ajax_based_menu_with_permission('Accounts Ledger', '/Admin/Ledger_accounts', $role_id, 'fa fa-book', '/Admin/Ledger_accounts_ajax','Ledger_accounts'); ?>
                 </ul>
             </li>
             <?php } ?>
@@ -223,7 +223,29 @@
 
             <?php echo add_main_ajax_based_menu_with_permission('Suppliers', '/Admin/Suppliers', $role_id, 'fa fa-user', '/Admin/Suppliers_ajax','Suppliers'); ?>
 
-            <?php echo add_main_ajax_based_menu_with_permission('Account Head', '/Admin/Loan_provider', $role_id, 'fa fa-user-plus', '/Admin/Loan_provider_ajax','Loan_provider'); ?>
+            <?php
+            $modArraySt = ['Loan_provider','Assets','Expenses'];
+            $menuAccessSt = all_menu_permission_check($modArraySt,$role_id);
+            if ($menuAccessSt == true){
+                ?>
+                <li class="treeview">
+                    <a href="#" >
+                        <i class="fa fa-tasks"></i>
+                        <span>Chart Of Accounts</span>
+                        <span class="pull-right-container">
+                          <i class="fa fa-angle-left pull-right"></i>
+                        </span>
+                    </a>
+                    <ul class="treeview-menu">
+                        <?php echo add_main_ajax_based_menu_with_permission('Account Head', '/Admin/Loan_provider', $role_id, 'fa fa-user-plus', '/Admin/Loan_provider_ajax','Loan_provider'); ?>
+                        <?php echo add_main_ajax_based_menu_with_permission('Assets', '/Admin/Assets', $role_id, 'fa fa-user-plus', '/Admin/Assets_ajax','Assets'); ?>
+                        <?php echo add_main_ajax_based_menu_with_permission('Expenses', '/Admin/Expenses', $role_id, 'fa fa-user-plus', '/Admin/Expenses_ajax','Expenses'); ?>
+
+                    </ul>
+                </li>
+            <?php } ?>
+
+            <?php //echo add_main_ajax_based_menu_with_permission('Account Head', '/Admin/Loan_provider', $role_id, 'fa fa-user-plus', '/Admin/Loan_provider_ajax','Loan_provider'); ?>
 
             <?php
                 $modArrayBank = ['Bank','Bank_deposit','Bank_withdraw','Chaque'];

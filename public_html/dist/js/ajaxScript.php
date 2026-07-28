@@ -10,6 +10,7 @@
     $('.othersales').DataTable()
     $('.employeeSalary').DataTable()
     $('.vatpay').DataTable()
+    $('.asstest').DataTable()
 
     var ladgerTable = $('#example1').DataTable({
       "pageLength": 10,

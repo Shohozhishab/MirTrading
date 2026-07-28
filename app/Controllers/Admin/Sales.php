@@ -56,8 +56,8 @@ class Sales extends BaseController
             // Apply date filters only if they are present in the request
             if (!empty($st_date) && !empty($en_date)) {
                 // Assuming your database column name is 'date'
-                $table->where('sales.createdDtm >=', $st_date . ' 00:00:00');
-                $table->where('sales.createdDtm <=', $en_date . ' 23:59:59');
+                $table->where('sales.date >=', $st_date . ' 00:00:00');
+                $table->where('sales.date <=', $en_date . ' 23:59:59');
             }
             $data['sales'] = $table->get()->getResult();
 
@@ -266,6 +266,7 @@ class Sales extends BaseController
         $quantity = $this->request->getPost('qty[]');
         $proPrice = $this->request->getPost('price[]');
         $proDate = $this->request->getPost('date[]');
+        $date = $this->request->getPost('dateData');
 
         $number = count($proId);
         for ($i = 0; $i < $number; $i++) {
@@ -388,6 +389,7 @@ class Sales extends BaseController
         $saleData = array(
             'sch_id' => $shopId,
             'invoice_id' => $invoiceId,
+            'date' => $date,
             'createdDtm' => date('Y-m-d h:i:s')
         );
         $salesTab = DB()->table('sales');

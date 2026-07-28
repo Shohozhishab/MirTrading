@@ -1,22 +1,17 @@
-
 <div class="content-wrapper" id="viewpage">
     <!-- Content Header (Page header) -->
     <section class="content-header">
-        <h1> Stores <small>Stores List</small></h1>
+        <h1>Assets <small>Assets List</small></h1>
         <ol class="breadcrumb">
             <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-            <li class="active">Stores</li>
+            <li class="active">Assets</li>
         </ol>
     </section>
 
     <!-- Main content -->
     <section class="content">
-        <!-- Small boxes (Stat box) -->
-        <div class="col-xs-12" style="margin-bottom: 15px;">
-            <?php echo $menu;?>
-        </div>
         <?php if (isDefaultRole() == true){ ?>
-            <div class="row" id="reloadRoleDiv" style="margin-bottom:20px; ">
+            <div class="row" id="reloadRoleDiv">
                 <div class="col-lg-12" >
                     <button class="btn btn-sm btn-info " style="float: right;" onclick="rollPermissionBtn()">Roll Permission</button>
                 </div>
@@ -26,13 +21,13 @@
                             <div class="box-body">
                                 <div class="row">
                                     <div class="col-md-4">
-                                        <select class="form-control" onchange="rolePermission(this.value,'Stores')" name="role_id">
+                                        <select class="form-control" onchange="rolePermission(this.value,'Assets')" name="role_id">
                                             <option value="">Please Select</option>
                                             <?php  foreach (userRole() as $val ){ ?>
                                                 <option value="<?= $val->role_id;?>"><?= $val->role;?></option>
                                             <?php } ?>
                                         </select>
-                                        <input type="hidden" name="moduleName" value="Stores">
+                                        <input type="hidden" name="moduleName" value="Assets">
                                     </div>
                                     <div class="col-md-12" id="rolView"></div>
                                 </div>
@@ -42,7 +37,7 @@
                 </div>
             </div>
         <?php } ?>
-        <div class="row">
+        <div class="row" style="margin-top: 20px;">
 
             <div class="col-xs-12">
 
@@ -50,16 +45,17 @@
                     <div class="box-header">
                         <div class="row">
                             <div class="col-lg-9">
-                                <h3 class="box-title">Stores List</h3>
+                                <h3 class="box-title">Assets List</h3>
                             </div>
-                            <?php if (isset($create) && $create == 1){ ?>
                             <div class="col-lg-3">
-                                <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Stores_ajax/create/'); ?>','<?php echo '/Admin/Stores/create/'; ?>')" class="btn btn-block btn-primary"><i class="fa fa-plus"></i> Create Store</a>
+                                <?php if (isset($create) && $create == 1){ ?>
+                                <a href="javascript:void(0)"
+                                   onclick="showData('<?php echo site_url('/Admin/Assets_ajax/create/'); ?>','<?php echo '/Admin/Assets/create/'; ?>')"
+                                   class="btn btn-block btn-primary">Add</a>
+                                <?php } ?>
                             </div>
-                            <?php } ?>
                             <div class="col-lg-12" style="margin-top: 20px;">
                                 <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
-                                <div id="message"></div>
                             </div>
                         </div>
 
@@ -72,23 +68,24 @@
                             <tr>
                                 <th>No</th>
                                 <th>Name</th>
-                                <th>Description</th>
-                                <th>Total Products Prices</th>
+                                <th>Phone</th>
+                                <th>Balance</th>
+                                <th>Address</th>
                                 <th>Action</th>
                             </tr>
                             </thead>
                             <tbody>
-                            <?php $i = 1; foreach ($stores as $val) { ?>
+                            <?php $i = 1; foreach ($result as $val) { ?>
                                 <tr>
-                                    <td><?php echo $i++ ?></td>
+                                    <td width="80px"><?php echo $i++ ?></td>
                                     <td><?php echo $val->name ?></td>
-                                    <td><?php echo $val->description ?></td>
-                                    <td><?php echo showWithCurrencySymbol(storeIdByTotalProductPrice($val->store_id)); ?></td>
+                                    <td><?php echo showWithPhoneNummberCountryCode($val->phone) ?></td>
+                                    <td><?php echo showWithCurrencySymbol($val->balance) ?></td>
+                                    <td><?php echo $val->address ?></td>
                                     <td>
                                         <?php if (isset($update) && $update == 1){ ?>
-                                            <?php if (is_default($val->store_id,'store_id', 'stores') != 1) {?>
-                                            <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Stores_ajax/update/'.$val->store_id); ?>','<?php echo '/Admin/Stores/update/'.$val->store_id; ?>')" class="btn btn-warning btn-xs">Update</a>
-                                            <?php } ?>
+                                        <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Assets_ajax/update/' . $val->account_id); ?>','<?php echo '/Admin/Assets/update/' . $val->account_id; ?>')"
+                                           class="btn btn-warning btn-xs">Update</a>
                                         <?php } ?>
                                     </td>
                                 </tr>
@@ -103,10 +100,10 @@
                                 <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
                                 <?php } ?>
                                 <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
-                                <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','store')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','loanProvider')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
                                 <?php } ?>
                                 <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
-                                <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','store')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','loanProvider')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
                                 <?php } ?>
                             </div>
                         </div>
@@ -127,22 +124,24 @@
                             <div class="col-md-12" >
                                 <table class="table table-bordered table-striped text-capitalize">
                                     <thead>
-                                        <tr>
-                                            <th>No</th>
-                                            <th>Name</th>
-                                            <th>Description</th>
-                                            <th>Total Products Prices</th>
-                                        </tr>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Name</th>
+                                        <th>Phone</th>
+                                        <th>Balance</th>
+                                        <th>Address</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        <?php $i = 1; foreach ($stores as $item) { ?>
+                                    <?php $start = 1; foreach ($result as $val) { ?>
                                         <tr>
-                                            <td><?php echo $i++ ?></td>
-                                            <td><?php echo $item->name ?></td>
-                                            <td><?php echo $item->description ?></td>
-                                            <td><?php echo showWithCurrencySymbol(storeIdByTotalProductPrice($val->store_id)); ?></td>
+                                            <td width="80px"><?php echo $start++ ?></td>
+                                            <td><?php echo $val->name ?></td>
+                                            <td><?php echo showWithPhoneNummberCountryCode($val->phone) ?></td>
+                                            <td><?php echo showWithCurrencySymbol($val->balance) ?></td>
+                                            <td width="200"><?php echo $val->address ?></td>
                                         </tr>
-                                        <?php } ?>
+                                    <?php } ?>
 
                                     </tbody>
                                 </table>

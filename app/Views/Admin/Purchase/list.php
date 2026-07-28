@@ -124,8 +124,9 @@
                                                class="btn btn-primary btn-xs">View</a>
                                         <?php } ?>
                                         <?php if (isset($update) && $update == 1){ ?>
+                                            <?php if(edit_expire_check($purchase->createdDtm) == true){ ?>
                                                 <a href="javascript:void(0)" class="btn btn-xs btn-warning"  onclick="purchaseEdit('<?= $purchase->purchase_id;?>')" data-toggle="modal" data-target="#modal-default">Edit</a>
-
+                                            <?php } ?>
                                         <?php } ?>
                                     </td>
                                 </tr>

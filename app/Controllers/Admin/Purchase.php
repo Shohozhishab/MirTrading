@@ -193,8 +193,6 @@ class Purchase extends BaseController
         if (!isset($isLoggedIn) || $isLoggedIn != TRUE) {
             return redirect()->to(site_url('Admin/login'));
         } else {
-            $shopId = $this->session->shopId;
-
             $data['action'] = base_url('Admin/Purchase/product_create_action');
             if (empty($this->session->purchaseId)) {
                 return redirect()->to(site_url('Admin/Purchase/create'));
@@ -206,10 +204,6 @@ class Purchase extends BaseController
             }
             $table = DB()->table('suppliers');
             $data['supplier'] = $table->where('supplier_id',$this->session->supplierId)->get()->getRow();
-
-            $table = DB()->table('unit_set');
-            $data['unit_set'] = $table->where('sch_id',$shopId)->get()->getResult();
-
 
             $data['supplierId'] = $this->session->supplierId;
             $data['purchaseId'] = $this->session->purchaseId;
@@ -637,7 +631,7 @@ class Purchase extends BaseController
      * @description This method add cart
      * @return void
      */
-    public function old_addCart()
+    public function addCart()
     {
 
         $data['subCatId'] = $this->request->getPost('subCatId');
@@ -674,92 +668,6 @@ class Purchase extends BaseController
                 );
 
                 $this->cart->insert($data2);
-                $this->session->set('cartType', 'purchase');
-
-            } else {
-                print '<div class="alert alert-danger alert-dismissible" role="alert">Enter a valid quantity! <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
-            }
-
-        }
-
-    }
-    public function addCart()
-    {
-        $categories_id = $this->request->getPost('categories_id');
-
-        $data['subCatId'] = $this->request->getPost('sub_category');
-        $data['category'] = $this->request->getPost('category');
-        $data['name'] = $this->request->getPost('name');
-        $data['price'] = $this->request->getPost('price');
-        $data['salePrice'] = $this->request->getPost('selling_price');
-        $data['sale_unit'] = $this->request->getPost('sale_unit');
-        $data['unit'] = $categories_id;
-
-        $purchase_units_price = $this->request->getPost('purchase_units_price');
-        $sell_unit_price = $this->request->getPost('sell_unit_price');
-
-
-
-        $this->validation->setRules([
-            'subCatId' => ['label' => 'subCatId', 'rules' => 'required'],
-            'category' => ['label' => 'category', 'rules' => 'required'],
-            'name' => ['label' => 'name', 'rules' => 'required'],
-            'unit' => ['label' => 'unit', 'rules' => 'required'],
-            'price' => ['label' => 'price', 'rules' => 'required'],
-            'salePrice' => ['label' => 'salePrice', 'rules' => 'required'],
-            'sale_unit' => ['label' => 'Sale Unit', 'rules' => 'required'],
-        ]);
-
-        if ($this->validation->run($data) == FALSE) {
-            print '<div class="alert alert-danger alert-dismissible" role="alert">' . $this->validation->listErrors() . ' <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
-        } else {
-            $totalQty = 0;
-
-            if (!empty($categories_id)) {
-                $query = DB()->table('unit_set')->where('unit_set_id',$categories_id)->get()->getRow();
-                $units_id = json_decode($query->purchase_units);
-
-                $unit = array();
-                $units = DB()->table('units')->whereIn('units_id', $units_id)->orderBy('conversion_factor', 'DESC')->get()->getResult();
-                foreach ($units as $val) {
-                    $nameUnit = strtolower(str_replace(' ', '_', $val->name));
-                    $unit[$nameUnit] = $this->request->getPost($nameUnit);
-                    if (!empty($unit[$nameUnit])) {
-                        $totalQty += $val->conversion_factor * $unit[$nameUnit];
-                    }
-                }
-            }
-
-            //purchase price make
-            $basePurchasePrice = 0;
-            $unitsPur = DB()->table('units')->where('units_id', $purchase_units_price)->get()->getRow();
-            if (!empty($unitsPur)){
-                $basePurchasePrice = $data['price']/$unitsPur->conversion_factor;
-            }
-            $purchasePrice = $basePurchasePrice;
-
-            //sale price make
-            $baseSalePrice = 0;
-            $unitsSale = DB()->table('units')->where('units_id', $sell_unit_price)->get()->getRow();
-            if (!empty($unitsSale)){
-                $baseSalePrice = $data['salePrice']/$unitsSale->conversion_factor;
-            }
-            $salePrice = $baseSalePrice;
-
-            if ((!empty($totalQty)) && ($totalQty > 0)) {
-                $i = count($this->cart->contents());
-                $dataAdd = array(
-                    'id' => ++$i,
-                    'name' => $data['name'],
-                    'unit' => $data['sale_unit'] ,
-                    'qty' => $totalQty,
-                    'price' => $purchasePrice,
-                    'salePrice' => $salePrice,
-                    'cat_id' => $data['subCatId'],
-                    'unit_set_id' => $categories_id,
-                );
-
-                $this->cart->insert($dataAdd);
                 $this->session->set('cartType', 'purchase');
 
             } else {
@@ -830,7 +738,7 @@ class Purchase extends BaseController
      * @description This method store products
      * @return RedirectResponse
      */
-    public function old_product_create_action()
+    public function product_create_action()
     {
         $userId = $this->session->userId;
         $shopId = $this->session->shopId;
@@ -1233,427 +1141,6 @@ class Purchase extends BaseController
                 'purchase_id'      => $purchaseId,
                 'createdDtm'       => date('Y-m-d H:i:s')
             ]);
-
-            DB()->transComplete();
-            if(!empty($sms)) {
-                $message = 'Thank you for your purchase.Your purchase amount is-' . $totalPrice;
-                $phone = get_data_by_id('phone', 'suppliers', 'supplier_id', $supplierId);
-                send_sms($phone, $message);
-            }
-
-            $this->cart->destroy();
-            unset($_SESSION['supplier_id']);
-            unset($_SESSION['purchaseId']);
-
-            $this->session->setFlashdata('message', '<div class="alert alert-success alert-dismissible" role="alert">Create Record Success<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
-            return redirect()->to(site_url('Admin/Purchase'));
-        } else {
-            $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert">Your cart is empty! <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
-            return redirect()->to(site_url('Admin/Purchase/new_product'));
-        }
-
-    }
-
-    public function product_create_action()
-    {
-        $userId = $this->session->userId;
-        $shopId = $this->session->shopId;
-
-        $date = $this->request->getPost('date');
-        $purchaseId = $this->request->getPost('purchase_id');
-        $supplierId = $this->request->getPost('supplier_id');
-        $sms = $this->request->getPost('sms');
-
-        $totalPrice = str_replace(',', '', $this->request->getPost('totalPrice'));
-        $cashAmount = str_replace(',', '', $this->request->getPost('cash'));
-        $bankAmount = str_replace(',', '', $this->request->getPost('bank'));
-        $dueAmount = str_replace(',', '', $this->request->getPost('due'));
-        $bankId = $this->request->getPost('bank_id');
-
-        $name = $this->request->getPost('name[]');
-
-        if (!empty($this->cart->contents())) {
-            $number = count($name);
-
-            $cashbal = get_data_by_id('cash', 'shops', 'sch_id', $shopId);
-            $bankbal = get_data_by_id('balance', 'bank', 'bank_id', $bankId);
-
-            if ($cashbal < $cashAmount) {
-                $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert">Not enough balance! <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
-                return redirect()->to(site_url('Admin/Purchase/new_product'));
-            }
-
-            if ($bankbal < $bankAmount) {
-                $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert">Not enough balance! <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
-                return redirect()->to(site_url('Admin/Purchase/new_product'));
-            }
-
-            if (!empty($cashAmount) && $cashAmount < 0) {
-                $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert">Please enter valid amount<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
-                return redirect()->to(site_url('Admin/Purchase/new_product'));
-            }
-
-            if (!empty($bankAmount) && $bankAmount < 0) {
-                $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert">Please enter valid amount<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
-                return redirect()->to(site_url('Admin/Purchase/new_product'));
-            }
-
-            DB()->transStart();
-
-            //purshase total price calculet to suppliers balance and update suppliers balance or create suppliers ledger (start)
-            $supplierCash = get_data_by_id('balance', 'suppliers', 'supplier_id', $supplierId);
-            $newCash = $supplierCash - $totalPrice;
-
-            $suppData = array(
-                'balance' => $newCash,
-                'updatedBy' => $userId,
-            );
-            $suppliersTable = DB()->table('suppliers');
-            $suppliersTable->where('supplier_id', $supplierId)->update($suppData);
-
-            //insert log (start)
-            $this->transactionLog->insert_log_data('suppliers',$supplierId,'',$totalPrice,'','','',$purchaseId);
-            //insert log (end)
-
-            //create suppliers ledger
-            $lgSuplData = array(
-                'sch_id' => $shopId,
-                'supplier_id' => $supplierId,
-                'purchase_id' => $purchaseId,
-                'trangaction_type' => 'Cr.',
-                'particulars' => 'Purchase Cash Due',
-                'amount' => $totalPrice,
-                'rest_balance' => $newCash,
-                'createdBy' => $userId,
-                'createdDtm' => date('Y-m-d h:i:s')
-            );
-            $ledger_suppliersTable = DB()->table('ledger_suppliers');
-            $ledger_suppliersTable->insert($lgSuplData);
-            $ledg_sup_id = DB()->insertID();
-            //purshase total price calculet to suppliers balance and update suppliers balance or create suppliers ledger (end)
-
-            //Insert Purchase Transaction Entries
-            $this->purchase_transaction_entries($purchaseId, $ledg_sup_id, 'ledger_suppliers', 'Cr.');
-
-            //insert log (start)
-            $this->transactionLog->insert_log_data('ledger_suppliers',$ledg_sup_id,'',$totalPrice,'','','',$purchaseId);
-            //insert log (end)
-
-            // purchase balance update and ledger create (start)
-            $purchaseBal = get_data_by_id('purchase_balance', 'shops', 'sch_id', $shopId);
-            $restBalPurc = $purchaseBal + $totalPrice;
-
-
-            $purUpdata = array('purchase_balance' => $restBalPurc);
-            $shopPurBalTable = DB()->table('shops');
-            $shopPurBalTable->where('sch_id', $shopId)->update($purUpdata);
-
-            //insert log (start)
-            $this->transactionLog->insert_log_data('shops',$shopId,'',$restBalPurc,'','','',$purchaseId,'purchase_balance');
-            //insert log (end)
-
-            $purLedgData = array(
-                'sch_id' => $shopId,
-                'purchase_id' => $purchaseId,
-                'trangaction_type' => 'Dr.',
-                'particulars' => 'New purchase amount',
-                'amount' => $totalPrice,
-                'rest_balance' => $restBalPurc,
-                'createdBy' => $userId,
-                'createdDtm' => date('Y-m-d h:i:s')
-            );
-            $ledger_purchaseTable = DB()->table('ledger_purchase');
-            $ledger_purchaseTable->insert($purLedgData);
-            $ledgPurch_id = DB()->insertID();
-            // purchase balance update and ledger create (end)
-
-            //Insert Purchase Transaction Entries
-            $this->purchase_transaction_entries($purchaseId, $ledgPurch_id, 'ledger_purchase', 'Dr.');
-
-            //insert log (start)
-            $this->transactionLog->insert_log_data('ledger_purchase',$ledgPurch_id,'',$totalPrice,'','','',$purchaseId);
-            //insert log (end)
-
-            // stock balance update and ledger create (start)
-            $stockBal = get_data_by_id('stockAmount', 'shops', 'sch_id', $shopId);
-            $restBalStock = $stockBal + $totalPrice;
-
-
-            $stockUpdata = array('stockAmount' => $restBalStock);
-            $shopStoAmTable = DB()->table('shops');
-            $shopStoAmTable->where('sch_id', $shopId)->update($stockUpdata);
-
-            //insert log (start)
-            $this->transactionLog->insert_log_data('shops',$shopId,'',$totalPrice,'','','',$purchaseId,'stockAmount');
-            //insert log (end)
-
-            $stockLedgData = array(
-                'sch_id' => $shopId,
-                'purchase_id' => $purchaseId,
-                'trangaction_type' => 'Dr.',
-                'particulars' => 'New purchase amount',
-                'amount' => $totalPrice,
-                'rest_balance' => $restBalStock,
-                'createdBy' => $userId,
-                'createdDtm' => date('Y-m-d h:i:s')
-            );
-            $ledger_stockTable = DB()->table('ledger_stock');
-            $ledger_stockTable->insert($stockLedgData);
-            $stock_id = DB()->insertID();
-            // stock balance update and ledger create (end)
-
-            //Insert Purchase Transaction Entries
-            $this->purchase_transaction_entries($purchaseId, $stock_id, 'ledger_stock', 'Dr.');
-
-            //insert log (start)
-            $this->transactionLog->insert_log_data('ledger_stock',$stock_id,'',$totalPrice,'','','',$purchaseId);
-            //insert log (end)
-
-            if ($cashAmount > 0) {
-
-                //purshase pay cash amount calculet to shops cash and update shops cash or create ledger_nagodan statment in ledger_nagodan table (start)
-                $shopsCash = get_data_by_id('cash', 'shops', 'sch_id', $shopId);
-
-                if ($shopsCash >= $cashAmount) {
-                    $upCahs = $shopsCash - $cashAmount;
-                    $shopsData = array(
-                        'cash' => $upCahs,
-                        'updatedBy' => $userId,
-                    );
-                    $shopCasTable = DB()->table('shops');
-                    $shopCasTable->where('sch_id', $shopId)->update($shopsData);
-                    //insert log (start)
-                    $this->transactionLog->insert_log_data('shops',$shopId,'',$cashAmount,'','','',$purchaseId);
-                    //insert log (end)
-
-                    //nagodan ledger create
-                    $lgNagData = array(
-                        'sch_id' => $shopId,
-                        'purchase_id' => $purchaseId,
-                        'particulars' => 'Purchase Cash Pay',
-                        'trangaction_type' => 'Cr.',
-                        'amount' => $cashAmount,
-                        'rest_balance' => $upCahs,
-                        'createdBy' => $userId,
-                        'createdDtm' => date('Y-m-d h:i:s')
-                    );
-                    $ledger_nagodanTable = DB()->table('ledger_nagodan');
-                    $ledger_nagodanTable->insert($lgNagData);
-                    $ledg_nagodan_id = DB()->insertID();
-                    //purshase pay cash amount calculet to shops cash and update shops cash or create ledger_nagodan statment in ledger_nagodan table (end)
-
-                    //Insert Purchase Transaction Entries
-                    $this->purchase_transaction_entries($purchaseId, $ledg_nagodan_id, 'ledger_nagodan', 'Cr.');
-
-                    //insert log (start)
-                    $this->transactionLog->insert_log_data('ledger_nagodan',$ledg_nagodan_id,'',$cashAmount,'','','',$purchaseId);
-                    //insert log (end)
-
-                    //purshase pay cash amount calculet to suppliers balance and update suppliers balance or create supplier ledger in ledger_suppliers table (start)
-                    $supplierccCash = get_data_by_id('balance', 'suppliers', 'supplier_id', $supplierId);
-                    $suppCash = $supplierccCash + $cashAmount;
-
-                    $cashsuppData = array(
-                        'balance' => $suppCash,
-                        'updatedBy' => $userId,
-                    );
-                    $suppliersTab = DB()->table('suppliers');
-                    $suppliersTab->where('supplier_id', $supplierId)->update($cashsuppData);
-                    //insert log (start)
-                    $this->transactionLog->insert_log_data('suppliers',$supplierId,'',$cashAmount,'','','',$purchaseId);
-                    //insert log (end)
-
-                    //suppliers ledger create
-                    $lgSuplData = array(
-                        'sch_id' => $shopId,
-                        'supplier_id' => $supplierId,
-                        'purchase_id' => $purchaseId,
-                        'particulars' => 'Purchase Cash Pay',
-                        'trangaction_type' => 'Dr.',
-                        'amount' => $cashAmount,
-                        'rest_balance' => $suppCash,
-                        'createdBy' => $userId,
-                        'createdDtm' => date('Y-m-d h:i:s')
-                    );
-                    $ledger_suppliersTab = DB()->table('ledger_suppliers');
-                    $ledger_suppliersTab->insert($lgSuplData);
-                    $ledg_sup_id = DB()->insertID();
-
-                    //Insert Purchase Transaction Entries
-                    $this->purchase_transaction_entries($purchaseId, $ledg_sup_id, 'ledger_suppliers', 'Dr.');
-
-                    //insert log (start)
-                    $this->transactionLog->insert_log_data('ledger_suppliers',$ledg_sup_id,'',$cashAmount,'','','',$purchaseId);
-                    //insert log (end)
-                }
-                //purshase pay cash amount calculet to suppliers balance and update suppliers balance or create supplier ledger in ledger_suppliers table (end)
-            }
-
-
-            if ($bankAmount > 0) {
-
-                //purshase pay bank amountcalculet to bank balance and update bank balance or create bank ledger in ledger_bank table (start)
-                $bankCash = get_data_by_id('balance', 'bank', 'bank_id', $bankId);
-
-                if ($bankCash >= $bankAmount) {
-
-                    $upCahs = $bankCash - $bankAmount;
-                    $bankData = array(
-                        'balance' => $upCahs,
-                        'updatedBy' => $userId,
-                    );
-                    $bankTable = DB()->table('bank');
-                    $bankTable->where('bank_id', $bankId)->update($bankData);
-                    //insert log (start)
-                    $this->transactionLog->insert_log_data('bank',$bankId,'',$bankAmount,'','','',$purchaseId);
-                    //insert log (end)
-
-                    //bank ledger create
-                    $lgBankData = array(
-                        'sch_id' => $shopId,
-                        'bank_id' => $bankId,
-                        'purchase_id' => $purchaseId,
-                        'trangaction_type' => 'Cr.',
-                        'particulars' => 'Purchase Bank Pay',
-                        'amount' => $bankAmount,
-                        'rest_balance' => $upCahs,
-                        'createdBy' => $userId,
-                        'createdDtm' => date('Y-m-d h:i:s')
-                    );
-                    $ledger_bankTab = DB()->table('ledger_bank');
-                    $ledger_bankTab->insert($lgBankData);
-                    $ledgBank_id = DB()->insertID();
-                    //purshase pay bank amountcalculet to bank balance and update bank balance or create bank ledger in ledger_bank table (end)
-
-                    //Insert Purchase Transaction Entries
-                    $this->purchase_transaction_entries($purchaseId, $ledgBank_id, 'ledger_bank', 'Cr.');
-
-                    //insert log (start)
-                    $this->transactionLog->insert_log_data('ledger_bank',$ledgBank_id,'',$bankAmount,'','','',$purchaseId);
-                    //insert log (end)
-
-                    //purshase pay bank amount calculet to suppliers balance and update suppliers balance or create supplier ledger in ledger_suppliers table (start)
-                    $supplierbbCash = get_data_by_id('balance', 'suppliers', 'supplier_id', $supplierId);
-                    $suppBaCash = $supplierbbCash + $bankAmount;
-
-                    $banksuppData = array(
-                        'balance' => $suppBaCash,
-                        'updatedBy' => $userId,
-                    );
-                    $suppliersTab = DB()->table('suppliers');
-                    $suppliersTab->where('supplier_id', $supplierId)->update($banksuppData);
-                    //insert log (start)
-                    $this->transactionLog->insert_log_data('suppliers',$supplierId,'',$bankAmount,'','','',$purchaseId);
-                    //insert log (end)
-
-                    //suppliers ledger create
-                    $lgSuplData = array(
-                        'sch_id' => $shopId,
-                        'supplier_id' => $supplierId,
-                        'purchase_id' => $purchaseId,
-                        'particulars' => 'Purchase Bank Pay',
-                        'trangaction_type' => 'Dr.',
-                        'amount' => $bankAmount,
-                        'rest_balance' => $suppBaCash,
-                        'createdBy' => $userId,
-                        'createdDtm' => date('Y-m-d h:i:s')
-                    );
-                    $ledger_suppliersTab = DB()->table('ledger_suppliers');
-                    $ledger_suppliersTab->insert($lgSuplData);
-                    $ledg_sup_id = DB()->insertID();
-
-                    //Insert Purchase Transaction Entries
-                    $this->purchase_transaction_entries($purchaseId, $ledg_sup_id, 'ledger_suppliers', 'Dr.');
-
-                    //insert log (start)
-                    $this->transactionLog->insert_log_data('ledger_suppliers',$ledg_sup_id,'',$bankAmount,'','','',$purchaseId);
-                    //insert log (end)
-                }
-                //purshase pay bank amount calculet to suppliers balance and update suppliers balance or create supplier ledger in ledger_suppliers table (end)
-
-            }
-
-
-            //purchase product insert in product table and purchase item table (start)
-            $storeTab = DB()->table('stores');
-            $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
-            $storeId = $store->store_id;
-
-            for ($i = 0; $i < $number; $i++) {
-                $queryUnit = DB()->table('unit_set')->where('unit_set_id',$this->request->getPost('unit_set_id[]')[$i])->get()->getRow();
-                //insert purchase product
-                $data = array(
-                    'sch_id' => $shopId,
-                    'name' => $name[$i],
-                    'purchase_units' => $queryUnit->purchase_units,
-                    'sale_units' => $queryUnit->sell_units,
-                    'supplier_id' => $supplierId,
-                    'prod_cat_id' => $this->request->getPost('prod_cat_id[]')[$i],
-                    'createdBy' => $userId,
-                    'createdDtm' => date('Y-m-d h:i:s')
-                );
-                $proTable = DB()->table('products');
-                $proTable->insert($data);
-                $prodId = DB()->insertID();
-                //insert log (start)
-                $this->transactionLog->insert_log_data('products',$prodId,'',$this->request->getPost('purchase_price[]')[$i],'','','',$purchaseId);
-                //insert log (end)
-
-                //insert data in table product_stock_relation
-                $dataQty = array(
-                    'sch_id' => $shopId,
-                    'store_id' => $storeId,
-                    'product_id' => $prodId,
-                    'quantity' => $this->request->getPost('quantity[]')[$i],
-                    'unit' => $this->request->getPost('unit[]')[$i],
-                    'purchase_price' => $this->request->getPost('purchase_price[]')[$i],
-                    'selling_price' => $this->request->getPost('selling_price[]')[$i],
-                );
-                $stockRelationTable = DB()->table('product_stock_relation');
-                $stockRelationTable->insert($dataQty);
-                //insert data in table product_stock_relation
-
-                //insetr purchase Item in purchase item table
-                $purchasePrice = $this->request->getPost('purchase_price[]')[$i];
-                $quantity = $this->request->getPost('quantity[]')[$i];
-
-                $total_price = $quantity * $purchasePrice;
-
-                $purchaseData = array(
-                    'purchase_id' => $purchaseId,
-                    'prod_id' => $prodId,
-                    'purchase_price' => $purchasePrice,
-                    'quantity' => $quantity,
-                    'total_price' => $total_price,
-                    'createdBy' => $userId,
-                    'createdDtm' => date('Y-m-d h:i:s')
-                );
-                $purchase_itemTab = DB()->table('purchase_item');
-                $purchase_itemTab->insert($purchaseData);
-                $purchase_item_id = DB()->insertID();
-                //insert log (start)
-                $this->transactionLog->insert_log_data('purchase_item',$purchase_item_id,'',$total_price,'','','',$purchaseId);
-                //insert log (end)
-            }
-            //purchase product insert in product table and purchase item table (end)
-
-
-            //purchase all pay amount detail Update in purchase table(start)
-            $parsData = array(
-                'amount' => $totalPrice,
-                'nagad_paid' => $cashAmount,
-                'bank_paid' => $bankAmount,
-                'bank_id' => $bankId,
-                'due' => $dueAmount,
-                'date' => $date,
-                'updatedBy' => $userId,
-            );
-            $purchaseTab = DB()->table('purchase');
-            $purchaseTab->where('purchase_id', $purchaseId)->update($parsData);
-            //purchase all pay amount detail Update in purchase table(end)
-            //insert log (start)
-            $this->transactionLog->insert_log_data('purchase',$purchaseId,'',$totalPrice,'','','',$purchaseId);
-            //insert log (end)
 
             DB()->transComplete();
             if(!empty($sms)) {
@@ -2141,21 +1628,24 @@ class Purchase extends BaseController
             //purchase pay bank amount calculate to suppliers balance and update suppliers balance or create supplier ledger in ledger_suppliers table (end)
         }
 
-
         $storeTab = DB()->table('stores');
         $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
         $storeId = $store->store_id;
 
         $number = count($prod_id);
         for ($i = 0; $i < $number; $i++) {
-            //insert data in table product_stock_relation
+            //insert purchase product
+            $data = array(
+                'purchase_price' => $price[$i],
+            );
+            $proTable = DB()->table('products');
+            $proTable->where('prod_id',$prod_id[$i])->update($data);
+
             $dataQty = array(
                 'quantity' => $qty[$i],
-                'purchase_price' => $price[$i],
             );
             $stockRelationTable = DB()->table('product_stock_relation');
             $stockRelationTable->where('store_id',$storeId)->where('product_id',$prod_id[$i])->update($dataQty);
-            //insert data in table product_stock_relation
 
 
             //insetr purchase Item in purchase item table
@@ -2342,24 +1832,5 @@ class Purchase extends BaseController
             echo view('Admin/footer');
         }
     }
-
-    public function unitShow(){
-        $unit_set_id = $this->request->getPost('unit_set_id');
-        $query = DB()->table('unit_set')->where('unit_set_id',$unit_set_id)->get()->getRow();
-
-        $units_id = json_decode($query->purchase_units);
-        $data['units'] = DB()->table('units')->whereIn('units_id',$units_id)->orderBy('conversion_factor', 'DESC')->get()->getResult();
-
-        $array = json_decode($query->sell_units);
-        $lastKey = array_key_last($array);
-        $data['saleUnit'] = DB()->table('units')->where('units_id',$array[$lastKey])->get()->getRow();
-        $data['unitsArray'] = DB()->table('units')->where('unit_categories_id',$query->unit_categories_id)->orderBy('conversion_factor', 'DESC')->get()->getResult();
-
-        $data['unitSet'] = $query;
-
-        echo view('Admin/Purchase/unitShow', $data);
-    }
-
-
 
 }

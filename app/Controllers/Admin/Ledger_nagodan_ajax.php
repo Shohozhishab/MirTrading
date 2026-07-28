@@ -39,7 +39,7 @@ class Ledger_nagodan_ajax extends BaseController
             $shopId = $this->session->shopId;
 
             $table = DB()->table('ledger_nagodan');
-            $data['ledger_nagodan_data'] = $table->where('sch_id', $shopId)->where('deleted IS NULL')->get()->getResult();
+            $data['ledger_nagodan_data'] = $table->where('sch_id', $shopId)->where('deleted IS NULL')->orderBy('ledg_nagodan_id', 'DESC')->get()->getResult();
 
             $data['menu'] = view('Admin/menu_ledger');
             // All Permissions

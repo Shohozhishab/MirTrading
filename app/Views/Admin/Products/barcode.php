@@ -34,8 +34,7 @@
                                     if ($barcodeqty[$key] > 0) {
                                         echo "<div class='row'>";
                                         for ($i = 1; $i <= $barcodeqty[$key]; $i++) {
-                                             $productUnit =productIdByDefaultStoreDataRow($key);
-                                            echo '<div style="padding:10px; float:left;"><img src="data:image/png;base64,' . base64_encode($generator->getBarcode((string)$key, $barcodeType)) . '" width="' . $barcodeSize . '"><br><center><small>Price: ' . unitOrBasePriceByUnitPrice($productUnit->unit,$productUnit->selling_price) . '</small></center></div>';
+                                            echo '<div style="padding:10px; float:left;"><img src="data:image/png;base64,' . base64_encode($generator->getBarcode((string)$key, $barcodeType)) . '" width="' . $barcodeSize . '"><br><center><small>Price:' . get_data_by_id('selling_price', 'products', 'prod_id', $key) . '</small></center></div>';
                                         }
                                         echo "</div><hr />";
                                     }

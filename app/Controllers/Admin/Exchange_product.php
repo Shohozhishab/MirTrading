@@ -178,6 +178,7 @@ class Exchange_product extends BaseController
             if ($type == 'Conditional'){
 
                 $db->table('exchange_status_info')->insert([
+                    'sch_id' => $shopId,
                     'exchange_pro_id' => $exchangeId,
                     'status'  => '1',
                     'date'  => date("Y-m-d"),
@@ -199,6 +200,7 @@ class Exchange_product extends BaseController
                             foreach ($proIdLot as $keyLot => $proId) {
                                 if ($proId == $pid) {
                                     $db->table('product_lot_info')->insert([
+                                        'sch_id' => $shopId,
                                         'exchange_product_item_id' => $exchangeProductItemId,
                                         'number' => $number[$keyLot],
                                         'date' => $date[$keyLot],
@@ -241,6 +243,7 @@ class Exchange_product extends BaseController
                             foreach ($proIdLot as $keyLot => $proId) {
                                 if ($proId == $pid) {
                                     $db->table('product_lot_info')->insert([
+                                        'sch_id' => $shopId,
                                         'stock_transfer_item_id' => $stockTransferItemId,
                                         'number' => $number[$keyLot],
                                         'date' => $date[$keyLot],
@@ -272,6 +275,7 @@ class Exchange_product extends BaseController
                             $db->table('product_stock_relation')->where('store_id', $toStockId)->where('product_id', $pid)->update($newQtyData);
                         } else {
                             $newQtyData = array(
+                                'sch_id' => $shopId,
                                 'store_id' => $toStockId,
                                 'product_id' => $pid,
                                 'quantity' => $quantity[$key]
@@ -282,6 +286,7 @@ class Exchange_product extends BaseController
                 }
 
                 $db->table('exchange_stock_relation')->insert([
+                    'sch_id' => $shopId,
                     'exchange_pro_id' => $exchangeId,
                     'stock_transfer_id' => $stockTransferId,
                 ]);
@@ -387,6 +392,7 @@ class Exchange_product extends BaseController
     }
 
     public function exchangeUpdateAction(){
+        $shopId = $this->session->shopId;
         $exchange_pro_id = $this->request->getPost('exchange_pro_id');
 
 
@@ -424,6 +430,7 @@ class Exchange_product extends BaseController
             $data = [];
             foreach ($exchange_product_item_id as $key => $val) {
                 $data[] = [
+                    'sch_id' => $shopId,
                     'exchange_product_item_id' => $val,
                     'number'                   => $number[$key],
                     'date'                     => $date[$key],
@@ -437,6 +444,7 @@ class Exchange_product extends BaseController
             $data = [];
             foreach ($stock_transfer_item_id as $key => $val) {
                 $data[] = [
+                    'sch_id' => $shopId,
                     'stock_transfer_item_id' => $val,
                     'number' => $number[$key],
                     'date' => $date[$key],

@@ -138,7 +138,6 @@ class Sales extends BaseController
         $proTable = DB()->table('products');
 
         $data = $proTable
-            ->select('products.*')
             ->join('product_stock_relation', 'product_stock_relation.product_id = products.prod_id')
             ->where('products.sch_id', $shopId)
             ->where('product_stock_relation.store_id', $store->store_id)
@@ -154,24 +153,37 @@ class Sales extends BaseController
         $view = '';
         foreach ($data as $sval) {
             $image = ($sval->picture == NULL) ? 'no_image.jpg' : $sval->picture;
-            $unit = get_data_by_id('unit', 'products', 'prod_id', $sval->prod_id);
+            $unit = $sval->unit;
             $qty = totalProductInStoreByProductIdOrStoreId($sval->prod_id,$store->store_id);
 
-            $view = $view . '<li>
-                            <form action="' . site_url('Admin/Sales/add_cart') . '" method="post">
-                                <div class="col-xs-12" style="padding:15px; border-bottom: 1px solid;color: #d2d6de;" ><a>
-                                <div class="col-xs-2">
-                                    <img class="img-circle" src="' . base_url() . '/uploads/product_image/' . $image . '" width="60" height="60">
-                                </div>
-                                <div class="col-xs-4"><label for="usr">Product Name /Price:</label><h4 style="color:black;">' . $sval->name . '/' . $sval->selling_price . 'Tk.</h4><p>Available Quantity: '.$qty.'</p><input class="form-control" type="hidden" readonly id="name" name="name" value="' . $sval->name . '"><input class="form-control" type="hidden" readonly id="price" name="price" value="' . $sval->selling_price . '"><input class="form-control" type="hidden" readonly id="prod_id" name="prod_id" value="' . $sval->prod_id . '"></div>
-                                <div class="col-xs-2"><span for="usr">Product Category:</span><br><h4 style="color:black;">' . get_data_by_id('product_category', 'product_category', 'prod_cat_id', $sval->prod_cat_id) . '</h4>
-                                </div>
-                                <div class="col-xs-2"><span>Quantity:</span><input class="form-control" type="number" name="quantity" id="quantity" min="1" max="'.$qty.'" value="1"><br><span>' . showUnitName($unit) . '</span></div>
-                                <div class="col-xs-2" style="padding-top:28px; ">
-                                    <button  type="subbmit" class="add_cart btn btn-success btn-xs" >Add To Cart</button>
-                                </div></a></div>
-                                </form>
-                                </li>';
+            $availQty = unitOrQtyByUnitQty($unit,$qty);
+            $SalePrice = unitOrBasePriceByUnitPrice($unit,$sval->selling_price);
+
+            $units_id = json_decode($sval->sale_units);
+            $unitsArray = DB()->table('units')->whereIn('units_id',$units_id)->orderBy('conversion_factor', 'DESC')->get()->getResult();
+
+            $view .= '<li>
+                        <form action="' . site_url('Admin/Sales/add_cart') . '" method="post">
+                            <div class="col-xs-12" style="padding:15px; border-bottom: 1px solid;color: #d2d6de;" ><a>
+                            <div class="col-xs-2">
+                                <img class="img-circle" src="' . base_url() . '/uploads/product_image/' . $image . '" width="60" height="60">
+                            </div>
+                            <div class="col-xs-4"><label for="usr">Name /Price:</label><h4 style="color:black;">' . $sval->name . '/' . showWithCurrencySymbol($SalePrice) . 'Tk.</h4><p>Available Quantity: '.$availQty.'/'.showUnitName($unit).'</p><input class="form-control" type="hidden" readonly id="name" name="name" value="' . $sval->name . '"><input class="form-control" type="hidden" readonly id="price" name="price" value="' . $sval->selling_price . '"><input class="form-control" type="hidden" readonly id="prod_id" name="prod_id" value="' . $sval->prod_id . '"></div>
+                            <div class="col-md-5 row">';
+            foreach ($unitsArray as $val){
+                $view .='<div class="form-group col-xs-6">
+                        <label for="int" class="text-capitalize">'. $val->name.' </label>
+                        <input type="text" class="form-control" name="'. strtolower(str_replace(' ', '_', $val->name)).'" placeholder="'. $val->name.'" value="" >
+                     </div>';
+            }
+            $view .='</div>';
+
+            $view .='<div class="col-xs-1" >
+                        <span for="usr">Category:</span><br><h4 style="color:black;">' . get_data_by_id('product_category', 'product_category', 'prod_cat_id', $sval->prod_cat_id) . '</h4>
+                                <button  type="subbmit" class="add_cart btn btn-success btn-xs" >Add</button>
+                            </div></a></div>
+                        </form>
+                     </li>';
 
         }
         echo $view;
@@ -184,12 +196,13 @@ class Sales extends BaseController
      */
     public function add_cart()
     {
+
         $shopId = $this->session->shopId;
 
         $proId = $this->request->getPost('prod_id');
         $proName = $this->request->getPost('name');
         $proPrice = $this->request->getPost('price');
-        $quantity = $this->request->getPost('quantity');
+//        $quantity = $this->request->getPost('quantity');
 
         $storeTab = DB()->table('stores');
         $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
@@ -203,14 +216,28 @@ class Sales extends BaseController
                 $qty = $row['qty'];
             }
         }
-        $totalquantity = $quantity + $qty;
 
+        //unit qty
+        $unitIdJson = get_data_by_id('sale_units', 'products', 'prod_id', $proId);
+        $units_id = json_decode($unitIdJson);
+        $unitQty = 0;
+        $unit = array();
+        $units = DB()->table('units')->whereIn('units_id', $units_id)->orderBy('conversion_factor', 'DESC')->get()->getResult();
+        foreach ($units as $val) {
+            $nameUnit = strtolower(str_replace(' ', '_', $val->name));
+            $unit[$nameUnit] = $this->request->getPost($nameUnit);
+            if (!empty($unit[$nameUnit])) {
+                $unitQty += $val->conversion_factor * $unit[$nameUnit];
+            }
+        }
+
+        $totalquantity = $unitQty + $qty;
         if ($productQnt >= $totalquantity) {
-            if ($quantity > 0) {
+            if ($totalquantity > 0) {
                 $data = array(
                     'id' => $proId,
                     'name' => strval($proName),
-                    'qty' => $quantity,
+                    'qty' => $totalquantity,
                     'price' => $proPrice
                 );
                 $this->cart->insert($data);
@@ -253,6 +280,7 @@ class Sales extends BaseController
      * @description This method store sales
      * @return RedirectResponse
      */
+
     public function create_action()
     {
         $shopId = $this->session->shopId;
@@ -352,8 +380,6 @@ class Sales extends BaseController
             return redirect()->to(site_url('Admin/Sales/create'));
         }
 
-        $storeTab = DB()->table('stores');
-        $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
 
         DB()->transStart();
 
@@ -373,6 +399,7 @@ class Sales extends BaseController
             'createdBy' => $userId,
             'createdDtm' => date('Y-m-d h:i:s')
         );
+
 
 
         if (!empty($customerId)) {
@@ -499,8 +526,8 @@ class Sales extends BaseController
                 'prod_id' => $proId[$i],
                 'price' => $proPrice[$i],
                 'quantity' => $quantity[$i],
-                'productionDate' => $proDate[$i],
                 'total_price' => $prodsubtotal[$i],
+                'productionDate' => $proDate[$i],
                 'discount' => $prodsaleDisc[$i],
                 'final_price' => $prosubTo[$i],
                 'createdBy' => $userId,
@@ -513,7 +540,8 @@ class Sales extends BaseController
 
 
             //calculating profit for individual item and updating the profit column (start)
-            $productPurPrice = get_data_by_id('purchase_price', 'products', 'prod_id', $proId[$i]);
+            $productData = productIdByDefaultStoreDataRow($proId[$i]);
+            $productPurPrice = $productData->purchase_price;
             $purPrice = $productPurPrice * $quantity[$i];
             $totalpurPrice += $productPurPrice * $quantity[$i];
             $profit = $prosubTo[$i] - $purPrice;
@@ -547,9 +575,6 @@ class Sales extends BaseController
             //insert log (end)
         }
 
-
-
-
         //sale commission
         if (!empty($customerId)) {
             $affiliateUserId = get_data_by_id('affiliate_user_id','customers','customer_id',$customerId);
@@ -574,7 +599,6 @@ class Sales extends BaseController
                 ]);
             }
         }
-
 
         //sale balance update and ledger create (start)
         $withoutVat = $finalAmount - (int)$vatAmount;
@@ -606,7 +630,6 @@ class Sales extends BaseController
 
         //Transaction entries insert
         $this->sales_transaction_entries($sales_id, $ledgSale_id, 'ledger_sales', 'Cr.');
-
 
         //insert log (start)
         $this->transactionLog->insert_log_data('ledger_sales',$ledgSale_id,'',$withoutVat,'','',$invoiceId,'','sale_balance');
@@ -691,6 +714,7 @@ class Sales extends BaseController
         $ledger_stockTabl = DB()->table('ledger_stock');
         $ledger_stockTabl->insert($stockLedgData);
         $stock_id = DB()->insertID();
+        //Update salse profit in invoice table (end)
 
         //Transaction entries insert
         $this->sales_transaction_entries($sales_id, $stock_id, 'ledger_stock', 'Cr.');
@@ -742,7 +766,6 @@ class Sales extends BaseController
             $ledgerTab->insert($ledgerData);
             $ledg_id = DB()->insertID();
             //insert customer ledger in ledger(end)
-
             //Transaction entries insert
             $this->sales_transaction_entries($sales_id, $ledg_id, 'ledger', 'Dr.');
 
@@ -754,6 +777,12 @@ class Sales extends BaseController
                 $phone = get_data_by_id('mobile', 'customers', 'customer_id', $customerId);
                 send_sms($phone, $message);
             }
+
+            $invoiceTotalBalanceData = array(
+                'total' => $newCash,
+            );
+            $invoiceTabl = DB()->table('invoice');
+            $invoiceTabl->where('invoice_id', $invoiceId)->update($invoiceTotalBalanceData);
 
         }
         //existing customer balance update and customer ledger create (end)
@@ -837,10 +866,8 @@ class Sales extends BaseController
                 $ledgerTab = DB()->table('ledger');
                 $ledgerTab->insert($ledgernogodData);
                 $ledg_id = DB()->insertID();
-
                 //Transaction entries insert
                 $this->sales_transaction_entries($sales_id, $ledg_id, 'ledger', 'Cr.');
-
                 //insert log (start)
                 $this->transactionLog->insert_log_data('ledger',$ledg_id,'',$nagod,'','',$invoiceId,'');
                 //insert log (end)
@@ -891,10 +918,8 @@ class Sales extends BaseController
             $ledger_bankTab->insert($lgBankData);
             $ledgBank_id = DB()->insertID();
             //insert ledger in table ledger_bank (end)
-
             //Transaction entries insert
             $this->sales_transaction_entries($sales_id, $ledgBank_id, 'ledger_bank', 'Dr.');
-
             //insert log (start)
             $this->transactionLog->insert_log_data('ledger_bank',$ledgBank_id,'',$bankAmount,'','',$invoiceId,'');
             //insert log (end)
@@ -947,8 +972,6 @@ class Sales extends BaseController
 
             }
 
-
-
         }
         // bank pay amount calculate and bank balance update (end)
 
@@ -993,6 +1016,7 @@ class Sales extends BaseController
         $this->cart->destroy();
         return redirect()->to(site_url('Admin/Invoice/view/' . $invoiceId));
     }
+
     private function sales_transaction_entries($sales_id, $ledger_id, $table_name, $transaction_type) {
         DB()->table('transaction_entries')->insert([
             'sales_id'         => $sales_id,
@@ -1112,6 +1136,7 @@ class Sales extends BaseController
         echo view('Admin/Sales/edit', $data);
     }
 
+
     public function salesEdiAction(){
         $shopId = $this->session->shopId;
         $userId = $this->session->userId;
@@ -1184,41 +1209,77 @@ class Sales extends BaseController
 
         //discount ledger make (start)
         if (!empty($alldiscount)) {
-            $discountLedInfo = $this->transactionLog->get_table_name_by_row_invoice_id('ledger_discount',$invoiceId);
-            $prevDisLed = get_data_by_id('amount', 'ledger_discount', 'discount_ledg_id', $discountLedInfo->id);
-            $restDisBal = ($prevDisLed - $discountLedInfo->amount) + $alldiscount;
-            $disLedgher = array(
-                'amount' => $alldiscount,
-                'rest_balance' => $restDisBal,
-            );
-            $ledger_discountTab = DB()->table('ledger_discount');
-            $ledger_discountTab->where('discount_ledg_id', $discountLedInfo->id)->update($disLedgher);
-            $this->ledger_discount_rest_balance_update($invoiceId,$alldiscount,$discountLedInfo->id,$discountLedInfo->amount);
-            //transaction edit log data insert
-            $this->transactionLog->transaction_edit_log_data_insert('ledger_discount','','',$this->session->userId,$discountLedInfo->amount,$alldiscount,$invoiceId,'');
-            //insert Transaction in transaction table (end)
-            //transaction edit log data insert
-            $this->transactionLog->transaction_edit_log_data_insert('ledger_discount',$discountLedInfo->id,'',$this->session->userId,$discountLedInfo->amount,$alldiscount,$invoiceId,'' );
-            //insert Transaction in transaction table (end)
+            if (!empty($discountLedInfo)) {
+                $discountLedInfo = $this->transactionLog->get_table_name_by_row_invoice_id('ledger_discount', $invoiceId);
+                $prevDisLed = get_data_by_id('amount', 'ledger_discount', 'discount_ledg_id', $discountLedInfo->id);
+                $restDisBal = ($prevDisLed - $discountLedInfo->amount) + $alldiscount;
+                $disLedgher = array(
+                    'amount' => $alldiscount,
+                    'rest_balance' => $restDisBal,
+                );
+                $ledger_discountTab = DB()->table('ledger_discount');
+                $ledger_discountTab->where('discount_ledg_id', $discountLedInfo->id)->update($disLedgher);
+                $this->ledger_discount_rest_balance_update($invoiceId, $alldiscount, $discountLedInfo->id, $discountLedInfo->amount);
+                //transaction edit log data insert
+                $this->transactionLog->transaction_edit_log_data_insert('ledger_discount', '', '', $this->session->userId, $discountLedInfo->amount, $alldiscount, $invoiceId, '');
+                //insert Transaction in transaction table (end)
+                //transaction edit log data insert
+                $this->transactionLog->transaction_edit_log_data_insert('ledger_discount', $discountLedInfo->id, '', $this->session->userId, $discountLedInfo->amount, $alldiscount, $invoiceId, '');
+                //insert Transaction in transaction table (end)
 
 
-            $prevDis = get_data_by_id('discount', 'shops', 'sch_id', $shopId);
-            $disRestBel = ($prevDis - $discountLedInfo->amount) + $alldiscount;
-            //update discount balance(start)
-            $disData = array(
-                'discount' => $disRestBel,
-                'updatedBy' => $userId,
-            );
-            $shopsTab = DB()->table('shops');
-            $shopsTab->where('sch_id', $shopId)->update($disData);
-            //update discount balance(end)
-            //transaction edit log data insert
-            $this->transactionLog->transaction_edit_log_data_insert('shops','','',$this->session->userId,$discountLedInfo->amount,$alldiscount,$invoiceId,'','discount');
-            //insert Transaction in transaction table (end)
+                $prevDis = get_data_by_id('discount', 'shops', 'sch_id', $shopId);
+                $disRestBel = ($prevDis - $discountLedInfo->amount) + $alldiscount;
+                //update discount balance(start)
+                $disData = array(
+                    'discount' => $disRestBel,
+                    'updatedBy' => $userId,
+                );
+                $shopsTab = DB()->table('shops');
+                $shopsTab->where('sch_id', $shopId)->update($disData);
+                //update discount balance(end)
+                //transaction edit log data insert
+                $this->transactionLog->transaction_edit_log_data_insert('shops', '', '', $this->session->userId, $discountLedInfo->amount, $alldiscount, $invoiceId, '', 'discount');
+                //insert Transaction in transaction table (end)
 
-            //transaction edit log data insert
-            $this->transactionLog->transaction_edit_log_data_insert('shops',$shopId,'',$this->session->userId,$discountLedInfo->amount,$alldiscount,$invoiceId,'','discount' );
-            //insert Transaction in transaction table (end)
+                //transaction edit log data insert
+                $this->transactionLog->transaction_edit_log_data_insert('shops', $shopId, '', $this->session->userId, $discountLedInfo->amount, $alldiscount, $invoiceId, '', 'discount');
+                //insert Transaction in transaction table (end)
+            }else {
+
+
+                $prevdis = get_data_by_id('discount', 'shops', 'sch_id', $shopId);
+                $disRestBel = $prevdis + $alldiscount;
+
+                $disLedgher = array(
+                    'sch_id' => $shopId,
+                    'invoice_id' => $invoiceId,
+                    'amount' => $alldiscount,
+                    'particulars' => 'Sale discount',
+                    'trangaction_type' => 'Dr.',
+                    'rest_balance' => $disRestBel,
+                    'createdDtm' => date('Y-m-d h:i:s')
+                );
+                $ledger_discountTab = DB()->table('ledger_discount');
+                $ledger_discountTab->insert($disLedgher);
+                $discount_ledg_id = DB()->insertID();
+
+                //insert log (start)
+                $this->transactionLog->insert_log_data('ledger_discount', $discount_ledg_id, '', $alldiscount, '', '', $invoiceId, '');
+                //insert log (end)
+
+                //update discount balance(start)
+                $disData = array(
+                    'discount' => $disRestBel,
+                    'updatedBy' => $userId,
+                );
+                $shopsTab = DB()->table('shops');
+                $shopsTab->where('sch_id', $shopId)->update($disData);
+                //update discount balance(end)
+                //insert log (start)
+                $this->transactionLog->insert_log_data('shops', $shopId, '', $alldiscount, '', '', $invoiceId, '', 'discount');
+                //insert log (end)
+            }
         }
         //discount ledger make (end)
 
@@ -1297,6 +1358,8 @@ class Sales extends BaseController
         $table = DB()->table('transaction_log');
         $proQty = $table->where('invoice_id',$invoiceId)->where('table_name','products')->where('colum_name','quantity')->get()->getResult();
         $totalpurPrice = 0;
+
+
         $number = count($proId);
         for ($i = 0; $i < $number; $i++) {
 
@@ -1314,7 +1377,8 @@ class Sales extends BaseController
 
 
             //calculating profit for individual item and updating the profit column (start)
-            $productPurPrice = get_data_by_id('purchase_price', 'products', 'prod_id', $proId[$i]);
+            $rowUnit = productIdByDefaultStoreDataRow($proId[$i]);
+            $productPurPrice = $rowUnit->purchase_price;
             $purPrice = $productPurPrice * $quantity[$i];
             $totalpurPrice += $productPurPrice * $quantity[$i];
             $profit = $subTotal[$i] - $purPrice;
@@ -1331,19 +1395,17 @@ class Sales extends BaseController
             //product Qnt Update in product table (start)
             $storeTab = DB()->table('stores');
             $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
-
-
+            $storeId = $store->store_id;
             foreach ($proQty as $pro) {
                 if ($pro->id == $proId[$i]) {
-                    $stockTable = DB()->table('product_stock_relation');
-                    $stock = $stockTable->where('store_id',$store->store_id)->where('product_id', $proId[$i])->get()->getRow();
-
-                    $qnt = ($stock->quantity + $pro->amount) - $quantity[$i];
+                    $relRow = productIdByDefaultStoreDataRow($proId[$i]);
+                    $productQnt = $relRow->quantity;
+                    $qnt = ($productQnt + $pro->amount) - $quantity[$i];
                     $qntProData = array(
                         'quantity' => $qnt,
                     );
                     $productsTable = DB()->table('product_stock_relation');
-                    $productsTable->where('store_id',$store->store_id)->where('product_id', $proId[$i])->update($qntProData);
+                    $productsTable->where('store_id',$storeId)->where('product_id', $proId[$i])->update($qntProData);
                 }
             }
             //product Qnt Update in product table (end)

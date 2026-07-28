@@ -14,7 +14,7 @@
 
 
 <a href="#" onclick="showData('<?php echo site_url('/Admin/Ledger_stock_ajax'); ?>','<?php echo '/Admin/Ledger_stock';?>')"  class="btn btn-default" style="margin-bottom: 5px;">Ledger Stock</a>
-<a href="#" onclick="showData('<?php echo site_url('/Admin/Ledger_expense_ajax'); ?>','<?php echo '/Admin/Ledger_expense';?>')"  class="btn btn-default" style="margin-bottom: 5px;">Ledger Expense</a>
+
 <a href="#" onclick="showData('<?php echo site_url('/Admin/Ledger_profit_ajax'); ?>','<?php echo '/Admin/Ledger_profit';?>')"  class="btn btn-default" style="margin-bottom: 5px;">Ledger Profit</a>
 <a href="#" onclick="showData('<?php echo site_url('/Admin/Ledger_capital_ajax'); ?>','<?php echo '/Admin/Ledger_capital';?>')"  class="btn btn-default" style="margin-bottom: 5px;">Ledger Capital</a>
 

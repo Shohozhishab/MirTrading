@@ -275,6 +275,7 @@ class Exchange_product extends BaseController
                             $db->table('product_stock_relation')->where('store_id', $toStockId)->where('product_id', $pid)->update($newQtyData);
                         } else {
                             $newQtyData = array(
+                                'sch_id' => $shopId,
                                 'store_id' => $toStockId,
                                 'product_id' => $pid,
                                 'quantity' => $quantity[$key]

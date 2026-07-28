@@ -65,6 +65,10 @@ class Trial_balance extends BaseController
             $expense = $expensequ->getRow()->expense;
             // expence
 
+            //commission
+            $commission = $expensequ->getRow()->ledger_expense_commission;
+            //commission
+
 
             // bank balance(start)
             $bankTab = DB()->table('bank');
@@ -115,52 +119,10 @@ class Trial_balance extends BaseController
             }
             //total supplier due balance calculet (end)
 
-            $accountsAssets = DB()->table('accounts')
-                ->join('accounts_account_type_map', 'accounts_account_type_map.account_id = accounts.account_id')
-                ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
-                ->where('accounts.sch_id', $shopId)
-                ->where('account_type.type_key', 'assets')
-                ->get()
-                ->getResult();
-            $assetsBal = DB()->table('accounts')
-                ->selectSum('accounts.balance')
-                ->join('accounts_account_type_map', 'accounts_account_type_map.account_id = accounts.account_id')
-                ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
-                ->where('accounts.sch_id', $shopId)
-                ->where('account_type.type_key', 'assets')
-                ->get()->getRow()->balance;
-
-            $assets = 0;
-            if ($assetsBal > 0) {
-                $assets = $assetsBal;
-            }
+            $totalDue = $customerCash + $loanCash + $supplierCash;
 
 
-            $accountsExpenses = DB()->table('accounts')
-                ->join('accounts_account_type_map', 'accounts_account_type_map.account_id = accounts.account_id')
-                ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
-                ->where('accounts.sch_id', $shopId)
-                ->where('account_type.type_key', 'expenses')
-                ->get()
-                ->getResult();
-            $expensesBal = DB()->table('accounts')
-                ->selectSum('accounts.balance')
-                ->join('accounts_account_type_map', 'accounts_account_type_map.account_id = accounts.account_id')
-                ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
-                ->where('accounts.sch_id', $shopId)
-                ->where('account_type.type_key', 'expenses')
-                ->get()->getRow()->balance;
-
-            $expenses = 0;
-            if ($expensesBal > 0) {
-                $expenses = $expensesBal;
-            }
-
-
-            $totalDue = $customerCash + $loanCash + $supplierCash + $assets + $expenses;
-
-
-            $totalDebit = $totalDue + $cash + $bankCash + $stockAmount + $emplBal + $expense;
+            $totalDebit = $totalDue + $cash + $bankCash + $stockAmount + $emplBal + $expense + $commission;
             // all debit (end)
 
 
@@ -252,8 +214,7 @@ class Trial_balance extends BaseController
                 'service_charge' => $serviceCharge,
                 'stockAmount' => $stockAmount,
                 'employee' => $employee,
-                'accountsAssets' => $accountsAssets,
-                'accountsExpenses' => $accountsExpenses,
+                'commission' => $commission
 
             );
 

@@ -110,20 +110,12 @@
                             </thead>
                             <tbody>
                             <?php
-                            $restBalance = 0;
                             $totalRows = count($result) - 1;
-                            for ($i = 0; $i <= $totalRows; $i++) {
+                            for ($i = $totalRows; $i >= 0; $i--) {
                                 $particulars = ($result[$i]->particulars == NULL) ? "Pay due" : $result[$i]->particulars;
                                 $amountCr = ($result[$i]->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($result[$i]->amount);
                                 $amountDr = ($result[$i]->trangaction_type != "Dr.") ? "---" : showWithCurrencySymbol($result[$i]->amount);
-                                $trnUrl = (!empty($result[$i]->trans_id)) ? '<a href="' . site_url('Admin/Transaction/read/' . $result[$i]->trans_id) . '">TRNS_' . $result[$i]->trans_id . '</a>' : '--';
-                                if ($result[$i]->trangaction_type == 'Dr.') {
-                                    $restBalance = $restBalance + $result[$i]->amount;
-                                }else {
-                                    $restBalance = $restBalance - $result[$i]->amount;
-                                }
-                                ?>
-
+                                $trnUrl = (!empty($result[$i]->trans_id)) ? '<a href="' . site_url('Admin/Transaction/read/' . $result[$i]->trans_id) . '">TRNS_' . $result[$i]->trans_id . '</a>' : '--'; ?>
                                 <tr>
                                     <td><?= $result[$i]->ledg_loan_id ?></td>
                                     <td><?= $result[$i]->createdDtm ?></td>
@@ -131,7 +123,7 @@
                                     <td><?= $trnUrl ?></td>
                                     <td><?= $amountDr ?></td>
                                     <td><?= $amountCr ?></td>
-                                    <td><?= showWithCurrencySymbol($restBalance) ?></td>
+                                    <td><?= showWithCurrencySymbol($result[$i]->rest_balance) ?></td>
                                 </tr>
 
                             <?php }?>
@@ -170,18 +162,11 @@
                                 </thead>
                                 <tbody>
                                 <?php
-                                $restBalance = 0;
                                 $totalRows = count($result) - 1;
-                                for ($i = 0; $i <= $totalRows; $i++) {
+                                for ($i = $totalRows; $i >= 0; $i--) {
                                     $particulars = ($result[$i]->particulars == NULL) ? "Pay due" : $result[$i]->particulars;
                                     $amountCr = ($result[$i]->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($result[$i]->amount);
                                     $amountDr = ($result[$i]->trangaction_type != "Dr.") ? "---" : showWithCurrencySymbol($result[$i]->amount);
-
-                                    if ($result[$i]->trangaction_type == 'Dr.') {
-                                        $restBalance = $restBalance + $result[$i]->amount;
-                                    }else {
-                                        $restBalance = $restBalance - $result[$i]->amount;
-                                    }
                                     ?>
                                     <tr>
                                         <td><?= $result[$i]->ledg_loan_id ?></td>
@@ -189,7 +174,7 @@
                                         <td><?= $particulars ?></td>
                                         <td><?= $amountDr ?></td>
                                         <td><?= $amountCr ?></td>
-                                        <td><?= showWithCurrencySymbol($restBalance) ?></td>
+                                        <td><?= showWithCurrencySymbol($result[$i]->rest_balance) ?></td>
                                     </tr>
 
                                 <?php } ?>

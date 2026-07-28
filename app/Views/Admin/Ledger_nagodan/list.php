@@ -95,12 +95,18 @@
                                     </thead>
                                     <tbody>
                                     <?php
-
+                                    $restBalance = 0;
                                     $totalRows = count($ledger_nagodan_data) - 1;
-                                    for ($i = $totalRows; $i >= 0; $i--) {
+                                    for ($i = 0; $i <= $totalRows; $i++) {
                                         $particulars = ($ledger_nagodan_data[$i]->particulars == NULL) ? "Payment" : $ledger_nagodan_data[$i]->particulars;
                                         $amountCr = ($ledger_nagodan_data[$i]->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($ledger_nagodan_data[$i]->amount);
                                         $amountDr = ($ledger_nagodan_data[$i]->trangaction_type != "Dr.") ? "---" : showWithCurrencySymbol($ledger_nagodan_data[$i]->amount);
+
+                                        if ($ledger_nagodan_data[$i]->trangaction_type == 'Dr.') {
+                                            $restBalance = $restBalance + $ledger_nagodan_data[$i]->amount;
+                                        }else {
+                                            $restBalance = $restBalance - $ledger_nagodan_data[$i]->amount;
+                                        }
                                         ?>
                                         <tr>
                                             <td><?php echo $ledger_nagodan_data[$i]->ledg_nagodan_id ?></td>
@@ -109,7 +115,7 @@
                                             <td><a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/read/' . $ledger_nagodan_data[$i]->trans_id); ?>','<?php echo '/Admin/Transaction/read/' . $ledger_nagodan_data[$i]->trans_id; ?>')" ><?php echo $ledger_nagodan_data[$i]->trans_id ?> </a></td>
                                             <td><?php echo $amountDr ?></td>
                                             <td><?php echo $amountCr ?></td>
-                                            <td><?php echo showWithCurrencySymbol($ledger_nagodan_data[$i]->rest_balance) ?></td>
+                                            <td><?php echo showWithCurrencySymbol($restBalance) ?></td>
                                         </tr>
                                     <?php } ?>
 
@@ -182,17 +188,23 @@
                                 </thead>
                                 <tbody>
                                 <?php
+                                $restBalance = 0;
                                     foreach ($ledger_nagodan_data as $row) {
                                         $particulars = ($row->particulars == NULL) ? "Payment" : $row->particulars;
                                         $amountCr = ($row->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($row->amount);
                                         $amountDr =($row->trangaction_type != "Dr.")?"---":showWithCurrencySymbol($row->amount);
+                                        if ($row->trangaction_type == 'Dr.') {
+                                            $restBalance = $restBalance + $row->amount;
+                                        }else {
+                                            $restBalance = $restBalance - $row->amount;
+                                        }
                                 ?>
                                     <tr>
                                         <td><?php echo bdDateFormat($row->createdDtm) ?></td>
                                         <td><?php echo $particulars ?></td>
                                         <td><?php echo $amountDr ?></td>
                                         <td><?php echo $amountCr ?></td>
-                                        <td><?php echo showWithCurrencySymbol($row->rest_balance) ?></td>
+                                        <td><?php echo showWithCurrencySymbol($restBalance) ?></td>
                                     </tr>
                                 <?php }?>
 

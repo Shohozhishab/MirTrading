@@ -91,11 +91,17 @@
                                 <th>Credit</th>
                                 <th>Rest Balance</th>
                             </tr></thead><tbody><?php
+                            $restBalance =0;
                             $totalRows = count($ledger_vat_data)-1;
-                            for($i = $totalRows; $i >= 0; $i--) {
+                            for ($i = 0; $i <= $totalRows; $i++) {
 
                                 $amountCr = ($ledger_vat_data[$i]->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($ledger_vat_data[$i]->amount);
                                 $amountDr =($ledger_vat_data[$i]->trangaction_type != "Dr.")?"---":showWithCurrencySymbol($ledger_vat_data[$i]->amount);
+                                if ($ledger_vat_data[$i]->trangaction_type == 'Dr.') {
+                                    $restBalance = $restBalance + $ledger_vat_data[$i]->amount;
+                                }else {
+                                    $restBalance = $restBalance - $ledger_vat_data[$i]->amount;
+                                }
                                 ?>
                                 <tr>
                                     <td width="80px"><?php echo $ledger_vat_data[$i]->ledg_vat_id;  ?></td>
@@ -168,18 +174,24 @@
                             </thead>
                             <tbody>
                             <?php
+                            $restBalance =0;
                             foreach ($ledger_vat_data as $row) {
 
                                 $particulars = ($row->particulars == NULL) ? "Payment" : $row->particulars;
                                 $amountCr = ($row->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($row->amount);
                                 $amountDr =($row->trangaction_type != "Dr.")?"---":showWithCurrencySymbol($row->amount);
+                                if ($row->trangaction_type == 'Dr.') {
+                                    $restBalance = $restBalance + $row->amount;
+                                }else {
+                                    $restBalance = $restBalance - $row->amount;
+                                }
                                 ?>
                                 <tr>
                                     <td><?php echo bdDateFormat($row->createdDtm) ?></td>
                                     <td><?php echo $particulars ?></td>
                                     <td><?php echo $amountDr ?></td>
                                     <td><?php echo $amountCr ?></td>
-                                    <td><?php echo showWithCurrencySymbol($row->rest_balance) ?></td>
+                                    <td><?php echo showWithCurrencySymbol($restBalance) ?></td>
                                 </tr>
                             <?php }?>
 

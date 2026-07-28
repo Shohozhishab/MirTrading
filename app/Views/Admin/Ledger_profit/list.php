@@ -96,12 +96,17 @@
                             </thead>
                             <tbody>
                             <?php
-
+                            $restBalance = 0;
                             $totalRows = count($ledger_profit)-1;
-                            for($i = $totalRows; $i >= 0; $i--) {
+                            for ($i = 0; $i <= $totalRows; $i++) {
                                 $particulars = ($ledger_profit[$i]->particulars == NULL) ? "Payment" : $ledger_profit[$i]->particulars;
                                 $amountCr = ($ledger_profit[$i]->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($ledger_profit[$i]->amount);
                                 $amountDr =($ledger_profit[$i]->trangaction_type != "Dr.")?"---":showWithCurrencySymbol($ledger_profit[$i]->amount);
+                                if ($ledger_profit[$i]->trangaction_type == 'Dr.') {
+                                    $restBalance = $restBalance + $ledger_profit[$i]->amount;
+                                }else {
+                                    $restBalance = $restBalance - $ledger_profit[$i]->amount;
+                                }
                                 ?>
                                 <tr>
                                     <td><?php echo $ledger_profit[$i]->profit_id ?></td>
@@ -110,7 +115,7 @@
                                     <td><a href="<?= base_url('Admin/Invoice/view/'.$ledger_profit[$i]->invoice_id)?>"> INV_<?php echo $ledger_profit[$i]->invoice_id ?></a></td>
                                     <td><?php echo $amountDr ?></td>
                                     <td><?php echo $amountCr ?></td>
-                                    <td><?php echo showWithCurrencySymbol($ledger_profit[$i]->rest_balance) ?></td>
+                                    <td><?php echo showWithCurrencySymbol($restBalance) ?></td>
                                 </tr>
                             <?php }?>
 
@@ -173,18 +178,24 @@
                         </thead>
                         <tbody>
                         <?php
+                        $restBalance = 0;
                         foreach ($ledger_profit as $row) {
 
                             $particulars = ($row->particulars == NULL) ? "Payment" : $row->particulars;
                             $amountCr = ($row->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($row->amount);
                             $amountDr =($row->trangaction_type != "Dr.")?"---":showWithCurrencySymbol($row->amount);
+                            if ($row->trangaction_type == 'Dr.') {
+                                $restBalance = $restBalance + $row->amount;
+                            }else {
+                                $restBalance = $restBalance - $row->amount;
+                            }
                             ?>
                             <tr>
                                 <td><?php echo bdDateFormat($row->createdDtm) ?></td>
                                 <td><?php echo $particulars ?></td>
                                 <td><?php echo $amountDr ?></td>
                                 <td><?php echo $amountCr ?></td>
-                                <td><?php echo showWithCurrencySymbol($row->rest_balance) ?></td>
+                                <td><?php echo showWithCurrencySymbol($restBalance) ?></td>
                             </tr>
                         <?php }?>
 

@@ -35,8 +35,12 @@ class Products_ajax extends BaseController
             return redirect()->to(site_url('Admin/login'));
         } else {
             $shopId = $this->session->shopId;
+
             $productTable = DB()->table('products');
-            $data['products_data'] = $productTable->where('sch_id', $shopId)->where('deleted IS NULL')->get()->getResult();
+            $productTable->join('product_stock_relation','product_stock_relation.product_id = products.prod_id');
+            $productTable->join('stores','stores.store_id = product_stock_relation.store_id');
+            $data['products_data'] = $productTable->where('products.sch_id', $shopId)->where('stores.is_default','1')->get()->getResult();
+
 
             $data['menu'] = view('Admin/menu_stock');
             // All Permissions
@@ -69,6 +73,11 @@ class Products_ajax extends BaseController
             $productsTable = DB()->table('products');
             $data['product'] = $productsTable->where('prod_id', $id)->where('sch_id', $shopId)->get()->getRow();
 
+            $data['showUnit'] = productIdByDefaultStoreUnit($id);
+            $unitCategory = get_data_by_id('unit_categories_id','units','units_id',$data['showUnit']);
+            $data['units'] = DB()->table('units')->where('unit_categories_id',$unitCategory)->orderBy('conversion_factor','DESC')->get()->getResult();
+
+
             $data['menu'] = view('Admin/menu_stock');
             // All Permissions
             //$perm = array('create','read','update','delete','mod_access');
@@ -93,6 +102,9 @@ class Products_ajax extends BaseController
             $shopId = $this->session->shopId;
             $productTable = DB()->table('products');
             $data['products_data'] = $productTable->where('sch_id', $shopId)->where('deleted IS NULL')->get()->getResult();
+
+            $table = DB()->table('unit_set');
+            $data['unit_set'] = $table->where('sch_id',$shopId)->get()->getResult();
 
             $data['menu'] = view('Admin/menu_stock');
             // All Permissions

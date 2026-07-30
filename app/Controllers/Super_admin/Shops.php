@@ -634,9 +634,10 @@ class Shops extends BaseController
 
         DB()->table('transaction_events')->where('sch_id', $id)->delete();
 
-        DB()->table('unit_categories')->where('sch_id', $id)->delete();
-        DB()->table('units')->where('sch_id', $id)->delete();
         DB()->table('unit_set')->where('sch_id', $id)->delete();
+        DB()->table('units')->where('sch_id', $id)->delete();
+        DB()->table('unit_categories')->where('sch_id', $id)->delete();
+
 
         $cash = array(
             'cash' => 0,

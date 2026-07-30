@@ -164,5 +164,31 @@ class TransactionLog{
     }
 
 
+    public function transaction_log_data_update($table_name,$id,$trans_id = null,$amount,$invoiceId = null,$purchase_id = null,$columName = null){
+
+        $table = DB()->table('transaction_log');
+        $table->where('table_name', $table_name) ->where('sch_id', $_SESSION['shopId']) ->where('id', $id);
+
+        if (!empty($trans_id)) {
+            $table->where('trans_id', $trans_id);
+        }
+
+        if (!empty($invoiceId)) {
+            $table->where('invoice_id', $invoiceId);
+        }
+
+        if (!empty($purchase_id)) {
+            $table->where('purchase_id', $purchase_id);
+        }
+
+        if (!empty($columName)) {
+            $table->where('colum_name', $columName);
+        }
+
+        return $table->update(['amount'  => $amount]);
+
+    }
+
+
 
 }

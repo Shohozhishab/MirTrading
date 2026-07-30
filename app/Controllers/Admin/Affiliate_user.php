@@ -110,7 +110,7 @@ class Affiliate_user extends BaseController
         $data['sch_id'] = $shopId;
 
         $this->validation->setRules([
-            'commission' => ['label' => 'commission', 'rules' => 'required|is_natural_no_zero'],
+            'commission' => ['label' => 'commission', 'rules' => 'required|numeric|greater_than_equal_to[0]'],
             'name' => ['label' => 'name', 'rules' => 'required|only_numeric_not_allow|max_length[60]'],
             'address' => ['label' => 'address', 'rules' => 'required'],
             'password' => ['label' => 'Password', 'rules' => 'required|max_length[155]'],
@@ -194,7 +194,7 @@ class Affiliate_user extends BaseController
         $data['con_password'] = $this->request->getPost('con_password');
 
         $this->validation->setRules([
-            'commission' => ['label' => 'commission', 'rules' => 'required|is_natural_no_zero'],
+            'commission' => ['label' => 'commission', 'rules' => 'required|numeric|greater_than_equal_to[0]'],
             'name' => ['label' => 'name', 'rules' => 'required|only_numeric_not_allow|max_length[60]'],
             'address' => ['label' => 'address', 'rules' => 'required'],
             'password' => ['label' => 'Password', 'rules' => 'required|max_length[155]'],

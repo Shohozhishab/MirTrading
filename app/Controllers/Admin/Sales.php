@@ -1178,10 +1178,13 @@ class Sales extends BaseController
 
         $singDiscount = empty($this->request->getPost('granddiscountlast')) ? 0 : $this->request->getPost('granddiscountlast');
 
-        $discountAmount = $amount - $finalAmount;
-        $alldiscount = $discountAmount + $singDiscount;
-
-
+//        $discountAmount = $amount - $finalAmount;
+//        $alldiscount = $discountAmount + $singDiscount;
+        $alldiscount = $this->request->getPost('saleDiscshow');
+//        print $finalAmount;
+//        print '<br>';
+//        print $amount;
+//        die();
         DB()->transStart();
 
         //update invoice start)
@@ -1209,8 +1212,8 @@ class Sales extends BaseController
 
         //discount ledger make (start)
         if (!empty($alldiscount)) {
+            $discountLedInfo = $this->transactionLog->get_table_name_by_row_invoice_id('ledger_discount', $invoiceId);
             if (!empty($discountLedInfo)) {
-                $discountLedInfo = $this->transactionLog->get_table_name_by_row_invoice_id('ledger_discount', $invoiceId);
                 $prevDisLed = get_data_by_id('amount', 'ledger_discount', 'discount_ledg_id', $discountLedInfo->id);
                 $restDisBal = ($prevDisLed - $discountLedInfo->amount) + $alldiscount;
                 $disLedgher = array(
@@ -1221,11 +1224,11 @@ class Sales extends BaseController
                 $ledger_discountTab->where('discount_ledg_id', $discountLedInfo->id)->update($disLedgher);
                 $this->ledger_discount_rest_balance_update($invoiceId, $alldiscount, $discountLedInfo->id, $discountLedInfo->amount);
                 //transaction edit log data insert
-                $this->transactionLog->transaction_edit_log_data_insert('ledger_discount', '', '', $this->session->userId, $discountLedInfo->amount, $alldiscount, $invoiceId, '');
-                //insert Transaction in transaction table (end)
-                //transaction edit log data insert
                 $this->transactionLog->transaction_edit_log_data_insert('ledger_discount', $discountLedInfo->id, '', $this->session->userId, $discountLedInfo->amount, $alldiscount, $invoiceId, '');
                 //insert Transaction in transaction table (end)
+
+                //update
+                //$this->transactionLog->transaction_log_data_update('ledger_discount',$discountLedInfo->id,'',$alldiscount,$invoiceId,'','');
 
 
                 $prevDis = get_data_by_id('discount', 'shops', 'sch_id', $shopId);
@@ -1245,6 +1248,8 @@ class Sales extends BaseController
                 //transaction edit log data insert
                 $this->transactionLog->transaction_edit_log_data_insert('shops', $shopId, '', $this->session->userId, $discountLedInfo->amount, $alldiscount, $invoiceId, '', 'discount');
                 //insert Transaction in transaction table (end)
+
+                //$this->transactionLog->transaction_log_data_update('shops',$shopId,'',$alldiscount,$invoiceId,'','discount');
             }else {
 
 
@@ -1301,6 +1306,7 @@ class Sales extends BaseController
                 //transaction edit log data insert
                 $this->transactionLog->transaction_edit_log_data_insert('vat_register',$shopId,'',$this->session->userId,$vatLedInfo->amount,$vatAmount,$invoiceId,'');
                 //insert Transaction in transaction table (end)
+//                $this->transactionLog->transaction_log_data_update('vat_register',$shopId,'',$vatAmount,$invoiceId,'','');
 
                 $vatLedRestBal = get_data_by_id('rest_balance', 'ledger_vat', 'ledg_vat_id', $vatLedInfo->id);
                 $newVatLedRestBal = ($vatLedRestBal + $vatLedInfo->amount) - $vatAmount;
@@ -1315,6 +1321,7 @@ class Sales extends BaseController
                 //transaction edit log data insert
                 $this->transactionLog->transaction_edit_log_data_insert('ledger_vat',$vatLedInfo->id,'',$this->session->userId,$vatLedInfo->amount,$vatAmount,$invoiceId,'');
                 //insert Transaction in transaction table (end)
+//                $this->transactionLog->transaction_log_data_update('ledger_vat',$vatLedInfo->id,'',$vatAmount,$invoiceId,'','');
 
 
             }else {
@@ -1423,6 +1430,7 @@ class Sales extends BaseController
         //transaction edit log data insert
         $this->transactionLog->transaction_edit_log_data_insert('shops',$shopId,'',$this->session->userId,$saleBalInfo->amount,$withoutVat,$invoiceId,'','sale_balance');
         //insert Transaction in transaction table (end)
+//        $this->transactionLog->transaction_log_data_update('shops',$shopId,'',$withoutVat,$invoiceId,'','sale_balance');
 
 
         $saleLedInfo = $this->transactionLog->get_table_name_by_row_invoice_id('ledger_sales',$invoiceId);
@@ -1439,6 +1447,7 @@ class Sales extends BaseController
         //transaction edit log data insert
         $this->transactionLog->transaction_edit_log_data_insert('ledger_sales',$saleLedInfo->id,'',$this->session->userId,$saleLedInfo->amount,$withoutVat,$invoiceId,'');
         //insert Transaction in transaction table (end)
+//        $this->transactionLog->transaction_log_data_update('ledger_sales',$saleLedInfo->id,'',$withoutVat,$invoiceId,'','');
 
         //Update salse profit in invoice table (start)
         $invoice_itemT = DB()->table('invoice_item');
@@ -1455,8 +1464,10 @@ class Sales extends BaseController
         $invoiceTabl = DB()->table('invoice');
         $invoiceTabl->where('invoice_id', $invoiceId)->update($inData);
         //transaction edit log data insert
-        $this->transactionLog->transaction_edit_log_data_insert('invoice',$invoiceId,'',$this->session->userId,$invData->amount,$invProfit,$invoiceId,'');
+        $this->transactionLog->transaction_edit_log_data_insert('invoice',$invoiceId,'',$this->session->userId,$invData->amount,$invProfit,$invoiceId,'','profit');
         //insert Transaction in transaction table (end)
+
+//        $this->transactionLog->transaction_log_data_update('invoice',$invoiceId,'',$invProfit,$invoiceId,'','profit');
 
 
         $saleBalInfo = $this->transactionLog->get_table_name_by_row_invoice_id_by_colum_name('shops',$invoiceId,'profit');
@@ -1469,8 +1480,9 @@ class Sales extends BaseController
         $shopsTable = DB()->table('shops');
         $shopsTable->where('sch_id', $shopId)->update($dataShoproUp);
         //transaction edit log data insert
-        $this->transactionLog->transaction_edit_log_data_insert('shops',$shopId,'',$this->session->userId,$saleBalInfo->amount,$totalProfit,$invoiceId,'');
+        $this->transactionLog->transaction_edit_log_data_insert('shops',$shopId,'',$this->session->userId,$saleBalInfo->amount,$totalProfit,$invoiceId,'','profit');
         //insert Transaction in transaction table (end)
+//        $this->transactionLog->transaction_log_data_update('shops',$shopId,'',$totalProfit,$invoiceId,'','profit');
 
 
         $saleLedInfo = $this->transactionLog->get_table_name_by_row_invoice_id('ledger_profit',$invoiceId);
@@ -1487,6 +1499,7 @@ class Sales extends BaseController
         //transaction edit log data insert
         $this->transactionLog->transaction_edit_log_data_insert('ledger_profit',$saleLedInfo->id,'',$this->session->userId,$saleLedInfo->amount,$totalProfit,$invoiceId,'');
         //insert Transaction in transaction table (end)
+//        $this->transactionLog->transaction_log_data_update('ledger_profit',$saleLedInfo->id,'',$totalProfit,$invoiceId,'','');
 
         $stockBalInfo = $this->transactionLog->get_table_name_by_row_invoice_id_by_colum_name('shops',$invoiceId,'stockAmount');
         $stockBal = get_data_by_id('stockAmount', 'shops', 'sch_id', $shopId);
@@ -1497,6 +1510,7 @@ class Sales extends BaseController
         //transaction edit log data insert
         $this->transactionLog->transaction_edit_log_data_insert('shops',$shopId,'',$this->session->userId,$stockBalInfo->amount,$totalpurPrice,$invoiceId,'');
         //insert Transaction in transaction table (end)
+//        $this->transactionLog->transaction_log_data_update('shops',$shopId,'',$totalpurPrice,$invoiceId,'','');
 
 
         $stockLedInfo = $this->transactionLog->get_table_name_by_row_invoice_id('ledger_stock',$invoiceId);
@@ -1513,6 +1527,7 @@ class Sales extends BaseController
         //transaction edit log data insert
         $this->transactionLog->transaction_edit_log_data_insert('ledger_stock',$stockLedInfo->id,'',$this->session->userId,$stockLedInfo->amount,$totalpurPrice,$invoiceId,'');
         //insert Transaction in transaction table (end)
+//        $this->transactionLog->transaction_log_data_update('ledger_stock',$stockLedInfo->id,'',$totalpurPrice,$invoiceId,'','');
 
 
         //existing customer balance update and customer ledger create (start)
@@ -1531,6 +1546,7 @@ class Sales extends BaseController
             //transaction edit log data insert
             $this->transactionLog->transaction_edit_log_data_insert('customers',$customerId,'',$this->session->userId,$customerInfo->amount,$finalAmount,$invoiceId,'');
             //insert Transaction in transaction table (end)
+//            $this->transactionLog->transaction_log_data_update('customers',$customerId,'',$finalAmount,$invoiceId,'','');
 
 
             //insert customer ledger in ledger(start)
@@ -1548,6 +1564,7 @@ class Sales extends BaseController
             //transaction edit log data insert
             $this->transactionLog->transaction_edit_log_data_insert('ledger',$customerLedInfo->id,'',$this->session->userId,$customerLedInfo->amount,$finalAmount,$invoiceId,'');
             //insert Transaction in transaction table (end)
+//            $this->transactionLog->transaction_log_data_update('ledger',$customerLedInfo->id,'',$finalAmount,$invoiceId,'','');
 
         }
         //existing customer balance update and customer ledger create (end)
@@ -1568,6 +1585,7 @@ class Sales extends BaseController
             //transaction edit log data insert
             $this->transactionLog->transaction_edit_log_data_insert('shops',$shopId,'',$this->session->userId,$shopBalInfo->amount,$nagod,$invoiceId,'','cash');
             //insert Transaction in transaction table (end)
+//            $this->transactionLog->transaction_log_data_update('shops',$shopId,'',$nagod,$invoiceId,'','');
 
 
 
@@ -1586,6 +1604,7 @@ class Sales extends BaseController
             //transaction edit log data insert
             $this->transactionLog->transaction_edit_log_data_insert('ledger_nagodan',$shopLedInfo->id,'',$this->session->userId,$shopLedInfo->amount,$nagod,$invoiceId,'');
             //insert Transaction in transaction table (end)
+//            $this->transactionLog->transaction_log_data_update('ledger_nagodan',$shopLedInfo->id,'',$nagod,$invoiceId,'','');
 
 
             //cash pay amount and customer balance amount calculate and update customer balance (start)
@@ -1612,6 +1631,7 @@ class Sales extends BaseController
                 //transaction edit log data insert
                 $this->transactionLog->transaction_edit_log_data_insert('customers',$customerId,'',$this->session->userId,$customerMidInfo->amount,$nagod,$invoiceId,'');
                 //insert Transaction in transaction table (end)
+//                $this->transactionLog->transaction_log_data_update('customers',$customerId,'',$nagod,$invoiceId,'','');
 
 
                 //create ledger in ledger table
@@ -1633,6 +1653,7 @@ class Sales extends BaseController
                 //transaction edit log data insert
                 $this->transactionLog->transaction_edit_log_data_insert('ledger',$customerLedgerMidInfo->id,'',$this->session->userId,$customerLedgerMidInfo->amount,$nagod,$invoiceId,'');
                 //insert Transaction in transaction table (end)
+//                $this->transactionLog->transaction_log_data_update('ledger',$customerLedgerMidInfo->id,'',$nagod,$invoiceId,'','');
             }
             //cash pay amount and customer balance amount calculate and update customer balance (end)
         }
@@ -1654,6 +1675,7 @@ class Sales extends BaseController
             //transaction edit log data insert
             $this->transactionLog->transaction_edit_log_data_insert('bank',$bankId,'',$this->session->userId,$bankInfo->amount,$bankAmount,$invoiceId,'');
             //insert Transaction in transaction table (end)
+//            $this->transactionLog->transaction_log_data_update('bank',$bankId,'',$bankAmount,$invoiceId,'','');
 
 
             //insert ledger in table ledger_bank (start)
@@ -1670,6 +1692,7 @@ class Sales extends BaseController
             //transaction edit log data insert
             $this->transactionLog->transaction_edit_log_data_insert('ledger_bank',$bankLedgerInfo->id,'',$this->session->userId,$bankLedgerInfo->amount,$bankAmount,$invoiceId,'');
             //insert Transaction in transaction table (end)
+//            $this->transactionLog->transaction_log_data_update('ledger_bank',$bankLedgerInfo->id,'',$bankAmount,$invoiceId,'','');
 
             if ($customerId) {
                 //bank pay amount calculate and customer balance update (start)
@@ -1689,7 +1712,8 @@ class Sales extends BaseController
                 //bank pay amount calculate and customer balance update (start)
                 //transaction edit log data insert
                 $this->transactionLog->transaction_edit_log_data_insert('customers',$customerId,'',$this->session->userId,$customerMidInfo->amount,$bankAmount,$invoiceId,'');
-                //insert Transaction in transaction table (end)
+                //insert Transaction in transaction table (end)\
+//                $this->transactionLog->transaction_log_data_update('customers',$customerId,'',$bankAmount,$invoiceId,'','');
 
 
                 //insert ledger in table ledger (start)
@@ -1709,6 +1733,7 @@ class Sales extends BaseController
                 //transaction edit log data insert
                 $this->transactionLog->transaction_edit_log_data_insert('ledger',$customerLedMidInfo->id,'',$this->session->userId,$customerLedMidInfo->amount,$bankAmount,$invoiceId,'');
                 //insert Transaction in transaction table (end)
+//                $this->transactionLog->transaction_log_data_update('ledger',$customerLedMidInfo->id,'',$bankAmount,$invoiceId,'','');
             }
 
         }

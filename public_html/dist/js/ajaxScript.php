@@ -791,11 +791,11 @@ function goBack() {
                   $("#subtl2_" + i).val(dicprice);
               }
               $("#totalamount").val(itemPrice);
-              $("#grandtotaldue").val(itemPrice.toFixed(2));
-              $("#grandtotal").val(itemPrice.toFixed(2));
-              $("#grandtotal2").val(itemPrice.toFixed(2));
-              $("#grandtotallast").val(itemPrice.toFixed(2));
-              $("#granddiscountlast").val(dicprice2.toFixed(2));
+              $("#grandtotaldue").val(itemPrice);
+              $("#grandtotal").val(itemPrice);
+              $("#grandtotal2").val(itemPrice);
+              $("#grandtotallast").val(itemPrice);
+              $("#granddiscountlast").val(dicprice2);
           }
         }
       $(document).on( 'input', '.disc', function(){ calculateTotalDiscount(); } );
@@ -810,19 +810,19 @@ function goBack() {
           if ($("#saleDisc").val()) {
               total = (+$("#saleDisc").val() * +$("#totalamount").val()) / 100;
               totalprice = +$("#totalamount").val() - total;
-              // yourFloatVarHere.toFixed(2)
-              $("#grandtotal").val(totalprice.toFixed(2));
-              $("#grandtotaldue").val(totalprice.toFixed(2));
-              $("#grandtotallast").val(totalprice.toFixed(2));
-              $("#vatTotallast").val(totalprice.toFixed(2));
-              $("#saleDiscshow").val(total.toFixed(2));
+              // yourFloatVarHere
+              $("#grandtotal").val(totalprice);
+              $("#grandtotaldue").val(totalprice);
+              $("#grandtotallast").val(totalprice);
+              $("#vatTotallast").val(totalprice);
+              $("#saleDiscshow").val(total);
           }else{
               totalprice = +$("#totalamount").val() + total;
-              $("#grandtotal").val(totalprice.toFixed(2));
-              $("#grandtotaldue").val(totalprice.toFixed(2));
-              $("#grandtotallast").val(totalprice.toFixed(2));
-              $("#vatTotallast").val(totalprice.toFixed(2));
-              $("#saleDiscshow").val(total.toFixed(2));
+              $("#grandtotal").val(totalprice);
+              $("#grandtotaldue").val(totalprice);
+              $("#grandtotallast").val(totalprice);
+              $("#vatTotallast").val(totalprice);
+              $("#saleDiscshow").val(total);
           }
       }
       $(document).on( 'input', '.saleDisc', function(){ calculateTotalDiscount(); } );
@@ -834,16 +834,16 @@ function goBack() {
           if ($("#vat").val()) {
               total = (+$("#vat").val() * +$("#vatTotallast").val()) / 100;
               grandtotalaftervat = +$("#vatTotallast").val() + total;
-              $("#grandtotal").val(grandtotalaftervat.toFixed(2));
-              $("#grandtotaldue").val(grandtotalaftervat.toFixed(2));
-              $("#grandtotallast").val(grandtotalaftervat.toFixed(2));
-              $("#vatAmount").val(total.toFixed(2));
+              $("#grandtotal").val(grandtotalaftervat);
+              $("#grandtotaldue").val(grandtotalaftervat);
+              $("#grandtotallast").val(grandtotalaftervat);
+              $("#vatAmount").val(total);
           }else{
               grandtotalaftervat = +$("#vatTotallast").val() - total;
-              $("#grandtotal").val(grandtotalaftervat.toFixed(2));
-              $("#grandtotaldue").val(grandtotalaftervat.toFixed(2));
-              $("#grandtotallast").val(grandtotalaftervat.toFixed(2));
-              $("#vatAmount").val(total.toFixed(2));
+              $("#grandtotal").val(grandtotalaftervat);
+              $("#grandtotaldue").val(grandtotalaftervat);
+              $("#grandtotallast").val(grandtotalaftervat);
+              $("#vatAmount").val(total);
           }
         }
       $(document).on( 'input', '.vat', function(){ calculateTotalDiscount(); } );
@@ -871,11 +871,11 @@ function goBack() {
             $("#subt_"+i).val(itemPrice);
             $("#subtl2_"+i).val(itemPrice);
           }
-          $("#totalamount").val(total.toFixed(2));
-          $("#grandtotaldue").val(total.toFixed(2));
-          $("#grandtotal").val(total.toFixed(2));
-          $("#grandtotal2").val(total.toFixed(2));
-          $("#grandtotallast").val(total.toFixed(2));
+          $("#totalamount").val(total);
+          $("#grandtotaldue").val(total);
+          $("#grandtotal").val(total);
+          $("#grandtotal2").val(total);
+          $("#grandtotallast").val(total);
         }
       $(document).on( 'input', '.upprice', function(){ priceUpCalculate(); } );
       //salse price new input calculet (end)
@@ -914,7 +914,7 @@ function goBack() {
         var chequeAmount = $("#chequeAmount").val();
         totalamount = ((total - nagod) - bankAmount) - chequeAmount;
 
-        $("#grandtotaldue").val(totalamount.toFixed(2));
+        $("#grandtotaldue").val(totalamount);
 
           checkDueAmount();
       }

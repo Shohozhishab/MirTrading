@@ -112,7 +112,7 @@
                                     <td><?= $particulars ?></td>
                                     <td><?= $amountDr ?></td>
                                     <td><?= $amountCr ?></td>
-                                    <td><?= $row->rest_balance ?></td>
+                                    <td><?= $row->r_balance ?></td>
                                 </tr>
 
                             <?php }?>

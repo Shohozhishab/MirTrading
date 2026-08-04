@@ -99,17 +99,11 @@
                             </thead>
                             <tbody>
                             <?php
-                            $restBalance = 0;
                             $totalRows = count($ledger_purchase)-1;
                             for ($i = 0; $i <= $totalRows; $i++) {
                                 $particulars = $ledger_purchase[$i]->particulars;
                                 $amountCr = ($ledger_purchase[$i]->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($ledger_purchase[$i]->amount);
                                 $amountDr =($ledger_purchase[$i]->trangaction_type != "Dr.")?"---":showWithCurrencySymbol($ledger_purchase[$i]->amount);
-                                if ($ledger_purchase[$i]->trangaction_type == 'Dr.') {
-                                    $restBalance = $restBalance + $ledger_purchase[$i]->amount;
-                                }else {
-                                    $restBalance = $restBalance - $ledger_purchase[$i]->amount;
-                                }
                                 ?>
                                 <tr>
                                     <td><?php echo $ledger_purchase[$i]->ledgPurch_id ?></td>
@@ -117,7 +111,7 @@
                                     <td><?php echo $particulars ?></td>
                                     <td><?php echo $amountDr ?></td>
                                     <td><?php echo $amountCr ?></td>
-                                    <td><?php echo showWithCurrencySymbol($restBalance) ?></td>
+                                    <td><?php echo showWithCurrencySymbol($ledger_purchase[$i]->r_balance) ?></td>
                                 </tr>
                             <?php }?>
 
@@ -182,24 +176,18 @@
                         </thead>
                         <tbody>
                         <?php
-                        $restBalance = 0;
                         foreach ($ledger_purchase as $row) {
 
                             $particulars = ($row->particulars == NULL) ? "Payment" : $row->particulars;
                             $amountCr = ($row->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($row->amount);
                             $amountDr =($row->trangaction_type != "Dr.")?"---":showWithCurrencySymbol($row->amount);
-                            if ($row->trangaction_type == 'Dr.') {
-                                $restBalance = $restBalance + $row->amount;
-                            }else {
-                                $restBalance = $restBalance - $row->amount;
-                            }
                             ?>
                             <tr>
                                 <td><?php echo bdDateFormat($row->createdDtm) ?></td>
                                 <td><?php echo $particulars ?></td>
                                 <td><?php echo $amountDr ?></td>
                                 <td><?php echo $amountCr ?></td>
-                                <td><?php echo showWithCurrencySymbol($restBalance) ?></td>
+                                <td><?php echo showWithCurrencySymbol($row->r_balance) ?></td>
                             </tr>
                         <?php }?>
 

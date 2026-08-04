@@ -110,7 +110,7 @@
                                     <td><?php echo $ledger_vat_data[$i]->ledg_vat_id  ?></td>
                                     <td><?php echo $amountDr ?></td>
                                     <td><?php echo $amountCr ?></td>
-                                    <td><?php echo showWithCurrencySymbol($ledger_vat_data[$i]->rest_balance) ?></td>
+                                    <td><?php echo showWithCurrencySymbol($ledger_vat_data[$i]->r_balance) ?></td>
 
                                 </tr>
                                 <?php
@@ -174,24 +174,18 @@
                             </thead>
                             <tbody>
                             <?php
-                            $restBalance =0;
                             foreach ($ledger_vat_data as $row) {
 
                                 $particulars = ($row->particulars == NULL) ? "Payment" : $row->particulars;
                                 $amountCr = ($row->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($row->amount);
                                 $amountDr =($row->trangaction_type != "Dr.")?"---":showWithCurrencySymbol($row->amount);
-                                if ($row->trangaction_type == 'Dr.') {
-                                    $restBalance = $restBalance + $row->amount;
-                                }else {
-                                    $restBalance = $restBalance - $row->amount;
-                                }
                                 ?>
                                 <tr>
                                     <td><?php echo bdDateFormat($row->createdDtm) ?></td>
                                     <td><?php echo $particulars ?></td>
                                     <td><?php echo $amountDr ?></td>
                                     <td><?php echo $amountCr ?></td>
-                                    <td><?php echo showWithCurrencySymbol($restBalance) ?></td>
+                                    <td><?php echo showWithCurrencySymbol($row->r_balance) ?></td>
                                 </tr>
                             <?php }?>
 

@@ -111,18 +111,11 @@
                             </thead>
                             <tbody>
                             <?php
-                            $restBalance = 0;
                             $totalRows = count($result) - 1;
                             for ($i = 0; $i <= $totalRows; $i++) {
                                 $particulars = ($result[$i]->particulars == NULL) ? "Pay due" : $result[$i]->particulars;
                                 $amountCr = ($result[$i]->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($result[$i]->amount);
                                 $amountDr = ($result[$i]->trangaction_type != "Dr.") ? "---" : showWithCurrencySymbol($result[$i]->amount);
-                                if ($result[$i]->trangaction_type == 'Dr.') {
-                                    $restBalance = $restBalance + $result[$i]->amount;
-                                }else {
-                                    $restBalance = $restBalance - $result[$i]->amount;
-                                }
-
                                 if (($result[$i]->invoice_id == NULL) && ($result[$i]->trans_id == NULL)) {
                                     $invoice_id = '---';
                                 } else {
@@ -140,7 +133,7 @@
                                     <td><?= $invoice_id ?></td>
                                     <td><?= $amountDr ?></td>
                                     <td><?= $amountCr ?></td>
-                                    <td><?= showWithCurrencySymbol($restBalance) ?></td>
+                                    <td><?= showWithCurrencySymbol($result[$i]->r_balance) ?></td>
                                 </tr>
 
                             <?php }?>
@@ -178,7 +171,6 @@
                                 </thead>
                                 <tbody>
                                 <?php
-                                $restBalance = 0;
                                 $totalRows = count($result) - 1;
                                 for ($i = 0; $i <= $totalRows; $i++) {
                                     $particulars = ($result[$i]->particulars == NULL) ? "Pay due" : $result[$i]->particulars;
@@ -186,18 +178,13 @@
                                     $amountDr = ($result[$i]->trangaction_type != "Dr.") ? "---" : showWithCurrencySymbol($result[$i]->amount);
                                     $bankName = led_id_by_bank_name($result[$i]->invoice_id);
                                     $checkNumber = led_id_by_chaque_number($result[$i]->invoice_id);
-                                    if ($result[$i]->trangaction_type == 'Dr.') {
-                                        $restBalance = $restBalance + $result[$i]->amount;
-                                    }else {
-                                        $restBalance = $restBalance - $result[$i]->amount;
-                                    }
                                     ?>
                                     <tr>
                                         <td><?= $result[$i]->createdDtm ?></td>
                                         <td><?= $particulars ?><br><small><?= $bankName. $checkNumber ?></small></td>
                                         <td><?= $amountDr ?></td>
                                         <td><?= $amountCr ?></td>
-                                        <td><?= showWithCurrencySymbol($restBalance) ?></td>
+                                        <td><?= showWithCurrencySymbol($result[$i]->r_balance) ?></td>
                                     </tr>
 
                                 <?php }?>

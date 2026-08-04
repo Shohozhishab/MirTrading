@@ -125,7 +125,10 @@ class Unit extends BaseController
         if ($this->validation->run($data) == FALSE) {
             print '<div class="alert alert-danger alert-dismissible" role="alert">' . $this->validation->listErrors() . ' <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
         } else {
-            $isBase = DB()->table('units')->where('unit_categories_id',$data['unit_categories_id'])->where('is_base','1')->countAllResults();
+            $isBase = 0;
+            if ($data['is_base'] == '1') {
+                $isBase = DB()->table('units')->where('unit_categories_id', $data['unit_categories_id'])->where('is_base', '1')->countAllResults();
+            }
             if (!empty($isBase)){
                 print '<div class="alert alert-danger alert-dismissible" role="alert">  Base unit already exist <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
             }else {

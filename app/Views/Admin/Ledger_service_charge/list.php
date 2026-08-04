@@ -95,17 +95,11 @@
                             </thead>
                             <tbody>
                             <?php
-                            $restBalance = 0;
                             $totalRows = count($ledger_service_charge)-1;
                             for ($i = 0; $i <= $totalRows; $i++) {
                                 $particulars = ($ledger_service_charge[$i]->particulars == NULL) ? "Payment" : $ledger_service_charge[$i]->particulars;
                                 $amountCr = ($ledger_service_charge[$i]->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($ledger_service_charge[$i]->amount);
                                 $amountDr =($ledger_service_charge[$i]->trangaction_type != "Dr.")?"---":showWithCurrencySymbol($ledger_service_charge[$i]->amount);
-                                if ($ledger_service_charge[$i]->trangaction_type == 'Dr.') {
-                                    $restBalance = $restBalance + $ledger_service_charge[$i]->amount;
-                                }else {
-                                    $restBalance = $restBalance - $ledger_service_charge[$i]->amount;
-                                }
                                 ?>
                                 <tr>
                                     <td><?php echo $ledger_service_charge[$i]->ledger_service_charge_id ?></td>
@@ -114,7 +108,7 @@
                                     <td><?php echo $ledger_service_charge[$i]->service_invoice_id ?></td>
                                     <td><?php echo $amountDr ?></td>
                                     <td><?php echo $amountCr ?></td>
-                                    <td><?php echo showWithCurrencySymbol($restBalance) ?></td>
+                                    <td><?php echo showWithCurrencySymbol($ledger_service_charge[$i]->r_balance) ?></td>
                                 </tr>
                             <?php }?>
 
@@ -177,24 +171,18 @@
                         </thead>
                         <tbody>
                         <?php
-                        $restBalance = 0;
                         foreach ($ledger_service_charge as $row) {
 
                             $particulars = ($row->particulars == NULL) ? "Payment" : $row->particulars;
                             $amountCr = ($row->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($row->amount);
                             $amountDr =($row->trangaction_type != "Dr.")?"---":showWithCurrencySymbol($row->amount);
-                            if ($row->trangaction_type == 'Dr.') {
-                                $restBalance = $restBalance + $row->amount;
-                            }else {
-                                $restBalance = $restBalance - $row->amount;
-                            }
                             ?>
                             <tr>
                                 <td><?php echo bdDateFormat($row->createdDtm) ?></td>
                                 <td><?php echo $particulars ?></td>
                                 <td><?php echo $amountDr ?></td>
                                 <td><?php echo $amountCr ?></td>
-                                <td><?php echo showWithCurrencySymbol($restBalance) ?></td>
+                                <td><?php echo showWithCurrencySymbol($row->r_balance) ?></td>
                             </tr>
                         <?php }?>
 

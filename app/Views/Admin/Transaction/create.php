@@ -451,10 +451,7 @@
 
                                                         <div class="form-group">
                                                             <label for="int">Employee </label>
-                                                            <select class="form-control select2 select2-hidden-accessible input"
-                                                                    onchange="employeeSearch(this.value)"
-                                                                    style=" width: 100%;" tabindex="-1"
-                                                                    aria-hidden="true" name="employee_id" required>
+                                                            <select class="form-control select2 select2-hidden-accessible input" onchange="employeeSearch(this.value)" style=" width: 100%;" tabindex="-1" aria-hidden="true" name="employee_id" required>
                                                                 <option selected="selected" value="">Please Select
                                                                 </option>
                                                                 <?php echo getAllListInOptionWithStatus('', 'employee_id', 'name', 'employee','name'); ?>

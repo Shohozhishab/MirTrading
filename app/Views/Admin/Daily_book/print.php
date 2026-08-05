@@ -87,7 +87,7 @@
                                                 <td><?php echo $particulars ?></td>
                                                 <td><?php echo $amountDr ?></td>
                                                 <td><?php echo $amountCr ?></td>
-                                                <td><?php echo showWithCurrencySymbol($cashLedger[$i]->rest_balance) ?></td>
+                                                <td><?php echo showWithCurrencySymbol($cashLedger[$i]->r_balance) ?></td>
                                             </tr>
 
                                         <?php } ?>
@@ -142,7 +142,7 @@
                                                     <td><?php print $particulars ?></td>
                                                     <td><?php print $amountDr ?></td>
                                                     <td><?php print $amountCr ?></td>
-                                                    <td><?php print showWithCurrencySymbol($row->rest_balance) ?></td>
+                                                    <td><?php print showWithCurrencySymbol($row->r_balance) ?></td>
                                                 </tr>
 
 

@@ -12,9 +12,7 @@
     <section class="content">
         <!-- Small boxes (Stat box) -->
         <div class="row">
-
             <div class="col-xs-12">
-
                 <div class="box">
                     <div class="box-header">
                         <div class="row">
@@ -51,26 +49,22 @@
                     </div>
                     <!-- /.box-body -->
                 </div>
-
-
             </div>
-
             <div class="col-xs-6">
                 <div class="box">
                     <div class="box-header">
                         <h3 class="box-title">Cash Ledger</h3>
-                        <span class="pull-right">Last Balance <?php echo showWithCurrencySymbol($cashrest_balance); ?></span>
                     </div>
                     <div class="box-body">
                         <table class="table table-bordered table-striped" id="TFtable">
                             <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Particulars</th>
-                                <th>Debit</th>
-                                <th>Credit</th>
-                                <th>Balance</th>
-                            </tr>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Particulars</th>
+                                    <th>Debit</th>
+                                    <th>Credit</th>
+                                    <th>Balance</th>
+                                </tr>
                             </thead>
                             <tbody>
                             <?php $totalRows = count($cashledger)-1;
@@ -78,16 +72,14 @@
                                 $particulars = ($cashledger[$i]->particulars == NULL) ? "Payment" : $cashledger[$i]->particulars;
                                 $amountCr = ($cashledger[$i]->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($cashledger[$i]->amount);
                                 $amountDr = ($cashledger[$i]->trangaction_type != "Dr.") ? "---" : showWithCurrencySymbol($cashledger[$i]->amount);
-                                ?>
-
+                            ?>
                                 <tr>
                                     <td><?php echo bdDateFormat($cashledger[$i]->createdDtm) ?></td>
                                     <td><?php echo $particulars ?></td>
                                     <td><?php echo $amountDr ?></td>
                                     <td><?php echo $amountCr ?></td>
-                                    <td><?php echo showWithCurrencySymbol($cashledger[$i]->rest_balance) ?></td>
+                                    <td><?php echo showWithCurrencySymbol($cashledger[$i]->r_balance) ?></td>
                                 </tr>
-
                             <?php } ?>
 
                             </tbody>
@@ -108,7 +100,6 @@
 
 
             </div>
-
             <div class="col-xs-6 no-print">
                 <div class="box">
                     <div class="box-header">
@@ -201,7 +192,6 @@
                     <!-- /.box-body -->
                 </div>
             </div>
-
             <div class="col-xs-12" style="text-transform: capitalize;">
                 <div class="box">
                     <!-- /.box-header -->

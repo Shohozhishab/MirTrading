@@ -114,22 +114,12 @@
                                     <td><?php echo $particulars ?></td>
                                     <td><?php echo $amountDr ?></td>
                                     <td><?php echo $amountCr ?></td>
-                                    <td><?php echo showWithCurrencySymbol($cashLedger[$i]->rest_balance) ?></td>
+                                    <td><?php echo showWithCurrencySymbol($cashLedger[$i]->r_balance) ?></td>
                                 </tr>
 
                             <?php } ?>
 
                             </tbody>
-                            <tfoot>
-                            <tr>
-                                <th>Date</th>
-                                <th>Particulars</th>
-                                <!-- <th>Trangaction Id</th> -->
-                                <th>Debit</th>
-                                <th>Credit</th>
-                                <th>Balance</th>
-                            </tr>
-                            </tfoot>
                         </table>
                     </div>
 

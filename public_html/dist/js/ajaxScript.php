@@ -439,13 +439,14 @@ function goBack() {
       function findResult(){
         $('#keyWord').on('keyup',function(){
           var search_text = $('#keyWord').val();
+          var sale_save_id = $('#sale_save_id').val();
           if(search_text==""){
                 $('#result').empty();
             }else{
                 $.ajax({
                   type: "POST",
                   url: "<?php echo site_url('Admin/Sales/search_prod') ?>",
-                  data: {keyWord: search_text},
+                  data: {keyWord: search_text,sale_save_id:sale_save_id},
 
                   success: function(html){
 
@@ -855,6 +856,13 @@ function goBack() {
         allSaleVatCalculate();
       }
 
+      $(document).ready(function () {
+          calculateTotalDiscount();
+          totalPay();
+          calculateDueAndShowBtn();
+      });
+      
+
       //salse price new input calculet (start)
       function priceUpCalculate() {
         var total = 0;
@@ -937,6 +945,23 @@ function goBack() {
               $('#balance').html('Balance: ৳ '+ data +'/-');
           }
       });
+  }
+
+  function emptyOponentCustomer() {
+      const customerId = $('#cus').val();
+      const customerName = $('#name').val();
+
+      if (customerId) {
+          $('#name').val('');
+          $('#affiliate_user_id').val('').trigger('change');
+      }
+
+      if (customerName.trim() !== '') {
+          if(customerId !== '') {
+              $('#cus').val('').trigger('change');
+          }
+          $('#balance').html('');
+      }
   }
 
     //all script sales from calculation needed (end)
@@ -1911,6 +1936,7 @@ function calculateDueAndShowBtn() {
           $('#message').show();
           $('#message').html(data);
           $('#geniusform')[0].reset();
+          $('#geniusform select.select2').val('').trigger('change');
           $.ajax({
             method:"get",
             url:"<?php echo site_url('Admin/Transaction/updated_case') ?>",
@@ -3999,6 +4025,46 @@ function opening_status(url){
   function confirmBase(){
       return confirm("Are you sure you want to set this unit as the base unit? This will remove the base status from the current base unit.");
   }
+
+  function saveToDraft() {
+      // Finds the closest parent form element holding this button
+      // const form = buttonElement.closest('form');
+      const form = document.querySelector('#saleForm');
+      // Change this URL to your specific backend draft destination
+      form.action = "<?= base_url('Admin/Sales/saleSaveAction')?>";
+
+      // Submits the form data to the new URL
+      form.submit();
+  }
+
+  function calculateTotals() {
+      // Subtotal
+      let totalAmount = parseFloat($('#totalAmount').val()) || 0;
+
+      // Discount %
+      let discount = parseFloat($('#discount').val()) || 0;
+
+      // VAT %
+      let vat = parseFloat($('#vat').val()) || 0;
+
+      // Calculate discount
+      let discountAmount = (totalAmount * discount) / 100;
+
+      // Amount after discount
+      let afterDiscount = totalAmount - discountAmount;
+
+      // Calculate VAT after discount
+      let vatAmount = (afterDiscount * vat) / 100;
+
+      // Display values
+      $('#discountAmount').text('৳ ' + discountAmount.toFixed(2) + ' /-');
+      $('#vatAmount').text('৳ ' + vatAmount.toFixed(2) + ' /-');
+  }
+
+  // Run calculation
+  $(document).ready(function () {
+      calculateTotals();
+  });
 
 </script>
 

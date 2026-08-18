@@ -126,8 +126,8 @@ class Exchange_product extends BaseController
         $customerId = $this->request->getPost('customer_id');
         $customerName = $this->request->getPost('customer_name');
 
-        $proId = $this->request->getPost('prod_id[]');
-        $quantity = $this->request->getPost('quantity[]');
+        $proId = $this->request->getPost('prod_id');
+        $quantity = $this->request->getPost('quantity');
 
         // If customer name of id not selected (start)
         if (empty($customerName) && empty($customerId)) {
@@ -190,7 +190,7 @@ class Exchange_product extends BaseController
                             'sch_id' => $shopId,
                             'exchange_pro_id' => $exchangeId,
                             'prod_id'  => $pid,
-                            'quantity'    => $quantity[$key] ?? 0,
+                            'quantity'    => $quantity[$pid] ?? 0,
                             'createdBy'    => $userId,
                         ]);
                         $exchangeProductItemId = $db->insertID();
@@ -233,7 +233,7 @@ class Exchange_product extends BaseController
                             'sch_id' => $shopId,
                             'stock_transfer_id' => $stockTransferId,
                             'prod_id' => $pid,
-                            'quantity' => $quantity[$key] ?? 0,
+                            'quantity' => $quantity[$pid] ?? 0,
                             'createdBy' => $userId,
                         ]);
                         $stockTransferItemId = $db->insertID();
@@ -257,7 +257,7 @@ class Exchange_product extends BaseController
                         $productQty = $db->table('product_stock_relation')->where('store_id', $defaultStoreId)->where('product_id', $pid)->get()->getRow();
                         $upQty = 0;
                         if (!empty($productQty)) {
-                            $upQty = $productQty->quantity - $quantity[$key];
+                            $upQty = $productQty->quantity - $quantity[$pid];
                         }
                         $storeQtyUpdateData = array(
                             'quantity' => $upQty
@@ -268,7 +268,7 @@ class Exchange_product extends BaseController
                         //new store quantity update
                         $productNewQty = $db->table('product_stock_relation')->where('store_id', $toStockId)->where('product_id', $pid)->get()->getRow();
                         if (!empty($productNewQty)) {
-                            $newQty = $productNewQty->quantity + $quantity[$key];
+                            $newQty = $productNewQty->quantity + $quantity[$pid];
                             $newQtyData = array(
                                 'quantity' => $newQty
                             );
@@ -278,7 +278,7 @@ class Exchange_product extends BaseController
                                 'sch_id' => $shopId,
                                 'store_id' => $toStockId,
                                 'product_id' => $pid,
-                                'quantity' => $quantity[$key]
+                                'quantity' => $quantity[$pid]
                             );
                             $db->table('product_stock_relation')->insert($newQtyData);
                         }

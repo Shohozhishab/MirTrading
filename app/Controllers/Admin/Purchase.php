@@ -1764,6 +1764,7 @@ class Purchase extends BaseController
         $suppliersTable->where('supplier_id', $suppliersInfo->id)->update($suppData);
 
         //transaction edit log data insert
+        $this->transactionLog->transaction_log_data_update($suppliersInfo->transaction_log_id,$totalPrice);
         $this->transactionLog->transaction_edit_log_data_insert('suppliers','','',$this->session->userId,$suppliersInfo->amount,$totalPrice,'',$purchaseId);
         //insert Transaction in transaction table (end)
 
@@ -1781,6 +1782,7 @@ class Purchase extends BaseController
         $ledger_suppliersTable->where('ledg_sup_id', $suppliersLedgerInfo->id)->update($lgSuplData);
 
         //transaction edit log data insert
+        $this->transactionLog->transaction_log_data_update($suppliersLedgerInfo->transaction_log_id,$totalPrice);
         $this->transactionLog->transaction_edit_log_data_insert('ledger_suppliers','','',$this->session->userId,$suppliersLedgerInfo->amount,$totalPrice,'',$purchaseId);
         //insert Transaction in transaction table (end)
 
@@ -1799,6 +1801,7 @@ class Purchase extends BaseController
         $shopPurBalTable->where('sch_id', $shopId)->update($purUpdata);
 
         //transaction edit log data insert
+        $this->transactionLog->transaction_log_data_update($purchaseBalanceInfo->transaction_log_id,$totalPrice);
         $this->transactionLog->transaction_edit_log_data_insert('ledger_suppliers','','',$this->session->userId,$suppliersLedgerInfo->amount,$totalPrice,'',$purchaseId,'purchase_balance');
         //insert Transaction in transaction table (end)
 
@@ -1815,6 +1818,7 @@ class Purchase extends BaseController
         // purchase balance update and ledger create (end)
 
         //transaction edit log data insert
+        $this->transactionLog->transaction_log_data_update($ledgerPurchaseInfo->transaction_log_id,$totalPrice);
         $this->transactionLog->transaction_edit_log_data_insert('ledger_purchase','','',$this->session->userId,$ledgerPurchaseInfo->amount,$totalPrice,'',$purchaseId,'');
         //insert Transaction in transaction table (end)
 
@@ -1828,6 +1832,7 @@ class Purchase extends BaseController
         $shopStoAmTable->where('sch_id', $shopId)->update($stockUpdata);
 
         //transaction edit log data insert
+        $this->transactionLog->transaction_log_data_update($stockAmountInfo->transaction_log_id,$totalPrice);
         $this->transactionLog->transaction_edit_log_data_insert('shops','','',$this->session->userId,$stockAmountInfo->amount,$totalPrice,'',$purchaseId,'stockAmount');
         //insert Transaction in transaction table (end)
 
@@ -1843,6 +1848,7 @@ class Purchase extends BaseController
         $ledger_stockTable->where('stock_id', $ledgerStockInfo->id)->update($stockLedgData);
 
         //transaction edit log data insert
+        $this->transactionLog->transaction_log_data_update($ledgerStockInfo->transaction_log_id,$totalPrice);
         $this->transactionLog->transaction_edit_log_data_insert('ledger_stock','','',$this->session->userId,$ledgerStockInfo->amount,$totalPrice,'',$purchaseId );
         //insert Transaction in transaction table (end)
 
@@ -1863,6 +1869,7 @@ class Purchase extends BaseController
                     $shopCasTable->where('sch_id', $shopId)->update($shopsData);
 
                     //transaction edit log data insert
+                    $this->transactionLog->transaction_log_data_update($shopInfo->transaction_log_id,$cashAmount);
                     $this->transactionLog->transaction_edit_log_data_insert('shops','','',$this->session->userId,$shopInfo->amount,$cashAmount,'',$purchaseId );
                     //insert Transaction in transaction table (end)
 
@@ -1878,6 +1885,7 @@ class Purchase extends BaseController
                     $ledger_nagodanTable->where('ledg_nagodan_id', $ledgerNagodInfo->id)->update($lgNagData);
 
                     //transaction edit log data insert
+                    $this->transactionLog->transaction_log_data_update($ledgerNagodInfo->transaction_log_id,$cashAmount);
                     $this->transactionLog->transaction_edit_log_data_insert('ledger_nagodan','','',$this->session->userId,$ledgerNagodInfo->amount,$cashAmount,'',$purchaseId );
                     //insert Transaction in transaction table (end)
 
@@ -1906,6 +1914,7 @@ class Purchase extends BaseController
                     $suppliersTab->where('supplier_id', $supplierMidInfo->id)->update($cashsuppData);
 
                     //transaction edit log data insert
+                    $this->transactionLog->transaction_log_data_update($supplierMidInfo->transaction_log_id,$cashAmount);
                     $this->transactionLog->transaction_edit_log_data_insert('suppliers','','',$this->session->userId,$supplierMidInfo->amount,$cashAmount,'',$purchaseId );
                     //insert Transaction in transaction table (end)
 
@@ -1930,6 +1939,7 @@ class Purchase extends BaseController
                     $ledger_suppliersTab->where('ledg_sup_id', $supplierLedgerMidInfo->id)->update($lgSuplData);
 
                     //transaction edit log data insert
+                    $this->transactionLog->transaction_log_data_update($supplierLedgerMidInfo->transaction_log_id,$cashAmount);
                     $this->transactionLog->transaction_edit_log_data_insert('ledger_suppliers','','',$this->session->userId,$supplierLedgerMidInfo->amount,$cashAmount,'',$purchaseId );
                     //insert Transaction in transaction table (end)
 
@@ -2017,6 +2027,7 @@ class Purchase extends BaseController
                     $bankTable->where('bank_id', $bankId)->update($bankData);
 
                     //transaction edit log data insert
+                    $this->transactionLog->transaction_log_data_update($bankInfo->transaction_log_id,$bankAmount);
                     $this->transactionLog->transaction_edit_log_data_insert('bank','','',$this->session->userId,$bankInfo->amount,$bankAmount,'',$purchaseId );
                     //insert Transaction in transaction table (end)
 
@@ -2031,6 +2042,7 @@ class Purchase extends BaseController
                     $ledger_bankTab = DB()->table('ledger_bank');
                     $ledger_bankTab->where('ledgBank_id', $bankLedgerInfo->id)->update($lgBankData);
                     //transaction edit log data insert
+                    $this->transactionLog->transaction_log_data_update($bankLedgerInfo->transaction_log_id,$bankAmount);
                     $this->transactionLog->transaction_edit_log_data_insert('ledger_bank','','',$this->session->userId,$bankLedgerInfo->amount,$bankAmount,'',$purchaseId );
                     //insert Transaction in transaction table (end)
                     $this->bank_ledger_rest_balance_update($bankId, $bankAmount, $bankLedgerInfo->id, $bankLedgerInfo->amount);
@@ -2050,6 +2062,7 @@ class Purchase extends BaseController
                     $suppliersTab->where('supplier_id', $supLastInfo->id)->update($bankSuppData);
 
                     //transaction edit log data insert
+                    $this->transactionLog->transaction_log_data_update($supLastInfo->transaction_log_id,$bankAmount);
                     $this->transactionLog->transaction_edit_log_data_insert('suppliers','','',$this->session->userId,$supLastInfo->amount,$bankAmount,'',$purchaseId );
                     //insert Transaction in transaction table (end)
 
@@ -2067,6 +2080,7 @@ class Purchase extends BaseController
                     $ledger_suppliersTab->where('ledg_sup_id', $supLastLedInfo->id)->update($lgSuplData);
 
                     //transaction edit log data insert
+                    $this->transactionLog->transaction_log_data_update($supLastLedInfo->transaction_log_id,$bankAmount);
                     $this->transactionLog->transaction_edit_log_data_insert('ledger_suppliers','','',$this->session->userId,$supLastLedInfo->amount,$bankAmount,'',$purchaseId );
                     //insert Transaction in transaction table (end)
 

@@ -374,6 +374,7 @@ class Products extends BaseController
 
             //product stock relation insert
             DB()->table('product_stock_relation')->insert([
+                'sch_id' => $shopId,
                 'store_id' => $store->store_id,
                 'product_id' => $prodId,
                 'quantity' => $totalQty,

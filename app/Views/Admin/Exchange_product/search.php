@@ -48,7 +48,7 @@
                                         <td><input type="checkbox" name="prod_id[]" class="datatables" id="checkedProd" value="<?php echo $row->prod_id; ?>" <?= empty($availableReturnQty)?'disabled':'';?> ></td>
 
                                         <td><?php echo get_data_by_id('name', 'products', 'prod_id', $row->prod_id) ?></td>
-                                        <td><input type="number" class="quantity form-control" id="quantity" name="quantity[]" min="<?= empty($availableReturnQty)?0:1;?>" max="<?= $availableReturnQty ?>" placeholder="Quantity" value="<?=$availableReturnQty ?>"> </td>
+                                        <td><input type="number" class="quantity form-control" id="quantity" name="quantity[<?= $row->prod_id?>]" min="<?= empty($availableReturnQty)?0:1;?>" max="<?= $availableReturnQty ?>" placeholder="Quantity" value="<?=$availableReturnQty ?>"> </td>
                                         <td><div id="showId_<?php echo $row->prod_id ?>"></div></td>
                                         <td>
                                             <?php if (!empty($availableReturnQty)){ ?>

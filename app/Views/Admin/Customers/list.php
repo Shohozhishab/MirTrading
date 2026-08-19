@@ -93,6 +93,9 @@
                                     <td><?php echo showWithCurrencySymbol($val->balance); ?></td>
                                     <td><?php echo $val->address; ?></td>
                                     <td>
+                                        <?php if (isset($replace_product) && $replace_product == 1){ ?>
+                                            <a href="<?= site_url('/Admin/Exchange_product?customer=' . $val->customer_id)?>" class="btn btn-info btn-xs">Replace Product</a>
+                                        <?php } ?>
                                         <?php if (isset($return_list) && $return_list == 1){ ?>
                                             <a href="<?= site_url('/Admin/Return_sale?customer=' . $val->customer_id)?>" class="btn btn-warning btn-xs">Return List</a>
                                         <?php } ?>

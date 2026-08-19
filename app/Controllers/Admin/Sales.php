@@ -95,11 +95,16 @@ class Sales extends BaseController
             return redirect()->to(site_url('Admin/login'));
         } else {
             $shopId = $this->session->shopId;
+            $sale_save_id = $this->request->getGet("sale_save_id");
+            
             $salesTable = DB()->table('sales');
             $data['sales'] = $salesTable->where('sch_id', $shopId)->where('deleted IS NULL')->get()->getResult();
 
             $table = DB()->table('affiliate_user');
             $data['affiliateUser'] = $table->where('sch_id', $shopId)->get()->getResult();
+
+            $data['salesSave'] = DB()->table('sale_save')->where('sale_save_id',$sale_save_id)->get()->getRow();
+
 
             $data['action'] = base_url('Admin/Sales/create_action');
             $data['menu'] = view('Admin/menu_sales', $data);
@@ -129,6 +134,7 @@ class Sales extends BaseController
         $shopId = $this->session->shopId;
 
         $keyWord = $this->request->getPost("keyWord");
+        $sale_save_id = $this->request->getPost("sale_save_id");
 
         $storeTab = DB()->table('stores');
         $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
@@ -174,6 +180,7 @@ class Sales extends BaseController
                 $view .='<div class="form-group col-xs-6">
                         <label for="int" class="text-capitalize">'. $val->name.' </label>
                         <input type="text" class="form-control" name="'. strtolower(str_replace(' ', '_', $val->name)).'" placeholder="'. $val->name.'" value="" >
+                        <input type="hidden" name="sale_save_id" value="'.$sale_save_id.'" >
                      </div>';
             }
             $view .='</div>';
@@ -202,7 +209,13 @@ class Sales extends BaseController
         $proId = $this->request->getPost('prod_id');
         $proName = $this->request->getPost('name');
         $proPrice = $this->request->getPost('price');
-//        $quantity = $this->request->getPost('quantity');
+
+
+        $sale_save_id = $this->request->getPost('sale_save_id');
+        $urlGet = '';
+        if(!empty($sale_save_id)){
+            $urlGet = '?sale_save_id='.$sale_save_id;
+        }
 
         $storeTab = DB()->table('stores');
         $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
@@ -243,14 +256,14 @@ class Sales extends BaseController
                 $this->cart->insert($data);
             } else {
                 $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert"> Invalid Quantity  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
-                return redirect()->to(site_url('Admin/Sales/create'));
+                return redirect()->to(site_url('Admin/Sales/create'.$urlGet));
             }
         } else {
             $this->session->setFlashdata('message', '<div class="alert alert-warning alert-dismissible" role="alert">Warning: You have no available product quantity to sale<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
 
         }
         $this->session->set('cartType', 'sale');
-        return redirect()->to(site_url('Admin/Sales/create'));
+        return redirect()->to(site_url('Admin/Sales/create'.$urlGet));
     }
 
     /**
@@ -272,8 +285,14 @@ class Sales extends BaseController
      */
     public function remove_cart($id)
     {
+        $sale_save_id = $this->request->getGet("sale_save_id");
+        $getUrl = '';
+        if (!empty($sale_save_id)){
+            $getUrl = '?sale_save_id='.$sale_save_id;
+        }
+
         $this->cart->remove($id);
-        return redirect()->to(site_url('Admin/Sales/create'));
+        return redirect()->to(site_url('Admin/Sales/create'.$getUrl));
     }
 
     /**
@@ -289,6 +308,7 @@ class Sales extends BaseController
 
         $customerId = $this->request->getPost('customer_id');
         $customerName = $this->request->getPost('name');
+        $affiliate_user_id = $this->request->getPost('affiliate_user_id');
 
         $proId = $this->request->getPost('productId[]');
         $quantity = $this->request->getPost('qty[]');
@@ -592,6 +612,28 @@ class Sales extends BaseController
                 DB()->table('commission')->insert([
                     'sch_id' => $shopId,
                     'affiliate_user_id' => $affiliateUserId,
+                    'sales_id' => $sales_id,
+                    'commission' => $affiliateUserData->commission,
+                    'commission_amount' => $newCommission,
+                    'date' => date('Y-m-d'),
+                ]);
+            }
+        }
+        if (!empty($customerName)){
+            if(!empty($affiliate_user_id)){
+                $tableAffiliateUser = DB()->table('affiliate_user');
+                $affiliateUserData = $tableAffiliateUser->where('affiliate_user_id',$affiliate_user_id)->get()->getRow();
+
+                $newCommission = ($finalAmount * $affiliateUserData->commission)/100;
+                $newCommissionBalance = $affiliateUserData->balance + $newCommission;
+                $commissionData = array(
+                    'balance' => $newCommissionBalance,
+                );
+                DB()->table('affiliate_user')->where('affiliate_user_id',$affiliate_user_id)->update($commissionData);
+
+                DB()->table('commission')->insert([
+                    'sch_id' => $shopId,
+                    'affiliate_user_id' => $affiliate_user_id,
                     'sales_id' => $sales_id,
                     'commission' => $affiliateUserData->commission,
                     'commission_amount' => $newCommission,
@@ -1009,6 +1051,12 @@ class Sales extends BaseController
             $invoiceTab = DB()->table('invoice');
             $invoiceTab->where('invoice_id', $invoiceId)->update($invChaqueId);
             //chaque id update in invoice table(end)
+        }
+
+        $sale_save_id = $this->request->getPost('sale_save_id');
+        if (!empty($sale_save_id)){
+            DB()->table('sale_save')->where('sale_save_id',$sale_save_id)->delete();
+            DB()->table('sale_save_item')->where('sale_save_id',$sale_save_id)->delete();
         }
 
         DB()->transComplete();
@@ -1917,6 +1965,121 @@ class Sales extends BaseController
     }
 
 
+    public function saleSaveAction(){
+
+        $sale_save_id = $this->request->getPost('sale_save_id');
+        if (!empty($sale_save_id)){
+            DB()->table('sale_save')->where('sale_save_id',$sale_save_id)->delete();
+            DB()->table('sale_save_item')->where('sale_save_id',$sale_save_id)->delete();
+        }
+
+        $shopId = $this->session->shopId;
+        $dateData = $this->request->getPost('dateData');
+        $customer_id = $this->request->getPost('customer_id');
+        $customer_name = $this->request->getPost('name');
+        $saleDisc = $this->request->getPost('saleDisc');
+        $vat = $this->request->getPost('vat');
+        $nagod = $this->request->getPost('nagod');
+        $bank_id = $this->request->getPost('bank_id');
+        $bankAmount = $this->request->getPost('bankAmount');
+        $chequeNo = $this->request->getPost('chequeNo');
+        $chequeAmount = $this->request->getPost('chequeAmount');;
+
+        DB()->table('sale_save')->insert([
+            'sch_id' => $shopId,
+            'date' => $dateData,
+            'customer_id' => $customer_id,
+            'customer_name' => $customer_name,
+            'discount' => $saleDisc,
+            'vat' => $vat,
+            'cash_pay' => $nagod,
+            'bank_id' => $bank_id,
+            'bank_paid' => $bankAmount,
+            'cheque_no' => $chequeNo,
+            'cheque_amount' => $chequeAmount,
+        ]);
+        $sale_save_id = DB()->insertID();
+
+        foreach ($this->cart->contents() as $row){
+            DB()->table('sale_save_item')->insert([
+                'sch_id' => $shopId,
+                'sale_save_id' => $sale_save_id,
+                'prod_id' => $row['id'],
+                'product_name' => $row['name'],
+                'quantity' => $row['qty'],
+                'price' => $row['price'],
+            ]);
+        }
+        $this->cart->destroy();
+
+        $this->session->setFlashdata('message', '<div class="alert alert-success alert-dismissible" role="alert">Successfully saved sale <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+        return redirect()->to(site_url('Admin/Sales/draft_list'));
+
+    }
+    public function draft_list(){
+        $isLoggedIn = $this->session->isLoggedIn;
+        $role_id = $this->session->role;
+        if (!isset($isLoggedIn) || $isLoggedIn != TRUE) {
+            return redirect()->to(site_url('Admin/login'));
+        } else {
+            $shopId = $this->session->shopId;
+
+            $table = DB()->table('sale_save');
+            $table->where('sch_id', $shopId);
+            $data['sales'] = $table->get()->getResult();
+
+            // All Permissions
+            //$perm = array('create','read','update','delete','mod_access');
+            $perm = $this->permission->module_permission_list($role_id, $this->module_name);
+            foreach ($perm as $key => $val) {
+                $data[$key] = $this->permission->have_access($role_id, $this->module_name, $key);
+            }
+            echo view('Admin/header');
+            echo view('Admin/sidebar');
+            if (isset($data['mod_access']) and $data['mod_access'] == 1) {
+                echo view('Admin/Sales/draft_list', $data);
+            } else {
+                echo view('no_permission');
+            }
+            echo view('Admin/footer');
+        }
+    }
+    public function draftAddToCart($id){
+        $shopId = $this->session->shopId;
+
+        $storeTab = DB()->table('stores');
+        $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
+
+        $result = DB()->table('sale_save_item')->where('sale_save_id',$id)->get()->getResult();
+
+        foreach ($result as $row) {
+            $stockTable = DB()->table('product_stock_relation');
+            $stock = $stockTable->where('store_id', $store->store_id)->where('product_id', $row->prod_id)->get()->getRow();
+            $productQnt = $stock->quantity;
+
+            if ($productQnt >= $row->quantity) {
+                if ($row->quantity > 0) {
+                    $data = array(
+                        'id' => $row->prod_id,
+                        'name' => strval($row->product_name),
+                        'qty' => $row->quantity,
+                        'price' => $row->price
+                    );
+                    $this->cart->insert($data);
+                }
+            }
+        }
+        $this->session->set('cartType', 'sale');
+        return redirect()->to(site_url('Admin/Sales/create?sale_save_id=').$id);
+    }
+    function draftDelete($sale_save_id){
+        if (!empty($sale_save_id)){
+            DB()->table('sale_save')->where('sale_save_id',$sale_save_id)->delete();
+            DB()->table('sale_save_item')->where('sale_save_id',$sale_save_id)->delete();
+        }
+        $this->session->setFlashdata('message', '<div class="alert alert-success alert-dismissible" role="alert">Successfully delete <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+        return redirect()->to(site_url('Admin/Sales/draft_list'));
+    }
 
 
 

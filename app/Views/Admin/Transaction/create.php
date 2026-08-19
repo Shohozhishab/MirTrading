@@ -353,7 +353,7 @@
                                                         </div>
                                                         <div class="form-group">
                                                             <label for="int">Expenses</label>
-                                                            <select class="form-control select2 select2-hidden-accessible input" style=" width: 100%;"  name="account_id">
+                                                            <select class="form-control select2  input" style=" width: 100%;"  name="account_id">
                                                                 <option selected="selected" value="">Please Select </option>
                                                                 <?php foreach ($expenses as $val){ ?>
                                                                     <option value="<?= $val->account_id;?>"><?= $val->name;?> </option>
@@ -363,17 +363,13 @@
 
                                                         <div class="form-group">
                                                             <label for="particulars">Particulars </label>
-                                                            <textarea class="form-control input" rows="3"
-                                                                      name="particulars" id="particulars"
-                                                                      placeholder="Particulars" required></textarea>
+                                                            <textarea class="form-control input" rows="3" name="particulars" id="particulars" placeholder="Particulars" required></textarea>
                                                         </div>
 
                                                         <div class="form-group">
                                                             <label for="payment_type">Payment
                                                                 Type </label>
-                                                            <select class="form-control input"
-                                                                    onchange="checkBank(this.value)" required
-                                                                    name="payment_type">
+                                                            <select class="form-control input" onchange="checkBank(this.value)" required name="payment_type">
                                                                 <option value="">Please Select</option>
                                                                 <option value="1">Chaque/Bank</option>
                                                                 <option value="2" selected>Cash</option>
@@ -520,8 +516,7 @@
                                                         </div>
 
                                                         <div class="form-group">
-                                                            <label for="int">Vat
-                                                                Register</label>
+                                                            <label for="int">Vat Register</label>
                                                             <select class="form-control select2 select2-hidden-accessible input"
                                                                     onchange="vatLedgerView(this.value)"
                                                                     style=" width: 100%;" tabindex="-1"

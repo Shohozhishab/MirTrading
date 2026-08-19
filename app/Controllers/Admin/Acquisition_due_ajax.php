@@ -41,10 +41,10 @@ class Acquisition_due_ajax extends BaseController
 
             //total customer balance calculet (start)
             $customersTab = DB()->table('customers');
-            $cusCash = $customersTab->selectSum('balance')->where('sch_id', $shopId)->get()->getRow();
+            $cusCash = $customersTab->selectSum('balance')->where('sch_id', $shopId)->get()->getRow()->balance;
             $customerCash = 0;
-            if (!empty($cusCash)) {
-                $customerCash = $cusCash->balance;
+            if ($cusCash > 0) {
+                $customerCash = $cusCash;
             }
 
             $custTab = DB()->table('customers');
@@ -54,10 +54,10 @@ class Acquisition_due_ajax extends BaseController
 
             //total Lone provider balance calculet(start)
             $loan_providerTab = DB()->table('loan_provider');
-            $loanProCash = $loan_providerTab->selectSum('balance')->where('sch_id', $shopId)->get()->getRow();
+            $loanProCash = $loan_providerTab->selectSum('balance')->where('sch_id', $shopId)->get()->getRow()->balance;
             $loanCash = 0;
-            if (!empty($loanProCash)) {
-                $loanCash = $loanProCash->balance;
+            if ($loanProCash > 0) {
+                $loanCash = $loanProCash;
             }
 
             $loaTab = DB()->table('loan_provider');
@@ -67,10 +67,10 @@ class Acquisition_due_ajax extends BaseController
 
             //total supplier due balance calculet (start)
             $suppliersTab = DB()->table('suppliers');
-            $supCash = $suppliersTab->selectSum('balance')->where('sch_id', $shopId)->get()->getRow();
+            $supCash = $suppliersTab->selectSum('balance')->where('sch_id', $shopId)->get()->getRow()->balance;
             $supplierCash = 0;
-            if (!empty($supCash)) {
-                $supplierCash = $supCash->balance;
+            if ($supCash > 0) {
+                $supplierCash = $supCash;
             }
 
             $suppTab = DB()->table('suppliers');

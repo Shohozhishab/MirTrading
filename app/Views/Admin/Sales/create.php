@@ -59,7 +59,7 @@
                         <!-- /.box-body -->
                     </div>
 
-                    <form action="<?php echo $action; ?>" method="post">
+            <form id="saleForm" action="<?php echo $action; ?>" method="post">
                     <div class="box">
                         <div class="box-header">
                             <h3 class="box-title"><i class="fa fa-fw fa-cart-plus"></i> Product cart list</h3>
@@ -127,7 +127,11 @@
 
                                             </td>
                                             <td width="120px">
-                                                <a href="<?php echo site_url('/Admin/Sales/remove_cart/' . $row['rowid']); ?>"
+                                                <?php
+
+                                                    $getUrl = !empty($salesSave) ? '?sale_save_id='.$salesSave->sale_save_id : '';
+                                                ?>
+                                                <a href="<?php echo site_url('/Admin/Sales/remove_cart/' . $row['rowid'].$getUrl); ?>"
                                                    onclick="javasciprt: return confirm('Are You Sure ?')"
                                                    class="btn btn-danger btn-xs">Cancel</a>
                                             </td>
@@ -159,28 +163,58 @@
             <div class="col-md-4" style="background-color: #e8b96f;padding: 10px;">
                 <div class="col-xs-12" style="border:1px dashed #D0D3D8 ;padding-top: 10px;padding-bottom: 10px;">
                     <label>Sale Date</label>
-                    <input type="date" class="form-control" name="dateData" value="<?= date('Y-m-d') ?>">
+                    <input type="date" class="form-control" name="dateData" value="<?= !empty($salesSave)?$salesSave->date:date('Y-m-d'); ?>">
+                    <input type="hidden" name="sale_save_id" id="sale_save_id" value="<?= !empty($salesSave)?$salesSave->sale_save_id:'';?>">
                 </div>
                 <div class="col-xs-12" style="border:1px dashed #D0D3D8 ;padding-top: 10px;">
                     <label>Customer</label>
                     <div class="panel with-nav-tabs panel-default nav-tabs-custom"
                          style="background-color: #e8b96f; border-color: ;" >
                         <ul class="nav nav-tabs" >
-                            <li class="active"><a href="#existing" data-toggle="tab">Existing Customer</a></li>
-                            <li class=""><a href="#new" data-toggle="tab">New Customer</a></li>
+                            <?php
+                                $cusActive = '';
+                                $cusNameActive = '';
+                                $customerId = '';
+                                $customerName = '';
+                                $discountVal = '';
+                                $vatVal = '';
+                                $cashPay = '';
+                                $bankId = '';
+                                $bankPay = '';
+                                $chequeNo = '';
+                                $chequePay = '';
+                                if (!empty($salesSave)){
+                                    $cusActive = !empty($salesSave->customer_id)?'active':'';
+                                    $cusNameActive = !empty($salesSave->customer_name)?'active':'';
+                                    $customerId = $salesSave->customer_id;
+                                    $customerName = $salesSave->customer_name;
+                                    $discountVal = $salesSave->discount;
+                                    $vatVal = $salesSave->vat;
+                                    $cashPay = $salesSave->cash_pay;
+                                    $bankId = $salesSave->bank_id;
+                                    $bankPay = $salesSave->bank_paid;
+                                    $chequeNo = $salesSave->cheque_no;
+                                    $chequePay = $salesSave->cheque_amount;
+                                }
+
+                            $existingActive = !empty($cusActive) || (empty($cusActive) && empty($cusNameActive));
+                            $newActive = !empty($cusNameActive);
+                            ?>
+                            <li class="<?= $existingActive ? 'active' : ''; ?>"><a href="#existing" data-toggle="tab">Existing Customer</a></li>
+                            <li class="<?= $newActive ? 'active' : ''; ?>"><a href="#new" data-toggle="tab">New Customer</a></li>
                         </ul>
                         <div class="panel-body">
                             <div class="tab-content">
-                                <div class="tab-pane fade active in" id="existing">
+                                <div class="tab-pane fade <?= $existingActive ? 'active in' : ''; ?> " id="existing">
                                     <div class="row">
                                         <div class="col-xs-12">
-                                            <select class="form-control select2 select2-hidden-accessible"
-                                                    onchange="createBtnShow(),customerBalanceShow(this.value)" style=" width: 100%;"
-                                                    tabindex="-1" aria-hidden="true" name="customer_id"
+                                            <select class="form-control select2"
+                                                    onchange="createBtnShow(),customerBalanceShow(this.value),emptyOponentCustomer() " style=" width: 100%;"
+                                                     name="customer_id"
                                                     id="cus">
 
                                                 <option selected="selected" value="">Please Select</option>
-                                                <?php echo getAllListInOptionWithStatus('customer_id', 'customer_id', 'customer_name', 'customers','customer_name'); ?>
+                                                <?php echo getAllListInOptionWithStatus($customerId, 'customer_id', 'customer_name', 'customers','customer_name'); ?>
                                             </select>
                                             <a href="javascript:void(0)" type="button" data-toggle="modal" data-target="#modal-customer">Create new</a><br>
                                             <span id="balance"></span>
@@ -188,11 +222,19 @@
                                     </div>
                                 </div>
 
-                                <div class="tab-pane fade in" id="new">
+                                <div class="tab-pane fade <?= $newActive ? 'active in' : ''; ?>" id="new">
                                     <div class="row">
                                         <div class="col-xs-12">
-                                            <input type="text" class="form-control " name="name" id="name"
-                                                   placeholder="Name" value=""/>
+                                            <input type="text" class="form-control " oninput="emptyOponentCustomer()" name="name" id="name" placeholder="Name" value="<?= $customerName;?>"/>
+                                            <div class="form-group" style="margin-top: 10px;">
+                                                <label for="int">Affiliate User</label>
+                                                <select class="form-control" name="affiliate_user_id" id="affiliate_user_id" required >
+                                                    <option value="">Please Select</option>
+                                                    <?php foreach ($affiliateUser as $item){ ?>
+                                                        <option value="<?= $item->affiliate_user_id;?>"><?= $item->name;?></option>
+                                                    <?php } ?>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -209,7 +251,7 @@
                         <label>Entire Sale Discount: %</label>
 
                         <input type="number" step=any class="form-control saleDisc" oninput="minusValueCheck(this.value,this)" name="saleDisc" id="saleDisc"
-                               placeholder="Input Discount %">
+                               placeholder="Input Discount %" value="<?= $discountVal;?>" >
                         <input type="hidden" class="form-control totalamount" name="total" id="totalamount"
                                readonly value="<?php echo Cart()->total() ?>">
                         <!--  </div> -->
@@ -226,7 +268,7 @@
                      style="border:1px dashed #D0D3D8 ; padding:5px; ">
                     <div class="col-xs-6" style="border:1px dashed #D0D3D8 ; padding:5px;">
                         <label>Vat: %</label>
-                        <input type="number" step=any class="form-control vat" oninput="minusValueCheck(this.value,this)" name="vat" id="vat" placeholder="vat %">
+                        <input type="number" step=any class="form-control vat" oninput="minusValueCheck(this.value,this)" name="vat" id="vat" placeholder="vat %" value="<?= $vatVal;?>">
 
                         <input type="hidden" class="form-control vatTotallast" name="vatTotallast"
                                id="vatTotallast" readonly value="<?php echo Cart()->total() ?>">
@@ -258,20 +300,20 @@
                         <div class="col-xs-12" style="border:1px dashed #D0D3D8 ; padding:5px;">
                             <label>Cash</label>
                             <input type="number" step=any class="form-control nagod" oninput="minusValueCheck(this.value,this)" name="nagod" id="nagod"
-                                   placeholder="Input Cash Amount">
+                                   placeholder="Input Cash Amount" value="<?= $cashPay;?>">
                         </div>
                         <div class="col-xs-12" style="border:1px dashed #D0D3D8 ; padding:5px;">
                             <div class="col-xs-6" style="border:1px dashed #D0D3D8 ; padding:5px;">
                                 <label>Bank</label>
                                 <select class="form-control" name="bank_id" id="bank_id">
                                     <option value="">Select Bank</option>
-                                    <?php echo getTwoValueInOption('bank_id', 'bank_id', 'name', 'account_no', 'bank'); ?>
+                                    <?php echo getTwoValueInOption($bankId, 'bank_id', 'name', 'account_no', 'bank'); ?>
                                 </select>
                             </div>
                             <div class="col-xs-6" style="border:1px dashed #D0D3D8 ; padding:5px;">
                                 <label>Bank Amount</label>
                                 <input type="number" step=any onchange="checkBankId()" class="form-control bankAmount"
-                                       name="bankAmount" id="bankAmount" oninput="minusValueCheck(this.value,this)" placeholder="input Bank Amount">
+                                       name="bankAmount" id="bankAmount" oninput="minusValueCheck(this.value,this)" placeholder="input Bank Amount" value="<?= $bankPay;?>" >
                                 <b id="Bank_valid"></b>
                             </div>
                         </div>
@@ -279,12 +321,12 @@
                             <div class="col-xs-6" style="border:1px dashed #D0D3D8 ; padding:5px;">
                                 <label>Cheque No</label>
                                 <input type="text" class="form-control" name="chequeNo" id="chequeNo"
-                                       placeholder="Input Cheque No ">
+                                       placeholder="Input Cheque No " value="<?= $chequeNo;?>">
                             </div>
                             <div class="col-xs-6" style="border:1px dashed #D0D3D8 ; padding:5px;">
                                 <label>Cheque Amount</label>
                                 <input type="number" step=any onchange="cheque()" class="form-control chequeAmount"
-                                       name="chequeAmount" oninput="minusValueCheck(this.value,this)" id="chequeAmount" placeholder="Input Cheque Amount ">
+                                       name="chequeAmount" oninput="minusValueCheck(this.value,this)" id="chequeAmount" placeholder="Input Cheque Amount " value="<?= $chequePay;?>">
                                 <b id="cheque_valid"></b>
                             </div>
                         </div>
@@ -308,6 +350,7 @@
                     </div>
                 </div>
                 <div class="col-xs-12" style="padding:20px; ">
+                    <button  type="button" class="btn btn-secondary" onclick="saveToDraft()" >Save to draft </button>
 
                     <button style="float: right;" id="btn" type="submit"
                             class="btn btn-primary">Sale</button>

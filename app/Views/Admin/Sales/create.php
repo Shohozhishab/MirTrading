@@ -228,7 +228,7 @@
                                             <input type="text" class="form-control " oninput="emptyOponentCustomer()" name="name" id="name" placeholder="Name" value="<?= $customerName;?>"/>
                                             <div class="form-group" style="margin-top: 10px;">
                                                 <label for="int">Affiliate User</label>
-                                                <select class="form-control" name="affiliate_user_id" id="affiliate_user_id" required >
+                                                <select class="form-control" name="affiliate_user_id" id="affiliate_user_id"  >
                                                     <option value="">Please Select</option>
                                                     <?php foreach ($affiliateUser as $item){ ?>
                                                         <option value="<?= $item->affiliate_user_id;?>"><?= $item->name;?></option>

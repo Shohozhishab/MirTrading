@@ -114,7 +114,7 @@ class Invoice_ajax extends BaseController
                 $data[$key] = $this->permission->have_access($role_id, $this->module_name, $key);
             }
             if (isset($data['mod_access']) and $data['read'] == 1) {
-                echo view('Admin/Invoice/view', $data);
+                echo view('Admin/Invoice/view_new', $data);
             } else {
                 echo view('no_permission');
             }

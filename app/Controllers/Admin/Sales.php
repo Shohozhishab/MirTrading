@@ -1984,36 +1984,42 @@ class Sales extends BaseController
         $bankAmount = $this->request->getPost('bankAmount');
         $chequeNo = $this->request->getPost('chequeNo');
         $chequeAmount = $this->request->getPost('chequeAmount');;
+        if (!empty($this->cart->contents())) {
+            DB()->transStart();
+                DB()->table('sale_save')->insert([
+                    'sch_id' => $shopId,
+                    'date' => $dateData,
+                    'customer_id' => $customer_id,
+                    'customer_name' => $customer_name,
+                    'discount' => $saleDisc,
+                    'vat' => $vat,
+                    'cash_pay' => $nagod,
+                    'bank_id' => $bank_id,
+                    'bank_paid' => $bankAmount,
+                    'cheque_no' => $chequeNo,
+                    'cheque_amount' => $chequeAmount,
+                ]);
+                $sale_save_id = DB()->insertID();
 
-        DB()->table('sale_save')->insert([
-            'sch_id' => $shopId,
-            'date' => $dateData,
-            'customer_id' => $customer_id,
-            'customer_name' => $customer_name,
-            'discount' => $saleDisc,
-            'vat' => $vat,
-            'cash_pay' => $nagod,
-            'bank_id' => $bank_id,
-            'bank_paid' => $bankAmount,
-            'cheque_no' => $chequeNo,
-            'cheque_amount' => $chequeAmount,
-        ]);
-        $sale_save_id = DB()->insertID();
+                foreach ($this->cart->contents() as $row) {
+                    DB()->table('sale_save_item')->insert([
+                        'sch_id' => $shopId,
+                        'sale_save_id' => $sale_save_id,
+                        'prod_id' => $row['id'],
+                        'product_name' => $row['name'],
+                        'quantity' => $row['qty'],
+                        'price' => $row['price'],
+                    ]);
+                }
+            DB()->transComplete();
+            $this->cart->destroy();
 
-        foreach ($this->cart->contents() as $row){
-            DB()->table('sale_save_item')->insert([
-                'sch_id' => $shopId,
-                'sale_save_id' => $sale_save_id,
-                'prod_id' => $row['id'],
-                'product_name' => $row['name'],
-                'quantity' => $row['qty'],
-                'price' => $row['price'],
-            ]);
+            $this->session->setFlashdata('message', '<div class="alert alert-success alert-dismissible" role="alert">Successfully saved sale <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+            return redirect()->to(site_url('Admin/Sales/draft_list'));
+        }else{
+            $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert">Your cart is empty!<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+            return redirect()->to(site_url('Admin/Sales/create'));
         }
-        $this->cart->destroy();
-
-        $this->session->setFlashdata('message', '<div class="alert alert-success alert-dismissible" role="alert">Successfully saved sale <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
-        return redirect()->to(site_url('Admin/Sales/draft_list'));
 
     }
     public function draft_list(){

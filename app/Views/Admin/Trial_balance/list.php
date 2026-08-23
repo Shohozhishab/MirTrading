@@ -72,6 +72,10 @@
                                         <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_stock')?>" class="text-black" >Stock Amount</a></td>
                                         <td><?php echo showWithCurrencySymbol($stockAmount); ?></td>
                                     </tr>
+                                    <tr>
+                                        <td style="width: 50%;">Affiliate Commission </td>
+                                        <td><?php echo showWithCurrencySymbol($ledger_expense_commission) ?></td>
+                                    </tr>
                                     <?php foreach ($accountsAssets as $val){ ?>
                                         <tr>
                                             <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_accounts?account_id='.$val->account_id)?>" class="text-black" ><?= $val->name ?></a></td>
@@ -177,6 +181,8 @@
                                         <td><?php echo showWithCurrencySymbol(-$service_charge); ?></td>
                                     </tr>
 
+
+
                                 </table>
 
                                 <h5><b>Account Head</b></h5>
@@ -208,6 +214,8 @@
                                         </tr>
                                     <?php } } ?>
                                 </table>
+
+
 
                                 <table class="table table-bordered table-striped" >
                                     <tr style="background-color: #decf77;">

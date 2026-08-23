@@ -145,6 +145,7 @@ class Report_ajax extends BaseController
                 'employee' => $employee,
                 'accountsAssets' => $accountsAssets,
                 'accountsExpenses' => $accountsExpenses,
+                'ledger_expense_commission' => $queryCash->getRow()->ledger_expense_commission,
 
             );
 

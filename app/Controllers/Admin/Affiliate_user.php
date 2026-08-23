@@ -275,7 +275,6 @@ class Affiliate_user extends BaseController
         $amount = str_replace(',', '', $this->request->getPost('amount'));
         //Supplier Balance
 
-        $restBalance = $balance - $amount;
         //Payment Type
         $paymentType = $this->request->getPost('payment_type');
         //shop data
@@ -351,6 +350,10 @@ class Affiliate_user extends BaseController
             $ledgerTab->insert($data);
 
 
+//            print_r($userRestBalance);
+//            print_r($amount);
+
+
             //admin transaction
             if ($paymentType == 2) {
                 //shop balance update
@@ -360,6 +363,8 @@ class Affiliate_user extends BaseController
                 );
                 $shopsTab = DB()->table('shops');
                 $shopsTab->where('sch_id', $shopId)->update($shopData);
+//                print_r($shopData);
+//                die();
 
                 //insert ledger_nagodan
                 $lgNagData = array(

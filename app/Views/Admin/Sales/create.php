@@ -350,7 +350,10 @@
                     </div>
                 </div>
                 <div class="col-xs-12" style="padding:20px; ">
+                    <?php $draft_sale = permission_check('Sales',newSession()->role,'draft_sale');?>
+                    <?php if (isset($draft_sale) && $draft_sale == 1){ ?>
                     <button  type="button" class="btn btn-secondary" onclick="saveToDraft()" >Save to draft </button>
+                    <?php } ?>
 
                     <button style="float: right;" id="btn" type="submit"
                             class="btn btn-primary">Sale</button>

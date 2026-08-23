@@ -222,7 +222,7 @@ class Trial_balance_ajax extends BaseController
             $serviceCharge = $shopsTable->where('sch_id', $shopId)->get()->getRow()->service_charge;
             //service charge
 
-            $totalCredit = $totalAmo + $capital + $profit + $vatEarn + $serviceCharge;
+            $totalCredit = $totalAmo + $capital + $profit + $vatEarn + $serviceCharge + $queryCash->getRow()->ledger_expense_commission;
 
             // all Credit(end)
 
@@ -254,6 +254,7 @@ class Trial_balance_ajax extends BaseController
                 'employee' => $employee,
                 'accountsAssets' => $accountsAssets,
                 'accountsExpenses' => $accountsExpenses,
+                'ledger_expense_commission' => $queryCash->getRow()->ledger_expense_commission,
 
             );
 

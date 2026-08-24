@@ -169,6 +169,11 @@
                                         <td style="float: right;"><?= showWithCurrencySymbol($expAllCr) ?></td>
                                     </tr>
 
+                                    <tr>
+                                        <td style="width: 50%;">Affiliate Commission</td>
+                                        <td style="float: right;"><?= showWithCurrencySymbol($ledger_expense_commission) ?></td>
+                                    </tr>
+
                                     <?php $empAllCr = 0; foreach ($employee as $rowem) { $empAllCr += $rowem->balance;} ?>
                                     <tr>
                                         <td style="width: 50%;"><a href="<?= base_url('Admin/Employee')?>" class="text-black" >Employee</a></td>
@@ -185,7 +190,7 @@
                                         <td style="float: right;"><?php echo showWithCurrencySymbol(-$payable) ?></td>
                                     </tr>
                                 </table>
-                                <?php $totalCreditAll = $capitalcr + $vatEarn + $accBalCr + $supAllCr + $cusAllCr + $expAllCr + $empAllCr; ?>
+                                <?php $totalCreditAll = $capitalcr + $vatEarn + $accBalCr + $supAllCr + $cusAllCr + $expAllCr + $empAllCr + $ledger_expense_commission; ?>
                             </div>
                             <div class="col-lg-12" style="padding: unset;">
                                 <div class="col-lg-6">

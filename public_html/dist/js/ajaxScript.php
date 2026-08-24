@@ -4058,13 +4058,23 @@ function opening_status(url){
 
       // Display values
       $('#discountAmount').text('৳ ' + discountAmount.toFixed(2) + ' /-');
+      $('#discountAmount2').text('৳ ' + discountAmount.toFixed(2) + ' /-');
       $('#vatAmount').text('৳ ' + vatAmount.toFixed(2) + ' /-');
+      $('#vatAmount2').text('৳ ' + vatAmount.toFixed(2) + ' /-');
   }
 
   // Run calculation
   $(document).ready(function () {
       calculateTotals();
   });
+
+
+
+
+
+
+
+
 
 </script>
 

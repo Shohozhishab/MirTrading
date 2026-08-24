@@ -119,7 +119,7 @@ class Invoice extends BaseController
             echo view('Admin/header');
             echo view('Admin/sidebar');
             if (isset($data['mod_access']) and $data['read'] == 1) {
-                echo view('Admin/Invoice/view', $data);
+                echo view('Admin/Invoice/view_new', $data);
             } else {
                 echo view('no_permission');
             }

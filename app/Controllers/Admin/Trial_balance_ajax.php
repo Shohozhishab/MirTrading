@@ -160,7 +160,7 @@ class Trial_balance_ajax extends BaseController
             $totalDue = $customerCash + $loanCash + $supplierCash + $assets + $expenses;
 
 
-            $totalDebit = $totalDue + $cash + $bankCash + $stockAmount + $emplBal + $expense;
+            $totalDebit = $totalDue + $cash + $bankCash + $stockAmount + $emplBal + $expense + $queryCash->getRow()->ledger_expense_commission;
             // all debit (end)
 
 
@@ -222,7 +222,22 @@ class Trial_balance_ajax extends BaseController
             $serviceCharge = $shopsTable->where('sch_id', $shopId)->get()->getRow()->service_charge;
             //service charge
 
-            $totalCredit = $totalAmo + $capital + $profit + $vatEarn + $serviceCharge + $queryCash->getRow()->ledger_expense_commission;
+            $otherIncomeData = DB()->table('accounts')
+                ->join('accounts_account_type_map', 'accounts_account_type_map.account_id = accounts.account_id')
+                ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
+                ->where('accounts.sch_id', $shopId)
+                ->where('account_type.type_key', 'other_income')
+                ->get()->getResult();
+
+            $otherIncome = DB()->table('accounts')
+                ->selectSum('accounts.balance')
+                ->join('accounts_account_type_map', 'accounts_account_type_map.account_id = accounts.account_id')
+                ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
+                ->where('accounts.sch_id', $shopId)
+                ->where('account_type.type_key', 'other_income')
+                ->get()->getRow()->balance;
+
+            $totalCredit = $totalAmo + $capital + $profit + $vatEarn + $serviceCharge + $otherIncome;
 
             // all Credit(end)
 
@@ -255,6 +270,7 @@ class Trial_balance_ajax extends BaseController
                 'accountsAssets' => $accountsAssets,
                 'accountsExpenses' => $accountsExpenses,
                 'ledger_expense_commission' => $queryCash->getRow()->ledger_expense_commission,
+                'otherIncome' => $otherIncomeData,
 
             );
 

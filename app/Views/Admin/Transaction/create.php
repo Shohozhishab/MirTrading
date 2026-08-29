@@ -44,7 +44,7 @@
                                 <li class="tab-pane "><a href="#loanProvider" data-toggle="tab">Account Head</a></li>
                                 <li class="tab-pane "><a href="#bank" data-toggle="tab">Fund Transfer</a></li>
                                 <li class="tab-pane "><a href="#expense" data-toggle="tab">Expense</a></li>
-                                <li class="tab-pane "><a href="#othersales" data-toggle="tab">Other Sales</a></li>
+                                <li class="tab-pane "><a href="#othersales" data-toggle="tab">Other Income</a></li>
                                 <li class="tab-pane "><a href="#employeeSalary" data-toggle="tab">Employee Salary</a>
                                 </li>
                                 <li class="tab-pane "><a href="#vatPay" data-toggle="tab">Vat Pay</a></li>
@@ -397,7 +397,7 @@
 
                                     <div class="tab-pane " id="othersales">
                                         <div class="box-header">
-                                            <h3 class="box-title">Other Sales Transaction</h3>
+                                            <h3 class="box-title">Other Income Transaction</h3>
                                         </div>
                                         <div class="box-body">
                                             <div class="row">
@@ -409,21 +409,26 @@
                                                             <input type="date" class="form-control" name="date" value="<?= date('Y-m-d') ?>" >
                                                         </div>
                                                         <div class="form-group">
+                                                            <label for="int">Other Income</label>
+                                                            <select class="form-control select2  input" style="width: 100%;"  name="account_id" required>
+                                                                <option selected="selected" value="">Please Select </option>
+                                                                <?php foreach ($otherIncome as $val){ ?>
+                                                                    <option value="<?= $val->account_id;?>"><?= $val->name;?> </option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                        <div class="form-group">
                                                             <label for="particulars">Particulars </label>
-                                                            <textarea class="form-control" rows="3" name="particulars"
-                                                                      id="particulars" placeholder="Particulars"
-                                                                      required></textarea>
+                                                            <textarea class="form-control" rows="3" name="particulars" id="particulars" placeholder="Particulars" required></textarea>
                                                         </div>
 
                                                         <div class="form-group">
                                                             <label for="int">Amount </label>
-                                                            <input type="number" step=any class="form-control" name="amount"
-                                                                   id="amount" oninput="minusValueCheck(this.value,this)" placeholder="Amount" required/>
+                                                            <input type="number" step=any class="form-control" name="amount" id="amount" oninput="minusValueCheck(this.value,this)" placeholder="Amount" required/>
                                                         </div>
-                                                        <button type="submit"
-                                                                class="btn btn-primary geniusSubmit-btn"><?php echo $button ?></button>
-                                                        <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/'); ?>','<?php echo '/Admin/Transaction/'; ?>')"
-                                                           class="btn btn-default">Cancel</a>
+
+                                                        <button type="submit" class="btn btn-primary geniusSubmit-btn"><?php echo $button ?></button>
+                                                        <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Transaction_ajax/'); ?>','<?php echo '/Admin/Transaction/'; ?>')" class="btn btn-default">Cancel</a>
                                                     </form>
                                                 </div>
                                             </div>

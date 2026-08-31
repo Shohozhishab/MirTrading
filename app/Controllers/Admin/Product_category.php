@@ -265,8 +265,7 @@ class Product_category extends BaseController
 
             // If parent is given as name (Electronics)
             if ($parentValue !== '' && !is_numeric($parentValue)) {
-                $parent = $builder
-                    ->where('product_category', $parentValue)
+                $parent = $builder->where('product_category', $parentValue)
                     ->where('sch_id', $schId)
                     ->get()
                     ->getRowArray();

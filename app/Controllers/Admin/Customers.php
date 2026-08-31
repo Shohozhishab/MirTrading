@@ -773,6 +773,18 @@ class Customers extends BaseController
         $rowNum   = 0;
         $shopId = $this->session->shopId;
         $userId = $this->session->userId;
+
+
+        // Cache customer types for this shop (avoids N+1 queries)
+        $typeCache = [];
+        $types = $db->table('customer_type')
+            ->where('sch_id', $shopId)
+            ->get()
+            ->getResultArray();
+        foreach ($types as $t) {
+            $typeCache[strtolower(trim($t['type_name']))] = $t['cus_type_id'];
+        }
+
         while (($row = fgetcsv($handle, 1000, ',')) !== false) {
             $rowNum++;
 
@@ -797,6 +809,7 @@ class Customers extends BaseController
             // Clean values
             $customerName = trim($data['customer_name'] ?? '');
             $mobile       = trim($data['mobile'] ?? '');
+            $typeName       = trim($data['type_name'] ?? '');
 
             // Must have at least customer_name OR mobile
             if (empty($customerName) && empty($mobile)) {
@@ -804,9 +817,25 @@ class Customers extends BaseController
                 continue;
             }
 
+            $cusTypeId = 0;
+            if ($typeName !== '') {
+                $key = strtolower($typeName);
+                if (isset($typeCache[$key])) {
+                    $cusTypeId = $typeCache[$key];
+                } else {
+                    $db->table('customer_type')->insert([
+                        'sch_id'    => $shopId,
+                        'type_name' => $typeName,
+                    ]);
+                    $cusTypeId = $db->insertID();
+                    $typeCache[$key] = $cusTypeId;
+                }
+            }
+
             // Prepare data to insert/update (add more fields as needed)
             $saveData = [
                 'sch_id' => $shopId,
+                'cus_type_id' => $cusTypeId,
                 'customer_name' => $customerName ?: null,
                 'mobile'        => $mobile ?: null,
                 'createdBy'    => $userId,

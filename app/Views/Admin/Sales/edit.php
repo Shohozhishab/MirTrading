@@ -46,6 +46,7 @@
                                             ?></td>
                                         <td>
                                             <input type="hidden" name="prod_id[]" value="<?= $item->prod_id;?>">
+                                            <input type="hidden" name="product_stock_relation_id[]" value="<?= $item->product_stock_relation_id;?>">
                                             <input type="hidden" name="inv_item[]" value="<?= $item->inv_item;?>">
                                             <input type="hidden" name="price[]" value="<?= $item->price;?>">
                                             <label for="int" class="text-capitalize"><?= showUnitName($unit)?></label><?= showWithCurrencySymbol(unitOrBasePriceByUnitPrice($unit,$item->price));?>

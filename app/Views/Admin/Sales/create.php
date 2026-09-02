@@ -86,13 +86,14 @@
                                     $l = 0;
                                     $m = 0;
                                     $n = 0;
-                                    foreach (Cart()->contents() as $row) { $unitId = productIdByDefaultStoreUnit($row['id']); ?>
+                                    foreach (Cart()->contents() as $row) { $unitId = productIdByDefaultStoreUnit($row['prod_id']); ?>
                                         <tr>
                                             <td><?php echo ++$i; ?></td>
                                             <td>
                                                 <?php echo $row['name']; ?>
                                                 <input type="hidden" class="form-control " name="productId[]"
-                                                       value="<?php echo $row['id']; ?>">
+                                                       value="<?php echo $row['prod_id']; ?>">
+                                                <input type="hidden"  name="product_stock_relation_id[]" value="<?php echo $row['id']; ?>">
                                             </td>
                                             <td>
                                                 <?php echo unitOrQtyByUnitQty($unitId,$row['qty']); ?>/<?php echo showUnitName($unitId) ?>
@@ -105,7 +106,7 @@
                                                 $uPrice = unitOrBasePriceByUnitPrice($unitId,$row['price']);
                                                 $conversion_factor = get_data_by_id('conversion_factor', 'units', 'units_id', $unitId)
                                                 ?>
-                                                <input type="text" class="form-control" name="unitPrice[]" oninput="priceMakeBase(this.value,'<?= $conversion_factor;?>','<?= $row['id'];?>' )" value="<?= $uPrice ?>">
+                                                <input type="text" class="form-control" oninput="priceMakeBase(this.value,'<?= $conversion_factor;?>','<?= $row['id'];?>' )" value="<?= $uPrice ?>">
 
                                             </td>
                                             <td>

@@ -188,4 +188,140 @@ class Product_category extends BaseController
     }
 
 
+
+    public function csv_action()
+    {
+        $validationRule = [
+            'file' => [
+                'label' => 'CSV File',
+                'rules' => 'uploaded[file]|ext_in[file,csv]|max_size[file,2048]',
+            ],
+        ];
+
+        if (!$this->validate($validationRule)) {
+            $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert">'. $this->validator->getErrors().'<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+            return redirect()->to(site_url('Admin/Product_category/create'));
+        }
+
+        $file = $this->request->getFile('file');
+
+        if (!$file->isValid() || $file->hasMoved()) {
+            $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert">Invalid file upload.<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+            return redirect()->to(site_url('Admin/Product_category/create'));
+        }
+
+        $newName = $file->getRandomName();
+        $file->move(WRITEPATH . 'uploads', $newName);
+        $filePath = WRITEPATH . 'uploads/' . $newName;
+
+        $handle = fopen($filePath, 'r');
+        if (!$handle) {
+            $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert">Unable to open CSV file.<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+            return redirect()->to(site_url('Admin/Product_category/create'));
+        }
+
+        $db      = \Config\Database::connect();
+        $builder = $db->table('product_category');
+        $schId = $this->session->shopId;
+        $userId = $this->session->userId;
+
+        $header   = null;
+        $inserted = 0;
+        $updated  = 0;
+        $skipped  = 0;
+        $rows     = [];
+
+        // Read CSV
+        while (($row = fgetcsv($handle, 1000, ',')) !== false) {
+            if (count(array_filter($row)) === 0) continue;
+
+            if ($header === null) {
+                $header = array_map(fn($v) => strtolower(trim($v)), $row);
+                continue;
+            }
+
+            $data = array_combine($header, $row);
+            if ($data === false) {
+                $skipped++;
+                continue;
+            }
+
+            $rows[] = $data;
+        }
+        fclose($handle);
+        @unlink($filePath);
+
+        // Insert data
+        foreach ($rows as $data) {
+
+            $categoryName = trim($data['product_category'] ?? '');
+            if (empty($categoryName)) {
+                $skipped++;
+                continue;
+            }
+
+            $parentValue = trim($data['parent_pro_cat'] ?? '');
+            $parentId    = 0;
+
+            // If parent is given as name (Electronics)
+            if ($parentValue !== '' && !is_numeric($parentValue)) {
+                $parent = $builder->where('product_category', $parentValue)
+                    ->where('sch_id', $schId)
+                    ->get()
+                    ->getRowArray();
+
+                if ($parent) {
+                    $parentId = $parent['prod_cat_id'];
+                }
+            }
+            // If parent is given as ID
+            elseif (is_numeric($parentValue)) {
+                $parentId = (int)$parentValue;
+            }
+
+            // Check if already exists
+            $existing = $builder
+                ->where('product_category', $categoryName)
+                ->where('parent_pro_cat', $parentId)
+                ->where('sch_id', $schId)
+                ->get()
+                ->getRowArray();
+
+            $saveData = [
+                'product_category' => $categoryName,
+                'parent_pro_cat'   => $parentId,
+                'status'           => '1',
+                'sch_id'           => $schId,
+                'updatedBy'        => $userId,
+                'updatedDtm'       => date('Y-m-d H:i:s'),
+            ];
+
+            if ($existing) {
+                $builder->where('prod_cat_id', $existing['prod_cat_id'])->update($saveData);
+                $updated++;
+            } else {
+                $saveData['createdBy']  = $userId;
+                $saveData['createdDtm'] = date('Y-m-d H:i:s');
+                $builder->insert($saveData);
+                $inserted++;
+            }
+        }
+
+        $message = "CSV Upload Successful!<br>
+                Inserted: <b>{$inserted}</b><br>
+                Updated: <b>{$updated}</b><br>
+                Skipped: <b>{$skipped}</b>";
+
+        $this->session->setFlashdata('message', '<div class="alert alert-success alert-dismissible" role="alert">'.$message.'<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+        return redirect()->to(site_url('Admin/Product_category/create'));
+    }
+
+
+
+
+
+
+
+
+
 }

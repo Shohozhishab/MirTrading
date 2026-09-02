@@ -76,9 +76,8 @@
             <?php } ?>
             <?php if (isset($create) && $create == 1){ ?>
             <div class="col-xs-12" style="margin-bottom: 15px;">
-                <a href="javascript:void(0)"
-                   onclick="showData('<?php echo site_url('/Admin/Purchase_ajax/create/'); ?>','<?php echo '/Admin/Purchase/create/'; ?>')"
-                   class="btn btn-success"><i class="fa fa-plus"></i> Add Purchase</a>
+                <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Purchase_ajax/create/'); ?>','<?php echo '/Admin/Purchase/create/'; ?>')" class="btn btn-success"><i class="fa fa-plus"></i> Add Purchase</a>
+                <a href="<?= base_url('/Admin/Purchase/purchase_product/')?>" class="btn btn-success"><i class="fa fa-plus"></i> New Purchase</a>
             </div>
             <?php } ?>
             <div class="col-lg-12" style="margin-top: 20px;">

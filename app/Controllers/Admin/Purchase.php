@@ -199,10 +199,8 @@ class Purchase extends BaseController
             if (empty($this->session->purchaseId)) {
                 return redirect()->to(site_url('Admin/Purchase/create'));
             }
-            if (!empty($this->session->cartType)) {
-                if ($this->session->cartType == 'sale') {
-                    $this->cart->destroy();
-                }
+            if (!empty($this->session->cartType) && $this->session->cartType !== 'purchase') {
+                $this->cart->destroy();
             }
             $table = DB()->table('suppliers');
             $data['supplier'] = $table->where('supplier_id',$this->session->supplierId)->get()->getRow();
@@ -1349,7 +1347,7 @@ class Purchase extends BaseController
             $shopPurBalTable->where('sch_id', $shopId)->update($purUpdata);
 
             //insert log (start)
-            $this->transactionLog->insert_log_data('shops',$shopId,'',$restBalPurc,'','','',$purchaseId,'purchase_balance');
+            $this->transactionLog->insert_log_data('shops',$shopId,'',$totalPrice,'','','',$purchaseId,'purchase_balance');
             //insert log (end)
 
             $purLedgData = array(
@@ -1611,6 +1609,7 @@ class Purchase extends BaseController
                 );
                 $stockRelationTable = DB()->table('product_stock_relation');
                 $stockRelationTable->insert($dataQty);
+                $productStockRelationId = DB()->insertID();
                 //insert data in table product_stock_relation
 
                 //insetr purchase Item in purchase item table
@@ -1622,6 +1621,7 @@ class Purchase extends BaseController
                 $purchaseData = array(
                     'purchase_id' => $purchaseId,
                     'prod_id' => $prodId,
+                    'product_stock_relation_id' => $productStockRelationId,
                     'purchase_price' => $purchasePrice,
                     'quantity' => $quantity,
                     'total_price' => $total_price,
@@ -1741,6 +1741,7 @@ class Purchase extends BaseController
         $prod_id = $this->request->getPost('prod_id[]');
         $qty = $this->request->getPost('qty[]');
         $price = $this->request->getPost('price[]');
+        $salePrice = $this->request->getPost('salePrice[]');
         $total_price = $this->request->getPost('total_price[]');
 
 
@@ -1793,7 +1794,7 @@ class Purchase extends BaseController
         // purchase balance update and ledger create (start)
         $purchaseBalanceInfo = $this->transactionLog->get_table_name_by_row_purchase_id_by_colum_name('shops',$purchaseId,'purchase_balance');
         $purchaseBal = get_data_by_id('purchase_balance', 'shops', 'sch_id', $shopId);
-        $restBalPurc = ($purchaseBal - $totalPrice) + $purchaseBalanceInfo->amount;
+        $restBalPurc = ($purchaseBal - $purchaseBalanceInfo->amount) + $totalPrice;
 
 
         $purUpdata = array('purchase_balance' => $restBalPurc);
@@ -2163,6 +2164,8 @@ class Purchase extends BaseController
                 $newQty = $purchaseDate->quantity - $purchaseItem->quantity;
                 $dataQty = array(
                     'quantity' => $newQty + $qty[$i],
+                    'purchase_price' => $price[$i],
+                    'selling_price' => $salePrice[$i],
                 );
                 DB()->table('product_stock_relation')->where('product_stock_relation_id', $purchaseItem->product_stock_relation_id)->update($dataQty);
             }
@@ -2371,9 +2374,6 @@ class Purchase extends BaseController
         echo view('Admin/Purchase/unitShow', $data);
     }
 
-
-
-
     public function purchase_product(){
         $isLoggedIn = $this->session->isLoggedIn;
         $role_id = $this->session->role;
@@ -2382,7 +2382,9 @@ class Purchase extends BaseController
         } else {
             $shopId = $this->session->shopId;
             $data['action'] = base_url('Admin/Purchase/purchase_product_action');
-
+            if (!empty($this->session->cartType) && $this->session->cartType !== 'purchaseNew') {
+                $this->cart->destroy();
+            }
             // All Permissions
             //$perm = array('create','read','update','delete','mod_access');
             $perm = $this->permission->module_permission_list($role_id, $this->module_name);
@@ -2506,12 +2508,11 @@ class Purchase extends BaseController
                 'sale_price' => $salePrice
             );
             $this->cart->insert($data);
+            $this->session->set('cartType', 'purchaseNew');
         } else {
             $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert"> Invalid Quantity  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
             return redirect()->to(site_url('Admin/Purchase/purchase_product'));
         }
-
-        $this->session->set('cartType', 'purchase');
         return redirect()->to(site_url('Admin/Purchase/purchase_product'));
     }
 
@@ -2625,7 +2626,7 @@ class Purchase extends BaseController
             $shopPurBalTable->where('sch_id', $shopId)->update($purUpdata);
 
             //insert log (start)
-            $this->transactionLog->insert_log_data('shops',$shopId,'',$restBalPurc,'','','',$purchaseId,'purchase_balance');
+            $this->transactionLog->insert_log_data('shops',$shopId,'',$totalPrice,'','','',$purchaseId,'purchase_balance');
             //insert log (end)
 
             $purLedgData = array(

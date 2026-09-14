@@ -37,10 +37,22 @@ class Products extends BaseController
         } else {
             $shopId = $this->session->shopId;
 
+            $category = $this->request->getGet('category');
+            $sub_category = $this->request->getGet('sub_category');
+
             $productTable = DB()->table('products');
+            $productTable->select('products.*,product_stock_relation.*,stores.store_id,stores.name as store_name,stores.is_default');
             $productTable->join('product_stock_relation','product_stock_relation.product_id = products.prod_id');
             $productTable->join('stores','stores.store_id = product_stock_relation.store_id');
-            $data['products_data'] = $productTable->where('products.sch_id', $shopId)->where('stores.is_default','1')->get()->getResult();
+
+            if (!empty($sub_category)){
+                $productTable->where('products.prod_cat_id', $sub_category);
+            }
+
+            $data['products_data'] = $productTable->where('products.sch_id', $shopId)->groupBy('products.prod_id')->where('stores.is_default','1')->get()->getResult();
+
+            $data['category'] = isset($category)?$category:'';
+            $data['sub_category'] = isset($sub_category)?$sub_category:'';
 
             $data['menu'] = view('Admin/menu_stock');
             // All Permissions
@@ -292,6 +304,7 @@ class Products extends BaseController
 
     public function add_action(){
         $shopId = $this->session->shopId;
+        $userId = $this->session->userId;
 
         $categories_id = $this->request->getPost('categories_id');
         $data['salePrice'] = $this->request->getPost('selling_price');
@@ -382,6 +395,7 @@ class Products extends BaseController
                 'purchase_price' => $purchasePrice,
                 'selling_price' => $salePrice,
             ]);
+            $product_stock_relation_id = DB()->insertID();
 
             //total amount product
             $totalAmountPro = $purchasePrice * $totalQty;
@@ -429,6 +443,58 @@ class Products extends BaseController
             $dataCapital['capital'] = $newCapital;
             $tableCapital = DB()->table('shops');
             $tableCapital->where('sch_id', $shopId)->update($dataCapital);
+
+
+
+
+            //purchase process
+            DB()->table('purchase')->insert([
+                'sch_id' => $shopId,
+                'date' => date('Y-m-d'),
+                'amount' => $totalAmountPro,
+                'due' => '0',
+                'createdBy' => $userId,
+            ]);
+            $purchaseId = DB()->insertID();
+
+
+            $purchaseBal = get_data_by_id('purchase_balance', 'shops', 'sch_id', $shopId);
+            $restBalPurc = $purchaseBal + $totalAmountPro;
+
+            $purUpdata = array('purchase_balance' => $restBalPurc);
+            $shopPurBalTable = DB()->table('shops');
+            $shopPurBalTable->where('sch_id', $shopId)->update($purUpdata);
+
+            $purLedgData = array(
+                'sch_id' => $shopId,
+                'purchase_id' => $purchaseId,
+                'trangaction_type' => 'Dr.',
+                'particulars' => 'Existing Products purchase amount',
+                'amount' => $totalAmountPro,
+                'rest_balance' => $restBalPurc,
+                'createdBy' => $userId,
+                'createdDtm' => date('Y-m-d h:i:s')
+            );
+            $ledger_purchaseTable = DB()->table('ledger_purchase');
+            $ledger_purchaseTable->insert($purLedgData);
+            // purchase balance update and ledger create (end)
+
+            //purchase item
+            $total_price = $totalQty * $purchasePrice;
+            $purchaseData = array(
+                'purchase_id' => $purchaseId,
+                'prod_id' => $prodId,
+                'product_stock_relation_id' => $product_stock_relation_id,
+                'purchase_price' => $purchasePrice,
+                'quantity' => $totalQty,
+                'total_price' => $total_price,
+                'createdBy' => $userId,
+                'createdDtm' => date('Y-m-d h:i:s')
+            );
+            $purchase_itemTab = DB()->table('purchase_item');
+            $purchase_itemTab->insert($purchaseData);
+
+
             DB()->transComplete();
 
             print '<div class="alert alert-success alert-dismissible" role="alert"> Product added successfully  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';

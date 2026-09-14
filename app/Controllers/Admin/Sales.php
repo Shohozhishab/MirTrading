@@ -105,6 +105,9 @@ class Sales extends BaseController
 
             $data['salesSave'] = DB()->table('sale_save')->where('sale_save_id',$sale_save_id)->get()->getRow();
 
+            if (!empty($this->session->cartType) && $this->session->cartType !== 'sale') {
+                $this->cart->destroy();
+            }
 
             $data['action'] = base_url('Admin/Sales/create_action');
             $data['menu'] = view('Admin/menu_sales', $data);
@@ -2328,6 +2331,7 @@ class Sales extends BaseController
         $dateData = $this->request->getPost('dateData');
         $customer_id = $this->request->getPost('customer_id');
         $customer_name = $this->request->getPost('name');
+        $affiliate_user_id = $this->request->getPost('affiliate_user_id');
         $saleDisc = $this->request->getPost('saleDisc');
         $vat = $this->request->getPost('vat');
         $nagod = $this->request->getPost('nagod');
@@ -2342,6 +2346,7 @@ class Sales extends BaseController
                     'date' => $dateData,
                     'customer_id' => $customer_id,
                     'customer_name' => $customer_name,
+                    'affiliate_user_id' => $affiliate_user_id,
                     'discount' => $saleDisc,
                     'vat' => $vat,
                     'cash_pay' => $nagod,
@@ -2356,7 +2361,8 @@ class Sales extends BaseController
                     DB()->table('sale_save_item')->insert([
                         'sch_id' => $shopId,
                         'sale_save_id' => $sale_save_id,
-                        'prod_id' => $row['id'],
+                        'product_stock_relation_id' => $row['id'],
+                        'prod_id' => $row['prod_id'],
                         'product_name' => $row['name'],
                         'quantity' => $row['qty'],
                         'price' => $row['price'],
@@ -2411,13 +2417,14 @@ class Sales extends BaseController
 
         foreach ($result as $row) {
             $stockTable = DB()->table('product_stock_relation');
-            $stock = $stockTable->where('store_id', $store->store_id)->where('product_id', $row->prod_id)->get()->getRow();
+            $stock = $stockTable->where('product_stock_relation_id', $row->product_stock_relation_id)->get()->getRow();
             $productQnt = $stock->quantity;
 
             if ($productQnt >= $row->quantity) {
                 if ($row->quantity > 0) {
                     $data = array(
-                        'id' => $row->prod_id,
+                        'id' => $row->product_stock_relation_id,
+                        'prod_id' => $row->prod_id,
                         'name' => strval($row->product_name),
                         'qty' => $row->quantity,
                         'price' => $row->price
@@ -2429,7 +2436,7 @@ class Sales extends BaseController
         $this->session->set('cartType', 'sale');
         return redirect()->to(site_url('Admin/Sales/create?sale_save_id=').$id);
     }
-    function draftDelete($sale_save_id){
+    public function draftDelete($sale_save_id){
         if (!empty($sale_save_id)){
             DB()->table('sale_save')->where('sale_save_id',$sale_save_id)->delete();
             DB()->table('sale_save_item')->where('sale_save_id',$sale_save_id)->delete();

@@ -71,7 +71,8 @@
                             <thead>
                             <tr>
                                 <th>No</th>
-                                <th>Name</th>
+                                <th>Bank Name</th>
+                                <th>Account Name</th>
                                 <th>Account No</th>
                                 <th>Balance</th>
                                 <th>Action</th>
@@ -84,6 +85,7 @@
                                 <tr>
                                     <td width="80px"><?php echo $start++ ?></td>
                                     <td><?php echo $val->name ?></td>
+                                    <td><?php echo $val->account_name ?></td>
                                     <td><?php echo $val->account_no ?></td>
                                     <td><?php echo showWithCurrencySymbol($val->balance) ?></td>
                                     <td width="180px">
@@ -131,18 +133,20 @@
                             <div class="col-md-12" >
                                 <table class="table table-bordered table-striped text-capitalize">
                                     <thead>
-                                    <tr>
-                                        <th>No</th>
-                                        <th>Name</th>
-                                        <th>Account No</th>
-                                        <th>Balance</th>
-                                    </tr>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Bank Name</th>
+                                            <th>Account Name</th>
+                                            <th>Account No</th>
+                                            <th>Balance</th>
+                                        </tr>
                                     </thead>
                                     <tbody>
                                     <?php $start=1; foreach ($bank as $item) { ?>
                                         <tr>
                                             <td width="80px"><?php echo $start++ ?></td>
                                             <td><?php echo $item->name ?></td>
+                                            <td><?php echo $item->account_name ?></td>
                                             <td><?php echo $item->account_no ?></td>
                                             <td><?php echo showWithCurrencySymbol($item->balance) ?></td>
                                         </tr>

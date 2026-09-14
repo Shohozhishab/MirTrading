@@ -86,6 +86,7 @@
                                     $l = 0;
                                     $m = 0;
                                     $n = 0;
+                                    if (isset(newSession()->cartType) && newSession()->cartType == 'sale'){
                                     foreach (Cart()->contents() as $row) { $unitId = productIdByDefaultStoreUnit($row['prod_id']); ?>
                                         <tr>
                                             <td><?php echo ++$i; ?></td>
@@ -137,7 +138,7 @@
                                                    class="btn btn-danger btn-xs">Cancel</a>
                                             </td>
                                         </tr>
-                                    <?php } ?>
+                                    <?php } } ?>
 
                                     </tbody>
 
@@ -177,6 +178,7 @@
                                 $cusNameActive = '';
                                 $customerId = '';
                                 $customerName = '';
+                                $affiliateUserId = '';
                                 $discountVal = '';
                                 $vatVal = '';
                                 $cashPay = '';
@@ -189,6 +191,7 @@
                                     $cusNameActive = !empty($salesSave->customer_name)?'active':'';
                                     $customerId = $salesSave->customer_id;
                                     $customerName = $salesSave->customer_name;
+                                    $affiliateUserId = $salesSave->affiliate_user_id;
                                     $discountVal = $salesSave->discount;
                                     $vatVal = $salesSave->vat;
                                     $cashPay = $salesSave->cash_pay;
@@ -232,7 +235,7 @@
                                                 <select class="form-control" name="affiliate_user_id" id="affiliate_user_id"  >
                                                     <option value="">Please Select</option>
                                                     <?php foreach ($affiliateUser as $item){ ?>
-                                                        <option value="<?= $item->affiliate_user_id;?>"><?= $item->name;?></option>
+                                                        <option value="<?= $item->affiliate_user_id;?>" <?= ($affiliateUserId == $item->affiliate_user_id)?'selected':'';?> ><?= $item->name;?></option>
                                                     <?php } ?>
                                                 </select>
                                             </div>

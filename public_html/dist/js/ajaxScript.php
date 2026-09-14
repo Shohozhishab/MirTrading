@@ -2083,6 +2083,7 @@ function calculateDueAndShowBtn() {
 
   function bankValidat(){
       var name = $('#name').val();
+      var accountName = $('#account_name').val();
       var account_no = $('#account_no').val();
 
       if (required(name) == false){
@@ -2096,6 +2097,17 @@ function calculateDueAndShowBtn() {
           var name_validation = true;
       }
 
+      if (required(accountName) == false){
+          $('#account_name').parent().find('.error').html('<div style="color:red;" id="mesWrong">This field cannot be empty</div>');
+      }else if(numericOrStringCheck(accountName) == false){
+          $('#account_name').parent().find('.error').html('<div style="color:red;" id="mesWrong">Only numeric not allow!</div>');
+      }else if (lengthValidation(accountName) == false){
+          $('#account_name').parent().find('.error').html('<div style="color:red;" id="mesWrong">maximum length of 32 characters</div>');
+      }else{
+          $('#account_name').parent().find('.error').html('<div style="color:green;" id="mesWrong">Success</div>');
+          var accountName_validation = true;
+      }
+
       if (required(account_no) == false){
           $('#account_no').parent().find('.error').html('<div style="color:red;" id="mesWrong">This field cannot be empty</div>');
       }else if(notNumericCheck(account_no) == false){
@@ -2107,13 +2119,14 @@ function calculateDueAndShowBtn() {
           var account_no_validation = true;
       }
 
-      if ((name_validation == true) && (account_no_validation == true)){
+      if ((name_validation == true) && (account_no_validation == true) && (accountName_validation == true)){
           $('#geniusform').submit();
       }
   }
 
   function bankExValidat(){
       var name = $('#name_ex').val();
+      var accountName = $('#account_name_ex').val();
       var account_no = $('#account_no_ex').val();
       var amount_ex = $('#amount_ex').val();
 
@@ -2126,6 +2139,16 @@ function calculateDueAndShowBtn() {
       }else{
           // $('#name_ex').parent().find('.error').html('<div style="color:green;" id="mesWrong">Success</div>');
           var name_validation = true;
+      }
+
+      if (required(accountName) == false){
+          $('#account_name_ex').parent().find('.error').html('<div style="color:red;" id="mesWrong">This field cannot be empty</div>');
+      }else if(numericOrStringCheck(accountName) == false){
+          $('#account_name_ex').parent().find('.error').html('<div style="color:red;" id="mesWrong">Only numeric not allow!</div>');
+      }else if (lengthValidation(accountName) == false){
+          $('#account_name_ex').parent().find('.error').html('<div style="color:red;" id="mesWrong">maximum length of 32 characters</div>');
+      }else{
+          var accountName_validation = true;
       }
 
       if (required(account_no) == false){
@@ -2149,7 +2172,7 @@ function calculateDueAndShowBtn() {
       }
 
 
-      if ((name_validation == true) && (account_no_validation == true) && (amount_ex_validation == true)){
+      if ((name_validation == true) && (account_no_validation == true) && (amount_ex_validation == true) && (accountName_validation == true)){
           $('#geniusform3').submit();
       }
   }
@@ -2265,8 +2288,8 @@ function calculateDueAndShowBtn() {
       }
 
       if ((name_validation == true) && (phone_validation == true)){
-          $('#name').parent().find('.error').html('<div style="color:green;" id="mesWrong">success</div>');
-          $('#phone').parent().find('.error').html('<div style="color:green;" id="mesWrong">success</div>');
+          $('#name').parent().find('.error').html('<div style="color:green;" id="mesWrong">Success</div>');
+          $('#phone').parent().find('.error').html('<div style="color:green;" id="mesWrong">Success</div>');
           $('#geniusform').submit();
           $('#supplierform').submit();
       }
@@ -3547,7 +3570,7 @@ function opening_status(url){
       }else if(numericOrStringCheck(name) == false){
           $('#name').parent().find('.error').html('<div style="color:red;" id="mesWrong">Only numeric not allow!</div>');
       }else if (lengthValidation(name) == false){
-          $('#name').parent().find('.error').html('<div style="color:red;" id="mesWrong">maximum length of 32 characters</div>');
+          $('#name').parent().find('.error').html('<div style="color:red;" id="mesWrong">Maximum length of 32 characters</div>');
       }else{
           var name_validation = true;
       }
@@ -3587,12 +3610,12 @@ function opening_status(url){
       }
 
       if ((name_validation == true) && (commission_validation == true) && (address_validation == true) && (phone_validation == true) && (password_validation == true) && (con_password_validation == true)){
-          $('#name').parent().find('.error').html('<div style="color:green;" id="mesWrong">success</div>');
-          $('#phone').parent().find('.error').html('<div style="color:green;" id="mesWrong">success</div>');
-          $('#commission').parent().find('.error').html('<div style="color:green;" id="mesWrong">success</div>');
-          $('#address').parent().find('.error').html('<div style="color:green;" id="mesWrong">success</div>');
-          $('#password').parent().find('.error').html('<div style="color:green;" id="mesWrong">success</div>');
-          $('#con_password').parent().find('.error').html('<div style="color:green;" id="mesWrong">success</div>');
+          $('#name').parent().find('.error').html('<div style="color:green;" id="mesWrong">Success</div>');
+          $('#phone').parent().find('.error').html('<div style="color:green;" id="mesWrong">Success</div>');
+          $('#commission').parent().find('.error').html('<div style="color:green;" id="mesWrong">Success</div>');
+          $('#address').parent().find('.error').html('<div style="color:green;" id="mesWrong">Success</div>');
+          $('#password').parent().find('.error').html('<div style="color:green;" id="mesWrong">Success</div>');
+          $('#con_password').parent().find('.error').html('<div style="color:green;" id="mesWrong">Success</div>');
 
           $('#geniusform').submit();
       }

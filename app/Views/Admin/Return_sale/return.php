@@ -47,13 +47,14 @@
                                 <?php foreach ($invoice_item as $row) {   $availableReturnQty = get_available_quantity_to_return($invoiceId,$row->prod_id,$row->quantity); ?>
                                     <tr role="row" class="odd">
                                         <td>
-                                            <input type="checkbox" name="returnchecked[]" class="datatables" id="checkedProd" value="<?php echo $row->prod_id; ?>" <?= empty($availableReturnQty)?'disabled':'';?> >
+                                            <input type="checkbox" oninput="calculateTotalPrice()" name="returnchecked[]" class="datatablesReturn" id="checkedProd" value="<?php echo $row->prod_id; ?>" <?= empty($availableReturnQty)?'disabled':'';?> >
+                                            <input type="hidden" name="product_stock_relation_id[]" value="<?= $row->product_stock_relation_id;?>">
                                         </td>
                                         <td><?php echo get_data_by_id('name', 'products', 'prod_id', $row->prod_id) ?></td>
-                                        <td><input type="number" class="quantity form-control" id="quantity"
+                                        <td><input type="number" class="quantityReturn form-control" oninput="calculateTotalPrice()" id="quantity"
                                                    name="quantity[]" placeholder="Quantity" min="<?= empty($availableReturnQty)?0:1;?>" max="<?= $availableReturnQty;?>"
                                                    value="<?= $availableReturnQty ?>"> </td>
-                                        <td><input type="text" class="purchase_price form-control" id="searchColumn"
+                                        <td><input type="text" class="purchase_priceReturn form-control" id="searchColumn"
                                                    name="purchase_price[]" value="<?php echo $row->price ?>" readonly></td>
                                     </tr>
                                 <?php } ?>
@@ -109,47 +110,42 @@
                                                     <?php }
                                                 } ?>
                                             </div>
-
+                                            <?php
+                                                $vatper = get_data_by_id('vat', 'invoice', 'invoice_id', $invoiceId);
+                                                if (!empty($vatper)){
+                                            ?>
                                             <div class="col-xs-6">
-                                                <?php $vatper = get_data_by_id('vat', 'invoice', 'invoice_id', $invoiceId); ?>
-                                                <input type="hidden" name="vetper" id="vetper"
-                                                       value="<?php echo $vatper; ?>">
+
+                                                <input type="hidden" name="vat" id="vat" value="<?php echo $vatper; ?>">
                                                 <label for="int">Vat (<?php echo $vatper; ?>%)</label>
                                             </div>
                                             <div class="form-group col-xs-6">
-                                                <input type="text" class="form-control" id="vatAmount" name="vatAmount"
-                                                       value="">
+                                                <input type="text" class="form-control" id="vatAmount" name="vatAmount" value="" readonly>
                                             </div>
+
+                                            <?php
+                                                }
+                                                $discount = get_data_by_id('entire_sale_discount', 'invoice', 'invoice_id', $invoiceId);
+                                                if (!empty($discount)){
+                                            ?>
+                                            <div class="col-xs-6">
+
+                                                <input type="hidden" name="discount" id="discount" value="<?php echo $discount; ?>">
+                                                <label for="int">Discount (<?php echo $discount; ?>%)</label>
+                                            </div>
+                                            <div class="form-group col-xs-6">
+                                                <input type="text" class="form-control" id="discountAmount" name="discountAmount" value="" readonly>
+                                            </div>
+                                            <?php } ?>
 
 
                                             <div class="col-xs-6">
                                                 <label for="int">Total Amount</label>
                                             </div>
                                             <div class="form-group col-xs-6">
-                                                <input type="text" class="form-control" name="totalPrice" id="totalAmount"
-                                                       readonly>
+                                                <input type="text" class="form-control" name="totalPrice" id="totalAmount" readonly>
                                                 <!-- <input type="hidden" class="form-control" name="totalPrice"  id="totalPrice" readonly > -->
                                             </div>
-<!--                                            <div class="col-xs-6">-->
-<!--                                                <label for="int">Cash</label>-->
-<!--                                            </div>-->
-<!--                                            <div class="form-group col-xs-6">-->
-<!--                                                <input type="text" onchange="checkShopsBalance(this.value)"-->
-<!--                                                       class="cash form-control" name="cash" id="cash"><b-->
-<!--                                                        id="Balance_valid"></b>-->
-<!--                                            </div>-->
-<!--                                            <div class="col-xs-6">-->
-<!--                                                <label for="int">Bank</label>-->
-<!--                                            </div>-->
-<!--                                            <div class="form-group col-xs-6">-->
-<!--                                                <select class="form-control" name="bank_id" id="bank_id">-->
-<!--                                                    <option value="">Select Bank</option>-->
-<!--                                                    --><?php //echo getTwoValueInOption('', 'bank_id', 'name', 'account_no', 'bank'); ?>
-<!--                                                </select><br>-->
-<!--                                                <input type="text" onchange="checkBankBalance(this.value)"-->
-<!--                                                       class="bank form-control" name="bank" id="bank">-->
-<!--                                                <b id="Bank_valid"></b>-->
-<!--                                            </div>-->
                                             <div class="col-xs-6">
                                                 <label for="int">Due</label>
                                             </div>
@@ -200,7 +196,7 @@
 <script>
     function validateReturnForm() {
 
-        let checkedProduct = document.querySelectorAll('.datatables:checked').length;
+        let checkedProduct = document.querySelectorAll('.datatablesReturn:checked').length;
 
         let message = '';
 
@@ -212,15 +208,15 @@
         }
 
         // Quantity validation
-        let checkedRows = document.querySelectorAll('.datatables:checked');
+        let checkedRows = document.querySelectorAll('.datatablesReturn:checked');
 
         checkedRows.forEach(function (item) {
 
             let row = item.closest('tr');
 
-            let qty = row.querySelector('.quantity').value;
+            let qty = row.querySelector('.quantityReturn').value;
 
-            let maxQty = row.querySelector('.quantity').max;
+            let maxQty = row.querySelector('.quantityReturn').max;
 
             if (qty == '' || qty <= 0) {
 
@@ -236,8 +232,6 @@
 
         });
 
-
-
         // Final validation
         if (message != '') {
 
@@ -252,4 +246,50 @@
         return true;
 
     }
+
+    function calculateTotalPrice() {
+
+        var totalPrice = 0;
+
+        var checks = $("input.datatablesReturn");
+        var qnt = $("input[name='quantity[]']");
+        var pur_price = $("input[name='purchase_price[]']");
+
+        // Calculate selected product total
+        for (var i = 0; i < checks.length; i++) {
+
+            if (checks[i].checked) {
+                var quantity = parseFloat(qnt[i].value) || 0;
+                var purchasePrice = parseFloat(pur_price[i].value) || 0;
+
+                totalPrice += quantity * purchasePrice;
+            }
+        }
+
+        // VAT %
+        var vatPercent = parseFloat($("#vat").val()) || 0;
+
+        // Discount %
+        var discountPercent = parseFloat($("#discount").val()) || 0;
+
+        // Discount amount
+        var discountAmount = totalPrice * discountPercent / 100;
+
+        // Amount after discount
+        var afterDiscount = totalPrice - discountAmount;
+
+        // VAT amount
+        var vatAmount = afterDiscount * vatPercent / 100;
+
+        // Final total
+        var finalAmount = afterDiscount + vatAmount;
+
+        // Set values
+        $("#vatAmount").val(vatAmount.toFixed(8));
+        $("#discountAmount").val(discountAmount.toFixed(8));
+
+        $("#totalAmount").val(finalAmount.toFixed(8));
+        $("#totalDueAmount").val(finalAmount.toFixed(8));
+    }
+
 </script>

@@ -343,7 +343,7 @@ function getCatListInOption($selected, $tblId, $needCol, $table)
 function subCategoryListOption($selected)
 {
     $table = DB()->table('product_category');
-    $query = $table->where('parent_pro_cat',0)->where('sch_id',$_SESSION['shopId'])->where('status !=',1)->where('deleted IS NULL')->get()->getResult();
+    $query = $table->where('parent_pro_cat !=',0)->where('sch_id',$_SESSION['shopId'])->where('status !=',1)->where('deleted IS NULL')->get()->getResult();
     $options = '';
     foreach ($query as $value) {
         $options .= '<option value="' . $value->prod_cat_id . '" ';
@@ -1823,16 +1823,6 @@ function get_return_status_by_invoice_id($invoiceId){
         $totalInvoiceQty += $inv_qty;
         $totalReturnQty  += $ret_qty;
     }
-
-//    if ($totalReturnQty == 0) {
-//        $status = 'Not Returned';
-//    } elseif ($totalReturnQty < $totalInvoiceQty) {
-//        $status = 'Partial Return';
-//    } elseif ($totalReturnQty == $totalInvoiceQty) {
-//        $status = 'Fully Returned';
-//    } else {
-//        $status = 'Error';
-//    }
 
     $status = ($totalReturnQty == $totalInvoiceQty)?1:0;
     return $status;

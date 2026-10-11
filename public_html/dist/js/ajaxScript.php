@@ -942,7 +942,7 @@ function goBack() {
           },
           success: function(data){
               $("#loading-image").hide();
-              $('#balance').html('Balance: ৳ '+ data +'/-');
+              $('#balance').html('Balance: ৳ '+ data.balance +'/-');
           }
       });
   }

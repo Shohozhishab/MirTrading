@@ -2259,7 +2259,7 @@ class Transaction extends BaseController
                         <label for="int">Amount </label>
                         <input type="hidden" name="trans_id" value="' . $tanId . '"  required/>
                         <input type="number" step=any class="form-control input"
-                               name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . $result->amount . '" placeholder="Amount"
+                               name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . (float)$result->amount . '" placeholder="Amount"
                                required/>
                     </div>';
         $view .= '</div>
@@ -3060,7 +3060,7 @@ class Transaction extends BaseController
                             <label for="int">Amount </label>
                             <input type="hidden" name="trans_id" value="' . $tanId . '"  required/>
                             <input type="number" step=any class="form-control input"
-                                   name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . $result->amount . '" placeholder="Amount"
+                                   name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . (float)$result->amount . '" placeholder="Amount"
                                    required/>
                         </div>';
         $view .= '</div>
@@ -3478,7 +3478,6 @@ class Transaction extends BaseController
             $table = DB()->table('ledger');
             $table->updateBatch($arrayUpData, 'ledg_id');
         }
-//        return $arrayUpData;
     }
 
     /**
@@ -3533,7 +3532,6 @@ class Transaction extends BaseController
             $table = DB()->table('ledger_nagodan');
             $table->updateBatch($arrayUpData, 'ledg_nagodan_id');
         }
-//        return $arrayUpData;
     }
 
     private function shop_ledger_rest_balance_update_cr($transactionId, $amount, $type)
@@ -3582,7 +3580,6 @@ class Transaction extends BaseController
             $table = DB()->table('ledger_nagodan');
             $table->updateBatch($arrayUpData, 'ledg_nagodan_id');
         }
-//        return $arrayUpData;
     }
 
     /**
@@ -3711,7 +3708,6 @@ class Transaction extends BaseController
             $table = DB()->table('ledger_bank');
             $table->updateBatch($arrayUpData, 'ledgBank_id');
         }
-//        return $arrayUpData;
     }
 
     /**
@@ -3764,7 +3760,7 @@ class Transaction extends BaseController
                             <label for="int">Amount </label>
                             <input type="hidden" name="trans_id" value="' . $tanId . '"  required/>
                             <input type="number" step=any class="form-control input"
-                                   name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . $result->amount . '" placeholder="Amount"
+                                   name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . (float)$result->amount . '" placeholder="Amount"
                                    required/>
                         </div>';
         $view .= '</div>
@@ -3944,7 +3940,6 @@ class Transaction extends BaseController
             $table = DB()->table('ledger_suppliers');
             $table->updateBatch($arrayUpData, 'ledg_sup_id');
         }
-//        return $arrayUpData;
     }
 
     private function supplier_ledger_rest_balance_update_cr($transactionId, $supplier_id, $amount, $type)
@@ -3996,7 +3991,6 @@ class Transaction extends BaseController
             $table = DB()->table('ledger_suppliers');
             $table->updateBatch($arrayUpData, 'ledg_sup_id');
         }
-//        return $arrayUpData;
     }
 
     /**
@@ -4050,7 +4044,7 @@ class Transaction extends BaseController
                             <label for="int">Amount </label>
                             <input type="hidden" name="trans_id" value="' . $tanId . '"  required/>
                             <input type="number" step=any class="form-control input"
-                                   name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . $result->amount . '" placeholder="Amount"
+                                   name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . (float)$result->amount . '" placeholder="Amount"
                                    required/>
                         </div>';
         $view .= '</div>
@@ -4229,7 +4223,6 @@ class Transaction extends BaseController
             $table = DB()->table('ledger_loan');
             $table->updateBatch($arrayUpData, 'ledg_loan_id');
         }
-//        return $arrayUpData;
     }
 
     private function account_ledger_rest_balance_update_cr($transactionId, $loan_pro_id, $amount, $type)
@@ -4320,7 +4313,7 @@ class Transaction extends BaseController
                             <label for="int">Amount </label>
                             <input type="hidden" name="trans_id" value="' . $tanId . '"  required/>
                             <input type="number" step=any class="form-control input"
-                                   name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . $result->amount . '" placeholder="Amount"
+                                   name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . (float)$result->amount . '" placeholder="Amount"
                                    required/>
                         </div>';
         $view .= '</div>
@@ -4474,7 +4467,7 @@ class Transaction extends BaseController
                             <label for="int">Amount </label>
                             <input type="hidden" name="trans_id" value="' . $tanId . '"  required/>
                             <input type="number" step=any class="form-control input"
-                                   name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . $result->amount . '" placeholder="Amount"
+                                   name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . (float)$result->amount . '" placeholder="Amount"
                                    required/>
                         </div>';
         $view .= '</div>
@@ -4624,8 +4617,6 @@ class Transaction extends BaseController
 
             print '<div class="alert alert-danger alert-dismissible" role="alert">Not Enough Balance<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
         }
-
-
     }
 
     /**
@@ -4666,7 +4657,6 @@ class Transaction extends BaseController
             $table = DB()->table('ledger_expense');
             $table->updateBatch($arrayUpData, 'ledg_exp_id');
         }
-//        return $arrayUpData;
     }
 
     /**
@@ -4716,7 +4706,7 @@ class Transaction extends BaseController
                             <label for="int">Amount </label>
                             <input type="hidden" name="trans_id" value="' . $tanId . '"  required/>
                             <input type="number" step=any class="form-control input"
-                                   name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . $result->amount . '" placeholder="Amount"
+                                   name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . (float)$result->amount . '" placeholder="Amount"
                                    required/>
                         </div>';
         $view .= '</div>
@@ -4924,7 +4914,6 @@ class Transaction extends BaseController
             $table = DB()->table('ledger_employee');
             $table->updateBatch($arrayUpData, 'ledg_emp_id');
         }
-//        return $arrayUpData;
     }
 
     /**
@@ -4949,7 +4938,7 @@ class Transaction extends BaseController
                         <div class="form-group databank" id="chaque">
                             <label for="int">Amount </label>
                             <input type="hidden" name="trans_id" value="' . $tanId . '"  required/>
-                            <input type="number" step=any class="form-control input" name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . $result->amount . '" placeholder="Amount" required/>
+                            <input type="number" step=any class="form-control input" name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . (float)$result->amount . '" placeholder="Amount" required/>
                         </div>';
         $view .= '</div>
                     <div class="modal-footer">
@@ -5076,7 +5065,7 @@ class Transaction extends BaseController
                             <label for="int">Amount </label>
                             <input type="hidden" name="trans_id" value="' . $tanId . '"  required/>
                             <input type="number" step=any class="form-control input"
-                                   name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . $result->amount . '" placeholder="Amount"
+                                   name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . (float)$result->amount . '" placeholder="Amount"
                                    required/>
                         </div>';
         $view .= '</div>
@@ -5279,7 +5268,6 @@ class Transaction extends BaseController
             $table = DB()->table('ledger_vat');
             $table->updateBatch($arrayUpData, 'ledg_vat_id');
         }
-//        return $arrayUpData;
     }
 
     private function transaction_entries($trans_id, $ledger_id, $table_name, $transaction_type) {
@@ -5545,7 +5533,7 @@ class Transaction extends BaseController
                             <label for="int">Amount </label>
                             <input type="hidden" name="trans_id" value="' . $tanId . '"  required/>
                             <input type="number" step=any class="form-control input"
-                                   name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . $result->amount . '" placeholder="Amount"
+                                   name="amount" oninput="minusValueCheck(this.value,this)" id="amount" value="' . (float)$result->amount . '" placeholder="Amount"
                                    required/>
                         </div>';
         $view .= '</div>

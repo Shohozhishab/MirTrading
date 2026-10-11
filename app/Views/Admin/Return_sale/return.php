@@ -116,7 +116,7 @@
                                             ?>
                                             <div class="col-xs-6">
 
-                                                <input type="hidden" name="vat" id="vat" value="<?php echo $vatper; ?>">
+                                                <input type="hidden" name="vat" id="vat" value="<?php echo (float)$vatper; ?>">
                                                 <label for="int">Vat (<?php echo $vatper; ?>%)</label>
                                             </div>
                                             <div class="form-group col-xs-6">
@@ -285,11 +285,11 @@
         var finalAmount = afterDiscount + vatAmount;
 
         // Set values
-        $("#vatAmount").val(vatAmount.toFixed(8));
-        $("#discountAmount").val(discountAmount.toFixed(8));
+        $("#vatAmount").val(vatAmount !== 0 ? vatAmount : "");
+        $("#discountAmount").val(discountAmount !== 0 ? discountAmount : "");
 
-        $("#totalAmount").val(finalAmount.toFixed(8));
-        $("#totalDueAmount").val(finalAmount.toFixed(8));
+        $("#totalAmount").val(finalAmount !== 0 ? finalAmount : "");
+        $("#totalDueAmount").val(finalAmount !== 0 ? finalAmount : "");
     }
 
 </script>

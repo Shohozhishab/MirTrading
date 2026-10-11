@@ -207,71 +207,6 @@ class Sales extends BaseController
      * @description This method add to cart
      * @return RedirectResponse
      */
-    public function old_add_cart()
-    {
-
-        $shopId = $this->session->shopId;
-
-        $proId = $this->request->getPost('prod_id');
-        $proName = $this->request->getPost('name');
-        $proPrice = $this->request->getPost('price');
-
-
-        $sale_save_id = $this->request->getPost('sale_save_id');
-        $urlGet = '';
-        if(!empty($sale_save_id)){
-            $urlGet = '?sale_save_id='.$sale_save_id;
-        }
-
-        $storeTab = DB()->table('stores');
-        $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
-
-        $stockTable = DB()->table('product_stock_relation');
-        $stock = $stockTable->where('store_id',$store->store_id)->where('product_id', $proId)->get()->getRow();
-        $productQnt = $stock->quantity;
-        $qty = 0;
-        foreach ($this->cart->contents() as $row) {
-            if ($proId == $row['id']) {
-                $qty = $row['qty'];
-            }
-        }
-
-        //unit qty
-        $unitIdJson = get_data_by_id('sale_units', 'products', 'prod_id', $proId);
-        $units_id = json_decode($unitIdJson);
-        $unitQty = 0;
-        $unit = array();
-        $units = DB()->table('units')->whereIn('units_id', $units_id)->orderBy('conversion_factor', 'DESC')->get()->getResult();
-        foreach ($units as $val) {
-            $nameUnit = strtolower(str_replace(' ', '_', $val->name));
-            $unit[$nameUnit] = $this->request->getPost($nameUnit);
-            if (!empty($unit[$nameUnit])) {
-                $unitQty += $val->conversion_factor * $unit[$nameUnit];
-            }
-        }
-
-        $totalquantity = $unitQty + $qty;
-        if ($productQnt >= $totalquantity) {
-            if ($totalquantity > 0) {
-                $data = array(
-                    'id' => $proId,
-                    'name' => strval($proName),
-                    'qty' => $totalquantity,
-                    'price' => $proPrice
-                );
-                $this->cart->insert($data);
-            } else {
-                $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert"> Invalid Quantity  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
-                return redirect()->to(site_url('Admin/Sales/create'.$urlGet));
-            }
-        } else {
-            $this->session->setFlashdata('message', '<div class="alert alert-warning alert-dismissible" role="alert">Warning: You have no available product quantity to sale<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
-
-        }
-        $this->session->set('cartType', 'sale');
-        return redirect()->to(site_url('Admin/Sales/create'.$urlGet));
-    }
-
     public function add_cart()
     {
 
@@ -1057,7 +992,9 @@ class Sales extends BaseController
     public function customerBalance(){
         $customerId = $this->request->getPost('customer_id');
         $balance = get_data_by_id('balance', 'customers', 'customer_id', $customerId);
-        return $balance;
+        return $this->response->setJSON([
+            'balance' => (float) ($balance ?? 0)
+        ]);
     }
 
     public function salesEdit(){

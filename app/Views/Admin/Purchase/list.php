@@ -10,6 +10,9 @@
 
     <!-- Main content -->
     <section class="content">
+        <div class="col-xs-12" style="margin-bottom: 15px;">
+            <?php echo $menu;?>
+        </div>
         <!-- Small boxes (Stat box) -->
         <?php if (isDefaultRole() == true){ ?>
             <div class="row" id="reloadRoleDiv" style="margin-bottom:20px; ">

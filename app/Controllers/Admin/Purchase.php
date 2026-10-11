@@ -79,6 +79,8 @@ class Purchase extends BaseController
             //purchase table null value delete (end)
 
 
+
+            $data['menu'] = view('Admin/menu_purchase', $data);
             // All Permissions
             //$perm = array('create','read','update','delete','mod_access');
             $perm = $this->permission->module_permission_list($role_id, $this->module_name);
@@ -2416,7 +2418,8 @@ class Purchase extends BaseController
             ->join('product_stock_relation', 'product_stock_relation.product_id = products.prod_id')
             ->where('products.sch_id', $shopId)
             ->where('product_stock_relation.store_id', $store->store_id)
-            ->where('product_stock_relation.is_default', '1')
+//            ->where('product_stock_relation.is_default', '1')
+            ->groupBy('products.prod_id')
             ->groupStart()
             ->like('products.name', $keyWord)
             ->orLike('products.prod_id', $keyWord)
@@ -2429,7 +2432,7 @@ class Purchase extends BaseController
         foreach ($data as $sval) {
             $image = ($sval->picture == NULL) ? 'no_image.jpg' : $sval->picture;
             $unit = $sval->unit;
-            $qty = totalProductInStoreByProductIdOrStoreId($sval->prod_id,$store->store_id);
+            $qty = $sval->quantity;
 
             $availQty = unitOrQtyByUnitQty($unit,$qty);
             $purchasePrice = unitOrBasePriceByUnitPrice($unit,$sval->purchase_price);
@@ -2443,7 +2446,7 @@ class Purchase extends BaseController
                             <div class="col-xs-2">
                                 <img class="img-circle" src="' . base_url() . '/uploads/product_image/' . $image . '" width="60" height="60">
                             </div>
-                            <div class="col-xs-4"><label for="usr">Name /Price:</label><h4 style="color:black;">' . $sval->name . '/' . showWithCurrencySymbol($purchasePrice) . 'Tk.</h4><p>Available Quantity: '.$availQty.'/'.showUnitName($unit).'</p><input class="form-control" type="hidden" readonly id="name" name="name" value="' . $sval->name . '"><input class="form-control" type="hidden" readonly id="price" name="price" value="' . $sval->purchase_price . '"><input class="form-control" type="hidden" readonly id="sale_price" name="sale_price" value="' . $sval->selling_price . '"><input class="form-control" type="hidden" readonly id="prod_id" name="prod_id" value="' . $sval->prod_id . '"></div>
+                            <div class="col-xs-4"><label for="usr">Name /Price:</label><h4 style="color:black;">' . $sval->name . '/' . showWithCurrencySymbol($purchasePrice) . 'Tk. </h4><p>Available Quantity: '.$availQty.'/'.showUnitName($unit).'</p><input class="form-control" type="hidden" readonly id="name" name="name" value="' . $sval->name . '"><input class="form-control" type="hidden" readonly id="price" name="price" value="' . $sval->purchase_price . '"><input class="form-control" type="hidden" readonly id="sale_price" name="sale_price" value="' . $sval->selling_price . '"><input class="form-control" type="hidden" readonly id="prod_id" name="prod_id" value="' . $sval->prod_id . '"></div>
                             <div class="col-md-5 row">';
             foreach ($unitsArray as $val){
                 $view .='<div class="form-group col-xs-6">
@@ -2454,7 +2457,7 @@ class Purchase extends BaseController
             $view .='</div>';
 
             $view .='<div class="col-xs-1" >
-                        <span for="usr">Category:</span><br><h4 style="color:black;">' . get_data_by_id('product_category', 'product_category', 'prod_cat_id', $sval->prod_cat_id) . '</h4>
+                        <span>Category:</span><br><h4 style="color:black;">' . get_data_by_id('product_category', 'product_category', 'prod_cat_id', $sval->prod_cat_id) . '</h4>
                                 <button  type="subbmit" class="add_cart btn btn-success btn-xs" >Add</button>
                             </div></a></div>
                         </form>
@@ -2688,7 +2691,7 @@ class Purchase extends BaseController
 
             if ($cashAmount > 0) {
 
-                //purshase pay cash amount calculet to shops cash and update shops cash or create ledger_nagodan statment in ledger_nagodan table (start)
+                //purchase pay cash amount calculate to shops cash and update shops cash or create ledger_nagodan statement in ledger_nagodan table (start)
                 $shopsCash = get_data_by_id('cash', 'shops', 'sch_id', $shopId);
 
                 if ($shopsCash >= $cashAmount) {
@@ -2763,13 +2766,13 @@ class Purchase extends BaseController
                     $this->transactionLog->insert_log_data('ledger_suppliers',$ledg_sup_id,'',$cashAmount,'','','',$purchaseId);
                     //insert log (end)
                 }
-                //purshase pay cash amount calculet to suppliers balance and update suppliers balance or create supplier ledger in ledger_suppliers table (end)
+                //purchase pay cash amount calculate to shops cash and update shops cash or create ledger_nagodan statement in ledger_nagodan table (end)
             }
 
 
             if ($bankAmount > 0) {
 
-                //purshase pay bank amountcalculet to bank balance and update bank balance or create bank ledger in ledger_bank table (start)
+                //purshase pay bank amount calculet to bank balance and update bank balance or create bank ledger in ledger_bank table (start)
                 $bankCash = get_data_by_id('balance', 'bank', 'bank_id', $bankId);
 
                 if ($bankCash >= $bankAmount) {
@@ -2945,6 +2948,377 @@ class Purchase extends BaseController
             $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert">Your cart is empty! <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
             return redirect()->to(site_url('Admin/Purchase/new_product'));
         }
+    }
+    public function purchase_return_action()
+    {
+        $userId  = $this->session->userId;
+        $shopId  = $this->session->shopId;
+
+        $date        = $this->request->getPost('date');
+        $supplierId  = $this->request->getPost('supplier_id');
+        $sms         = $this->request->getPost('sms');
+        $purchaseId  = $this->request->getPost('purchase_id'); // original purchase to return against
+
+        $totalPrice  = str_replace(',', '', $this->request->getPost('totalPrice'));
+        $cashAmount  = str_replace(',', '', $this->request->getPost('cash'));
+        $bankAmount  = str_replace(',', '', $this->request->getPost('bank'));
+        $dueAmount   = str_replace(',', '', $this->request->getPost('due'));
+        $bankId      = $this->request->getPost('bank_id');
+
+        $productId   = $this->request->getPost('productId[]');
+
+        if (empty($purchaseId) || empty($supplierId)) {
+            $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert">Purchase & Supplier are required!<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+            return redirect()->to(site_url('Admin/Purchase/purchase_return'));
+        }
+
+        if (empty($this->cart->contents())) {
+            $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert">Your cart is empty!<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+            return redirect()->to(site_url('Admin/Purchase/purchase_return'));
+        }
+
+        $number = count($productId);
+
+        // Basic validation (same spirit as original)
+        if (!empty($cashAmount) && $cashAmount < 0) {
+            $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert">Please enter valid amount<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+            return redirect()->to(site_url('Admin/Purchase/purchase_return'));
+        }
+        if (!empty($bankAmount) && $bankAmount < 0) {
+            $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert">Please enter valid amount<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+            return redirect()->to(site_url('Admin/Purchase/purchase_return'));
+        }
+
+        DB()->transStart();
+
+        // -------------------------------------------------
+        // 1. Create Purchase Return master record
+        // -------------------------------------------------
+        DB()->table('purchase_return')->insert([
+            'sch_id'       => $shopId,
+            'purchase_id'  => $purchaseId,
+            'supplier_id'  => $supplierId,
+            'date'         => $date,
+            'createdBy'    => $userId,
+        ]);
+        $returnId = DB()->insertID();
+
+        // -------------------------------------------------
+        // 2. Reverse Supplier balance (original was -totalPrice)
+        //    → now +totalPrice  + Cr → Dr ledger
+        // -------------------------------------------------
+        $supplierCash = get_data_by_id('balance', 'suppliers', 'supplier_id', $supplierId);
+        $newCash      = $supplierCash + $totalPrice;   // reverse of original -
+
+        DB()->table('suppliers')
+            ->where('supplier_id', $supplierId)
+            ->update([
+                'balance'   => $newCash,
+                'updatedBy' => $userId,
+            ]);
+
+        $this->transactionLog->insert_log_data('suppliers', $supplierId, '', $totalPrice, '', '', '', $returnId);
+
+        $lgSuplData = [
+            'sch_id'           => $shopId,
+            'supplier_id'      => $supplierId,
+            'purchase_id'      => $purchaseId,
+            'purchase_return_id'=> $returnId,
+            'trangaction_type' => 'Dr.',                 // reverse of original Cr.
+            'particulars'      => 'Purchase Return',
+            'amount'           => $totalPrice,
+            'rest_balance'     => $newCash,
+            'createdBy'        => $userId,
+            'createdDtm'       => date('Y-m-d h:i:s'),
+        ];
+        DB()->table('ledger_suppliers')->insert($lgSuplData);
+        $ledg_sup_id = DB()->insertID();
+
+        $this->purchase_transaction_entries($returnId, $ledg_sup_id, 'ledger_suppliers', 'Dr.');
+        $this->transactionLog->insert_log_data('ledger_suppliers', $ledg_sup_id, '', $totalPrice, '', '', '', $returnId);
+
+        // -------------------------------------------------
+        // 3. Reverse Purchase Balance (original +totalPrice → now -)
+        // -------------------------------------------------
+        $purchaseBal  = get_data_by_id('purchase_balance', 'shops', 'sch_id', $shopId);
+        $restBalPurc  = $purchaseBal - $totalPrice;
+
+        DB()->table('shops')
+            ->where('sch_id', $shopId)
+            ->update(['purchase_balance' => $restBalPurc]);
+
+        $this->transactionLog->insert_log_data('shops', $shopId, '', $totalPrice, '', '', '', $returnId, 'purchase_balance');
+
+        $purLedgData = [
+            'sch_id'           => $shopId,
+            'purchase_id'      => $purchaseId,
+            'purchase_return_id'=> $returnId,
+            'trangaction_type' => 'Cr.',                 // reverse of original Dr.
+            'particulars'      => 'Purchase Return amount',
+            'amount'           => $totalPrice,
+            'rest_balance'     => $restBalPurc,
+            'createdBy'        => $userId,
+            'createdDtm'       => date('Y-m-d h:i:s'),
+        ];
+        DB()->table('ledger_purchase')->insert($purLedgData);
+        $ledgPurch_id = DB()->insertID();
+
+        $this->purchase_transaction_entries($returnId, $ledgPurch_id, 'ledger_purchase', 'Cr.');
+        $this->transactionLog->insert_log_data('ledger_purchase', $ledgPurch_id, '', $totalPrice, '', '', '', $returnId);
+
+        // -------------------------------------------------
+        // 4. Reverse Stock Amount (original +totalPrice → now -)
+        // -------------------------------------------------
+        $stockBal     = get_data_by_id('stockAmount', 'shops', 'sch_id', $shopId);
+        $restBalStock = $stockBal - $totalPrice;
+
+        DB()->table('shops')
+            ->where('sch_id', $shopId)
+            ->update(['stockAmount' => $restBalStock]);
+
+        $this->transactionLog->insert_log_data('shops', $shopId, '', $totalPrice, '', '', '', $returnId, 'stockAmount');
+
+        $stockLedgData = [
+            'sch_id'           => $shopId,
+            'purchase_id'      => $purchaseId,
+            'purchase_return_id'=> $returnId,
+            'trangaction_type' => 'Cr.',                 // reverse of original Dr.
+            'particulars'      => 'Purchase Return amount',
+            'amount'           => $totalPrice,
+            'rest_balance'     => $restBalStock,
+            'createdBy'        => $userId,
+            'createdDtm'       => date('Y-m-d h:i:s'),
+        ];
+        DB()->table('ledger_stock')->insert($stockLedgData);
+        $stock_id = DB()->insertID();
+
+        $this->purchase_transaction_entries($returnId, $stock_id, 'ledger_stock', 'Cr.');
+        $this->transactionLog->insert_log_data('ledger_stock', $stock_id, '', $totalPrice, '', '', '', $returnId);
+
+        // -------------------------------------------------
+        // 5. Cash payment reverse (if any)
+        //    Original: cash ↓, supplier ↑
+        //    Return  : cash ↑, supplier ↓
+        // -------------------------------------------------
+        if ($cashAmount > 0) {
+            $shopsCash = get_data_by_id('cash', 'shops', 'sch_id', $shopId);
+            $upCash    = $shopsCash + $cashAmount;   // reverse of original -
+
+            DB()->table('shops')
+                ->where('sch_id', $shopId)
+                ->update([
+                    'cash'      => $upCash,
+                    'updatedBy' => $userId,
+                ]);
+
+            $this->transactionLog->insert_log_data('shops', $shopId, '', $cashAmount, '', '', '', $returnId);
+
+            // Nagodan ledger (reverse)
+            $lgNagData = [
+                'sch_id'           => $shopId,
+                'purchase_id'      => $purchaseId,
+                'purchase_return_id'=> $returnId,
+                'particulars'      => 'Purchase Return Cash Receive',
+                'trangaction_type' => 'Dr.',             // reverse of original Cr.
+                'amount'           => $cashAmount,
+                'rest_balance'     => $upCash,
+                'createdBy'        => $userId,
+                'createdDtm'       => date('Y-m-d h:i:s'),
+            ];
+            DB()->table('ledger_nagodan')->insert($lgNagData);
+            $ledg_nagodan_id = DB()->insertID();
+
+            $this->purchase_transaction_entries($returnId, $ledg_nagodan_id, 'ledger_nagodan', 'Dr.');
+            $this->transactionLog->insert_log_data('ledger_nagodan', $ledg_nagodan_id, '', $cashAmount, '', '', '', $returnId);
+
+            // Supplier balance reverse for cash
+            $supplierccCash = get_data_by_id('balance', 'suppliers', 'supplier_id', $supplierId);
+            $suppCash       = $supplierccCash - $cashAmount;  // reverse of original +
+
+            DB()->table('suppliers')
+                ->where('supplier_id', $supplierId)
+                ->update([
+                    'balance'   => $suppCash,
+                    'updatedBy' => $userId,
+                ]);
+
+            $this->transactionLog->insert_log_data('suppliers', $supplierId, '', $cashAmount, '', '', '', $returnId);
+
+            $lgSuplData = [
+                'sch_id'           => $shopId,
+                'supplier_id'      => $supplierId,
+                'purchase_id'      => $purchaseId,
+                'purchase_return_id'=> $returnId,
+                'particulars'      => 'Purchase Return Cash Receive',
+                'trangaction_type' => 'Cr.',             // reverse of original Dr.
+                'amount'           => $cashAmount,
+                'rest_balance'     => $suppCash,
+                'createdBy'        => $userId,
+                'createdDtm'       => date('Y-m-d h:i:s'),
+            ];
+            DB()->table('ledger_suppliers')->insert($lgSuplData);
+            $ledg_sup_id = DB()->insertID();
+
+            $this->purchase_transaction_entries($returnId, $ledg_sup_id, 'ledger_suppliers', 'Cr.');
+            $this->transactionLog->insert_log_data('ledger_suppliers', $ledg_sup_id, '', $cashAmount, '', '', '', $returnId);
+        }
+
+        // -------------------------------------------------
+        // 6. Bank payment reverse (if any)
+        // -------------------------------------------------
+        if ($bankAmount > 0) {
+            $bankCash = get_data_by_id('balance', 'bank', 'bank_id', $bankId);
+            $upBank   = $bankCash + $bankAmount;   // reverse of original -
+
+            DB()->table('bank')
+                ->where('bank_id', $bankId)
+                ->update([
+                    'balance'   => $upBank,
+                    'updatedBy' => $userId,
+                ]);
+
+            $this->transactionLog->insert_log_data('bank', $bankId, '', $bankAmount, '', '', '', $returnId);
+
+            $lgBankData = [
+                'sch_id'           => $shopId,
+                'bank_id'          => $bankId,
+                'purchase_id'      => $purchaseId,
+                'purchase_return_id'=> $returnId,
+                'trangaction_type' => 'Dr.',             // reverse of original Cr.
+                'particulars'      => 'Purchase Return Bank Receive',
+                'amount'           => $bankAmount,
+                'rest_balance'     => $upBank,
+                'createdBy'        => $userId,
+                'createdDtm'       => date('Y-m-d h:i:s'),
+            ];
+            DB()->table('ledger_bank')->insert($lgBankData);
+            $ledgBank_id = DB()->insertID();
+
+            $this->purchase_transaction_entries($returnId, $ledgBank_id, 'ledger_bank', 'Dr.');
+            $this->transactionLog->insert_log_data('ledger_bank', $ledgBank_id, '', $bankAmount, '', '', '', $returnId);
+
+            // Supplier balance reverse for bank
+            $supplierbbCash = get_data_by_id('balance', 'suppliers', 'supplier_id', $supplierId);
+            $suppBaCash     = $supplierbbCash - $bankAmount;  // reverse of original +
+
+            DB()->table('suppliers')
+                ->where('supplier_id', $supplierId)
+                ->update([
+                    'balance'   => $suppBaCash,
+                    'updatedBy' => $userId,
+                ]);
+
+            $this->transactionLog->insert_log_data('suppliers', $supplierId, '', $bankAmount, '', '', '', $returnId);
+
+            $lgSuplData = [
+                'sch_id'           => $shopId,
+                'supplier_id'      => $supplierId,
+                'purchase_id'      => $purchaseId,
+                'purchase_return_id'=> $returnId,
+                'particulars'      => 'Purchase Return Bank Receive',
+                'trangaction_type' => 'Cr.',             // reverse of original Dr.
+                'amount'           => $bankAmount,
+                'rest_balance'     => $suppBaCash,
+                'createdBy'        => $userId,
+                'createdDtm'       => date('Y-m-d h:i:s'),
+            ];
+            DB()->table('ledger_suppliers')->insert($lgSuplData);
+            $ledg_sup_id = DB()->insertID();
+
+            $this->purchase_transaction_entries($returnId, $ledg_sup_id, 'ledger_suppliers', 'Cr.');
+            $this->transactionLog->insert_log_data('ledger_suppliers', $ledg_sup_id, '', $bankAmount, '', '', '', $returnId);
+        }
+
+        // -------------------------------------------------
+        // 7. Stock / product_stock_relation reverse + purchase_return_item
+        // -------------------------------------------------
+        $store = DB()->table('stores')
+            ->where('sch_id', $shopId)
+            ->where('is_default', 1)
+            ->get()
+            ->getRow();
+        $storeId = $store->store_id;
+
+        for ($i = 0; $i < $number; $i++) {
+            $prodId        = $productId[$i];
+            $purchasePrice = $this->request->getPost('price[]')[$i];
+            $sellingPrice  = $this->request->getPost('salePrice[]')[$i];
+            $quantity      = $this->request->getPost('qty[]')[$i];
+
+            // Find existing stock row
+            $stock = DB()->table('product_stock_relation')
+                ->where('sch_id', $shopId)
+                ->where('store_id', $storeId)
+                ->where('product_id', $prodId)
+                ->where('purchase_price', $purchasePrice)
+                ->where('selling_price', $sellingPrice)
+                ->where('is_default', '0')
+                ->get()
+                ->getRow();
+
+            if ($stock) {
+                $newQty = $stock->quantity - $quantity;
+                if ($newQty < 0) $newQty = 0; // safety
+
+                DB()->table('product_stock_relation')
+                    ->where('product_stock_relation_id', $stock->product_stock_relation_id)
+                    ->update([
+                        'quantity'    => $newQty,
+                        'supplier_id' => $supplierId,
+                    ]);
+                $product_stock_relation_id = $stock->product_stock_relation_id;
+            } else {
+                // Should not happen on return, but keep safe
+                $product_stock_relation_id = 0;
+            }
+
+            $total_price = $quantity * $purchasePrice;
+
+            // Insert into purchase_return_item
+            $returnItemData = [
+                'purchase_return_id'         => $returnId,
+                'purchase_id'                => $purchaseId,
+                'prod_id'                    => $prodId,
+                'product_stock_relation_id'  => $product_stock_relation_id,
+                'purchase_price'             => $purchasePrice,
+                'quantity'                   => $quantity,
+                'total_price'                => $total_price,
+                'createdBy'                  => $userId,
+                'createdDtm'                 => date('Y-m-d h:i:s'),
+            ];
+            DB()->table('purchase_return_item')->insert($returnItemData);
+            $return_item_id = DB()->insertID();
+
+            $this->transactionLog->insert_log_data('purchase_return_item', $return_item_id, '', $total_price, '', '', '', $returnId);
+        }
+
+        // -------------------------------------------------
+        // 8. Update return master with payment details
+        // -------------------------------------------------
+        DB()->table('purchase_return')
+            ->where('purchase_return_id', $returnId)
+            ->update([
+                'amount'     => $totalPrice,
+                'nagad_paid' => $cashAmount,
+                'bank_paid'  => $bankAmount,
+                'bank_id'    => $bankId,
+                'due'        => $dueAmount,
+            ]);
+
+        $this->transactionLog->insert_log_data('purchase_return', $returnId, '', $totalPrice, '', '', '', $returnId);
+
+        DB()->transComplete();
+
+        if (!empty($sms)) {
+            $message = 'Thank you. Your purchase return amount is-' . $totalPrice;
+            $phone   = get_data_by_id('phone', 'suppliers', 'supplier_id', $supplierId);
+            send_sms($phone, $message);
+        }
+
+        $this->cart->destroy();
+
+        $this->session->setFlashdata('message', '<div class="alert alert-success alert-dismissible" role="alert">Purchase Return Success<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+        return redirect()->to(site_url('Admin/Purchase'));
     }
 
 

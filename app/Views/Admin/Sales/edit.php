@@ -142,7 +142,7 @@
                                         <label>Payment</label>
                                         <div class="col-xs-12" style="border:1px dashed #D0D3D8 ; padding:5px;">
                                             <label>Cash</label>
-                                            <input type="number" step=any class="form-control nagod" oninput="minusValueCheck(this.value,this)" name="nagod" id="nagod" placeholder="Input Cash Amount" value="<?= $invoice->nagad_paid?>">
+                                            <input type="number" step=any class="form-control nagod" oninput="minusValueCheck(this.value,this)" name="nagod" id="nagod" placeholder="Input Cash Amount" value="<?= (float)$invoice->nagad_paid?>">
                                         </div>
                                         <div class="col-xs-12" style="border:1px dashed #D0D3D8 ; padding:5px;">
                                             <div class="col-xs-6" style="border:1px dashed #D0D3D8 ; padding:5px;">
@@ -155,7 +155,7 @@
                                             <div class="col-xs-6" style="border:1px dashed #D0D3D8 ; padding:5px;">
                                                 <label>Bank Amount</label>
                                                 <input type="number" step=any onchange="checkBankId()" class="form-control bankAmount"
-                                                       name="bankAmount" id="bankAmount" oninput="minusValueCheck(this.value,this)" placeholder="input Bank Amount" value="<?= $invoice->bank_paid?>">
+                                                       name="bankAmount" id="bankAmount" oninput="minusValueCheck(this.value,this)" placeholder="input Bank Amount" value="<?= (float)$invoice->bank_paid?>">
                                                 <b id="Bank_valid"></b>
                                             </div>
                                         </div>
@@ -168,7 +168,7 @@
                                             <div class="col-xs-6" style="border:1px dashed #D0D3D8 ; padding:5px;">
                                                 <label>Cheque Amount</label>
                                                 <input type="number" step=any onchange="cheque()" class="form-control chequeAmount"
-                                                       name="chequeAmount" oninput="minusValueCheck(this.value,this)" id="chequeAmount" placeholder="Input Cheque Amount " value="<?= $invoice->chaque_paid?>">
+                                                       name="chequeAmount" oninput="minusValueCheck(this.value,this)" id="chequeAmount" placeholder="Input Cheque Amount " value="<?= (float)$invoice->chaque_paid?>">
                                                 <b id="cheque_valid"></b>
                                             </div>
                                         </div>
@@ -224,12 +224,12 @@
 
             // Total
             let total = price * qty;
-            total = parseFloat(total);
+            total = total !== 0 ? total : "";
 
             $(this).find("input[name='total[]']").val(total);
 
             // Update Total Text
-            $(this).find(".totalValText").text("৳ " + numberFormat(total));
+            $(this).find(".totalValText").text("৳ " + total);
 
             // Sub Total
             let subTotal = total - discount;
@@ -238,43 +238,43 @@
                 subTotal = 0;
             }
 
-            subTotal = parseFloat(subTotal);
+            subTotal = subTotal !== 0 ? subTotal : "";
 
             $(this).find("input[name='subTotal[]']").val(subTotal);
-            $(this).find(".subTotal").text("৳ " + numberFormat(subTotal));
+            $(this).find(".subTotal").text("৳ " + subTotal);
 
             grandTotal += subTotal;
         });
 
-        grandTotal = parseFloat(grandTotal);
+        grandTotal = grandTotal !== 0 ? grandTotal : "";
 
         // Sale Discount
         let saleDisc = parseFloat($("#saleDisc").val()) || 0;
 
         let saleDiscAmount = grandTotal * saleDisc / 100;
-        saleDiscAmount = parseFloat(saleDiscAmount);
+        saleDiscAmount = saleDiscAmount !== 0 ? saleDiscAmount : "";
 
         $("#saleDiscshow").val(numberFormat(saleDiscAmount));
 
         // After Discount
         let afterDiscount = grandTotal - saleDiscAmount;
-        afterDiscount = parseFloat(afterDiscount);
+        afterDiscount = afterDiscount !== 0 ? afterDiscount : "";
 
         // VAT
         let vat = parseFloat($("#vat").val()) || 0;
 
         let vatAmount = afterDiscount * vat / 100;
-        vatAmount = parseFloat(vatAmount);
+        vatAmount = vatAmount !== 0 ? vatAmount : "";
 
-        $("#vatAmount").val(numberFormat(vatAmount));
+        $("#vatAmount").val(vatAmount);
 
         // Final Total
         let finalTotal = afterDiscount + vatAmount;
-        finalTotal = parseFloat(finalTotal);
+        finalTotal = finalTotal !== 0 ? finalTotal : "";
 
-        $("#grandtotal").val(numberFormat(finalTotal));
-        $("#grandtotal2").val(numberFormat(grandTotal));
-        $("#grandtotallast").val(numberFormat(finalTotal));
+        $("#grandtotal").val(finalTotal);
+        $("#grandtotal2").val(grandTotal);
+        $("#grandtotallast").val(finalTotal);
 
         // Payment
         let cash = parseFloat($("#nagod").val()) || 0;
@@ -282,8 +282,8 @@
         let cheque = parseFloat($("#chequeAmount").val()) || 0;
 
         let paid = cash + bank + cheque;
-
-        let due = finalTotal - paid;
+        let dueTotal = finalTotal - paid;
+        let due = dueTotal !== 0 ? dueTotal : "";
 
         if (due < 0) {
             due = 0;
@@ -292,7 +292,7 @@
             $("#dueBtn").prop("disabled", false);
         }
 
-        $("#grandtotaldue").val(numberFormat(due));
+        $("#grandtotaldue").val(due);
     }
 
     // Convert Units -> Base Quantity
@@ -332,82 +332,3 @@
 
     });
 </script>
-
-<!--<script>-->
-<!---->
-<!--    function calculate() {-->
-<!--        let grandTotal = 0;-->
-<!---->
-<!--        $("tbody tr").each(function () {-->
-<!---->
-<!--            let price = parseFloat($(this).find("input[name='price[]']").val()) || 0;-->
-<!--            let qty = parseFloat($(this).find("input[name='qty[]']").val()) || 0;-->
-<!--            let discount = parseFloat($(this).find("input[name='discount[]']").val()) || 0;-->
-<!---->
-<!--            let total = price * qty;-->
-<!--            $(this).find("input[name='total[]']").val(total);-->
-<!---->
-<!--            let subTotal = Math.max(total - discount, 0);-->
-<!---->
-<!--            $(this).find("input[name='subTotal[]']").val(subTotal);-->
-<!--            $(this).find(".subTotal").text("৳ " + subTotal);-->
-<!---->
-<!--            grandTotal += subTotal;-->
-<!--        });-->
-<!---->
-<!--        let saleDisc = $("#saleDisc").val() || 0;-->
-<!--        let saleDiscAmount = grandTotal * saleDisc / 100;-->
-<!---->
-<!--        $("#saleDiscshow").val(saleDiscAmount);-->
-<!---->
-<!--        let afterDiscount = grandTotal - saleDiscAmount;-->
-<!---->
-<!--        let vat = $("#vat").val() || 0;-->
-<!--        let vatAmount = afterDiscount * vat / 100;-->
-<!---->
-<!--        $("#vatAmount").val(vatAmount);-->
-<!---->
-<!--        let finalTotal = afterDiscount + vatAmount;-->
-<!---->
-<!--        $("#grandtotal").val(finalTotal);-->
-<!--        $("#grandtotal2").val(grandTotal);-->
-<!---->
-<!--        let paid =-->
-<!--            (parseFloat($("#nagod").val()) || 0) +-->
-<!--            (parseFloat($("#bankAmount").val()) || 0) +-->
-<!--            (parseFloat($("#chequeAmount").val()) || 0);-->
-<!---->
-<!--        if (finalTotal - paid < 0) {-->
-<!--            $('#dueBtn').prop('disabled', true);-->
-<!--        } else {-->
-<!--            $('#dueBtn').prop('disabled', false);-->
-<!--        }-->
-<!---->
-<!--        $("#grandtotaldue").val((finalTotal - paid));-->
-<!--    }-->
-<!---->
-<!--    // Global function-->
-<!--    window.qtyMakeBaseUnit = function (printId) {-->
-<!--        let row = $("#qtyUp_" + printId).closest("td");-->
-<!--        let total = 0;-->
-<!--        row.find("input[data-factor]").each(function () {-->
-<!--            let factor = $(this).data("factor") || 0;-->
-<!--            let qty = $(this).val() || 0;-->
-<!--            total += qty * factor;-->
-<!--        });-->
-<!--        $("#qtyUp_" + printId).val(total);-->
-<!---->
-<!--        calculate();-->
-<!--    };-->
-<!---->
-<!--    $(function () {-->
-<!--        $(document).on(-->
-<!--            "keyup change",-->
-<!--            "input[name='qty[]'], input[name='discount[]'], #saleDisc, #vat, #nagod, #bankAmount, #chequeAmount",-->
-<!--            calculate-->
-<!--        );-->
-<!---->
-<!--        calculate();-->
-<!--    });-->
-<!---->
-<!--</script>-->

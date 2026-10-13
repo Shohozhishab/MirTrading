@@ -73,6 +73,7 @@
                                         $l = 0;
                                         $m = 0;
                                         $n = 0;
+                                        if (isset(newSession()->cartType) && newSession()->cartType == 'purchaseNew'){
                                         foreach (Cart()->contents() as $row) { $unitId = productIdByDefaultStoreUnit($row['id']); ?>
                                             <tr>
                                                 <td><?php echo ++$i; ?></td>
@@ -119,7 +120,7 @@
                                                        class="btn btn-danger btn-xs">Cancel</a>
                                                 </td>
                                             </tr>
-                                        <?php } ?>
+                                        <?php } } ?>
 
                                         </tbody>
 

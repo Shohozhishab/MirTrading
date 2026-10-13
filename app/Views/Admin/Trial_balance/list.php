@@ -68,14 +68,17 @@
                                         <td><?php echo showWithCurrencySymbol($cash); ?></td>
                                     </tr>
 
+<!--                                    <tr>-->
+<!--                                        <td style="width: 50%;"><a href="--><?php //= base_url('Admin/Ledger_stock')?><!--" class="text-black" >Stock Amount</a></td>-->
+<!--                                        <td>--><?php //echo showWithCurrencySymbol($stockAmount); ?><!--</td>-->
+<!--                                    </tr>-->
+
                                     <tr>
-                                        <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_stock')?>" class="text-black" >Stock Amount</a></td>
-                                        <td><?php echo showWithCurrencySymbol($stockAmount); ?></td>
+                                        <td style="width: 50%;"><a href="<?= base_url('Admin/Purchase')?>" class="text-black" >Purchase Balance</a></td>
+                                        <td><?php echo showWithCurrencySymbol($purchaseBalance); ?></td>
                                     </tr>
-                                    <tr>
-                                        <td style="width: 50%;">Affiliate Commission </td>
-                                        <td><?php echo showWithCurrencySymbol($ledger_expense_commission) ?></td>
-                                    </tr>
+
+
                                     <?php foreach ($accountsAssets as $val){ ?>
                                         <tr>
                                             <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_accounts?account_id='.$val->account_id)?>" class="text-black" ><?= $val->name ?></a></td>
@@ -142,10 +145,10 @@
                                 </table>
                                 <h5><b>Expense </b></h5>
                                 <table class="table table-bordered table-striped" id="">
-                                    <!--                                    <tr>-->
-                                    <!--                                        <td style="width: 50%;">Expense</td>-->
-                                    <!--                                        <td>--><?php //echo showWithCurrencySymbol($expensedata); ?><!--</td>-->
-                                    <!--                                    </tr>-->
+                                    <tr>
+                                        <td style="width: 50%;">Affiliate Commission </td>
+                                        <td><?php echo showWithCurrencySymbol($ledger_expense_commission) ?></td>
+                                    </tr>
                                     <?php foreach ($accountsExpenses as $val){ ?>
                                         <tr>
                                             <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_accounts?account_id='.$val->account_id)?>" class="text-black" ><?= $val->name ?></a></td>
@@ -167,9 +170,14 @@
                                         <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_capital')?>" class="text-black" >Capital</a></td>
                                         <td><?php echo showWithCurrencySymbol(-$capitalcr); ?></td>
                                     </tr>
+<!--                                    <tr>-->
+<!--                                        <td style="width: 50%;"><a href="--><?php //= base_url('Admin/Ledger_profit')?><!--" class="text-black" >Profit</a></td>-->
+<!--                                        <td>--><?php //echo showWithCurrencySymbol(-$profit); ?><!--</td>-->
+<!--                                    </tr>-->
+
                                     <tr>
-                                        <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_profit')?>" class="text-black" >Profit</a></td>
-                                        <td><?php echo showWithCurrencySymbol(-$profit); ?></td>
+                                        <td style="width: 50%;"><a href="<?= base_url('Admin/Sales')?>" class="text-black" >Sale Balance</a></td>
+                                        <td><?php echo showWithCurrencySymbol(-$saleBalance); ?></td>
                                     </tr>
                                     <tr>
                                         <td style="width: 50%;"><a href="<?= base_url('Admin/Ledger_vat')?>" class="text-black" >Vat</a></td>

@@ -99,6 +99,7 @@
                                             </thead>
                                             <tbody>
                                             <?php $i = '';
+                                            if (isset(newSession()->cartType) && newSession()->cartType == 'purchase'){
                                             foreach (Cart()->contents() as $row) { ?>
                                                 <tr>
                                                     <td width=""><input type="hidden" class="form-control"
@@ -137,7 +138,7 @@
                                                         </button>
                                                     </td>
                                                 </tr>
-                                            <?php } ?>
+                                            <?php } } ?>
 
                                             </tbody>
                                             <tfoot>

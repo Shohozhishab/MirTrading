@@ -149,74 +149,78 @@ class Return_sale extends BaseController
      */
     public function create_action()
     {
+        $userId   = $this->session->userId;
+        $shopId   = $this->session->shopId;
 
-        $userId = $this->session->userId;
-        $shopId = $this->session->shopId;
-
-        $customerId = $this->request->getPost('customer_id');
+        $customerId   = $this->request->getPost('customer_id');
         $customerName = $this->request->getPost('customer_name');
-        $InvId = $this->request->getPost('invoice_id');
+        $invoiceId    = $this->request->getPost('invoice_id');
 
-        $proId = $this->request->getPost('returnchecked[]');
-        $quantity = $this->request->getPost('quantity[]');
-        $proPrice = $this->request->getPost('purchase_price[]');
-        $prodsaleDisc = $this->request->getPost('disc[]');
-        $prodsubtotal = $this->request->getPost('subtotal[]');
-        $prosubTo = $this->request->getPost('suballtotal[]');
+        $productIds              = $this->request->getPost('returnchecked[]');
+        $productStockRelationIds = $this->request->getPost('product_stock_relation_id[]');
+        $quantities              = $this->request->getPost('quantity[]');
+        $purchasePrices          = $this->request->getPost('purchase_price[]');
 
-
-        $amount = $this->request->getPost('totalPrice');
-        $finalAmount = $this->request->getPost('grandtotal');
-
-        $nagod = $this->request->getPost('cash');
+        $amount     = $this->request->getPost('totalPrice');
+        $cashAmount = $this->request->getPost('cash');
         $bankAmount = $this->request->getPost('bank');
-        $bankId = $this->request->getPost('bank_id');
+        $bankId     = $this->request->getPost('bank_id');
+        $dueAmount  = $this->request->getPost('due');
+        $totalVat   = empty($this->request->getPost('vatAmount')) ? 0 : $this->request->getPost('vatAmount');
+        $totalDiscount   = empty($this->request->getPost('discountAmount')) ? 0 : $this->request->getPost('discountAmount');
 
-        $dueAmount = $this->request->getPost('due');
-        $totalVat = (empty($this->request->getPost('vatAmount'))) ? 0 : $this->request->getPost('vatAmount');
-
-        // If customer name of Id not selected (start)
+        // Customer validation
         if (empty($customerName) && empty($customerId)) {
-            return redirect()->to(site_url('Admin/Return_sale/return/' . $InvId));
+            return redirect()->to(site_url('Admin/Return_sale/return/' . $invoiceId));
         }
-        // If customer name of Id not selected (End)
 
         if (empty($amount)) {
-            $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert">Please select any product <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
-            return redirect()->to(site_url('Admin/Return_sale/return/' . $InvId));
+            $this->session->setFlashdata('message', '
+            <div class="alert alert-danger alert-dismissible" role="alert">
+                Please select any product
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>');
+            return redirect()->to(site_url('Admin/Return_sale/return/' . $invoiceId));
         }
 
-        // Validation for the new customer. New customer should only pay through cash and full payment. Other payment will not exeute. (Start)
-        if (!empty($customerName)) {
-            if ($dueAmount != 0) {
-                $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert">Please clear due<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
-                return redirect()->to(site_url('Admin/Return_sale/return/' . $InvId));
-            }
+        // New customer must clear full amount (no due)
+        if (!empty($customerName) && $dueAmount != 0) {
+            $this->session->setFlashdata('message', '
+            <div class="alert alert-danger alert-dismissible" role="alert">
+                Please clear due
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>');
+            return redirect()->to(site_url('Admin/Return_sale/return/' . $invoiceId));
         }
-        // Validation for the new customer. New customer should only pay through cash and full payment. Other payment will not exeute. (End)
 
-
-        if (($dueAmount < 0)) {
-            $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert">Please valid input due<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
-            return redirect()->to(site_url('Admin/Return_sale/return/' . $InvId));
+        if ($dueAmount < 0) {
+            $this->session->setFlashdata('message', '
+            <div class="alert alert-danger alert-dismissible" role="alert">
+                Please enter a valid due amount
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>');
+            return redirect()->to(site_url('Admin/Return_sale/return/' . $invoiceId));
         }
 
         DB()->transStart();
-        $storeTab = DB()->table('stores');
-        $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
-        $storeId = $store->store_id;
 
-        //insert return Data in return_sale table(start)
-        $returnData = array(
-            'sch_id' => $shopId,
-            'invoice_id' => $InvId,
-            'amount' => $amount,
-            'nagad_paid' => $nagod,
-            'bank_paid' => $bankAmount,
-            'bank_id' => $bankId,
-            'createdBy' => $userId,
-            'createdDtm' => date('Y-m-d h:i:s')
-        );
+        // 1. Insert into return_sale
+        $returnData = [
+            'sch_id'       => $shopId,
+            'invoice_id'   => $invoiceId,
+            'amount'       => $amount,
+            'nagad_paid'   => $cashAmount,
+            'bank_paid'    => $bankAmount,
+            'bank_id'      => $bankId,
+            'createdBy'    => $userId,
+            'createdDtm'   => date('Y-m-d H:i:s'),
+        ];
 
         if (!empty($customerId)) {
             $returnData['customer_id'] = $customerId;
@@ -224,343 +228,189 @@ class Return_sale extends BaseController
             $returnData['customer_name'] = $customerName;
         }
 
-        $return_saleTab = DB()->table('return_sale');
-        $return_saleTab->insert($returnData);
+        DB()->table('return_sale')->insert($returnData);
         $returnId = DB()->insertID();
-        //insert return Data in return_sale table(end)
 
+        // 2. Update shop sale balance + ledger
+        $saleBalance     = get_data_by_id('sale_balance', 'shops', 'sch_id', $shopId);
+        $newSaleBalance  = $saleBalance + $amount - $totalVat;
 
-        //sale balance update and ledger create (start)
-        $saleBal = get_data_by_id('sale_balance', 'shops', 'sch_id', $shopId);
-        $restBalSale = $saleBal + $amount;
+        DB()->table('shops')
+            ->where('sch_id', $shopId)
+            ->update(['sale_balance' => $newSaleBalance]);
 
-
-        $saleUpdata = array('sale_balance' => $restBalSale);
-        $shopsTab = DB()->table('shops');
-        $shopsTab->where('sch_id', $shopId)->update($saleUpdata);
-
-
-        $saleLedgData = array(
-            'sch_id' => $shopId,
-            'rtn_sale_id' => $returnId,
+        DB()->table('ledger_sales')->insert([
+            'sch_id'           => $shopId,
+            'rtn_sale_id'      => $returnId,
             'trangaction_type' => 'Dr.',
-            'particulars' => 'return sale',
-            'amount' => $amount,
-            'rest_balance' => $restBalSale,
-            'createdBy' => $userId,
-            'createdDtm' => date('Y-m-d h:i:s')
-        );
-        $ledger_salesTab = DB()->table('ledger_sales');
-        $ledger_salesTab->insert($saleLedgData);
-        //sale balance update and ledger create (end)
+            'particulars'      => 'return sale',
+            'amount'           => $amount,
+            'rest_balance'     => $newSaleBalance,
+            'createdBy'        => $userId,
+            'createdDtm'       => date('Y-m-d H:i:s'),
+        ]);
 
+        // 3. Process each returned item
+        $totalPurchasePrice = 0;
+        $itemCount = count($productIds);
 
-        //return_sale_item itame insert
-        $totalPursPricr = 0;
-        $number = count($proId);
-        for ($i = 0; $i < $number; $i++) {
+        for ($i = 0; $i < $itemCount; $i++) {
+            $qty   = $quantities[$i];
+            $price = $purchasePrices[$i];
+            $total = $qty * $price;
 
-            // return_sale_item item data into return_sale_item table(Start)
-
-            $total_price = $quantity[$i] * $proPrice[$i];
-
-            $retuItemData = array(
-                'sch_id' => $shopId,
+            // Insert return item
+            DB()->table('return_sale_item')->insert([
+                'sch_id'      => $shopId,
                 'rtn_sale_id' => $returnId,
-                'prod_id' => $proId[$i],
-                'price' => $proPrice[$i],
-                'quantity' => $quantity[$i],
-                'total_price' => $total_price,
-                'createdBy' => $userId,
-                'createdDtm' => date('Y-m-d h:i:s')
-            );
-            $return_sale_itemTab = DB()->table('return_sale_item');
-            $return_sale_itemTab->insert($retuItemData);
-            //print $this->db->last_query();
+                'prod_id'     => $productIds[$i],
+                'price'       => $price,
+                'quantity'    => $qty,
+                'total_price' => $total,
+                'createdBy'   => $userId,
+                'createdDtm'  => date('Y-m-d H:i:s'),
+            ]);
 
+            // Update product stock quantity
+            $stock = DB()->table('product_stock_relation')
+                ->where('product_stock_relation_id', $productStockRelationIds[$i])
+                ->where('product_id', $productIds[$i])
+                ->get()
+                ->getRow();
 
-            //product Qnt Update in product table (start)
-            $stockTable = DB()->table('product_stock_relation');
-            $stock = $stockTable->where('store_id',$store->store_id)->where('product_id', $proId[$i])->get()->getRow();
+            if ($stock) {
+                $newQty = $stock->quantity + $qty;
 
-            $qnt = $stock->quantity + $quantity[$i];
-            $qntProData = array(
-                'quantity' => $qnt,
-            );
-            $productsTab = DB()->table('product_stock_relation');
-            $productsTab->where('store_id',$store->store_id)->where('product_id', $proId[$i])->update($qntProData);
-            //product Qnt Update in product table (end)
+                DB()->table('product_stock_relation')
+                    ->where('product_stock_relation_id', $productStockRelationIds[$i])
+                    ->where('product_id', $productIds[$i])
+                    ->update(['quantity' => $newQty]);
 
-
-            //calculating Total Pursess Price (start)
-            $productPurPrice = get_data_by_id('purchase_price', 'products', 'prod_id', $proId[$i]);
-            $purPrice = $productPurPrice * $quantity[$i];
-            $totalPursPricr = $totalPursPricr + $purPrice;
-            //calculating Total Pursess Price (end)
-
-        }
-
-        if (!empty($totalVat)) {
-            //All vat
-            $vatId = get_data_by_id('vat_id', 'vat_register', 'sch_id', $shopId);
-            $vatBalance = get_data_by_id('balance', 'vat_register', 'sch_id', $shopId);
-
-            $vatrestBal = $vatBalance + $totalVat;
-            $vatData = array(
-                'balance' => $vatrestBal,
-            );
-            $vat_registerTab = DB()->table('vat_register');
-            $vat_registerTab->where('sch_id', $shopId)->update($vatData);
-
-            $vatLedData = array(
-                'vat_id' => $vatId,
-                'invoice_id' => $InvId,
-                'sch_id' => $shopId,
-                'particulars' => 'Return Sale Vat return',
-                'trangaction_type' => 'Dr.',
-                'amount' => $totalVat,
-                'rest_balance' => $vatrestBal,
-                'createdBy' => $shopId,
-            );
-            $ledger_vatTab = DB()->table('ledger_vat');
-            $ledger_vatTab->insert($vatLedData);
-        }
-
-        if ($customerId) {
-            //return sale amount calculet and update customer balance (Start)
-            $cusOldBalance = get_data_by_id('balance', 'customers', 'customer_id', $customerId);
-            $restBalance = $cusOldBalance - $amount;
-            $cusData = array(
-                'balance' => $restBalance,
-                'createdBy' => $userId,
-            );
-            $customersTab = DB()->table('customers');
-            $customersTab->where('customer_id', $customerId)->update($cusData);
-            //return sale amount calculet and update customer balance (Start)
-
-
-            // Insert customer Ledger (start)
-            $cusLedData = array(
-                'sch_id' => $shopId,
-                'customer_id' => $customerId,
-                'rtn_sale_id' => $returnId,
-                'particulars' => 'Return Sale Product',
-                'trangaction_type' => 'Cr.',
-                'amount' => $amount,
-                'rest_balance' => $restBalance,
-                'createdBy' => $userId,
-                'createdDtm' => date('Y-m-d h:i:s')
-            );
-            $ledgerTab = DB()->table('ledger');
-            $ledgerTab->insert($cusLedData);
-            // Insert customer Ledger (start)
-
-            //affiliate user commission update
-            $affiliate_user_id = get_data_by_id('affiliate_user_id', 'customers', 'customer_id', $customerId);
-            if (!empty($affiliate_user_id)) {
-                $sales_id = get_data_by_id('sales_id', 'sales', 'invoice_id', $InvId);
-                $commissionParcent = get_data_by_id('commission', 'commission', 'sales_id', $sales_id);
-                $affiliateOldBalance = get_data_by_id('balance', 'affiliate_user', 'affiliate_user_id', $affiliate_user_id);
-
-                $commission = ($amount * $commissionParcent) / 100;
-                $affiliateNewBalance = $affiliateOldBalance - $commission;
-                $dataAffiliate = array(
-                    'balance' => $affiliateNewBalance
-                );
-                $affiliate_user = DB()->table('affiliate_user');
-                $affiliate_user->where('affiliate_user_id', $affiliate_user_id)->update($dataAffiliate);
+                // Calculate total purchase cost
+                $totalPurchasePrice += ($stock->purchase_price * $qty);
             }
         }
 
+        // 4. VAT handling
+        if (!empty($totalVat)) {
+            $vatId      = get_data_by_id('vat_id', 'vat_register', 'sch_id', $shopId);
+            $vatBalance = get_data_by_id('balance', 'vat_register', 'sch_id', $shopId);
+            $newVatBal  = $vatBalance + $totalVat;
 
-        // return profit update(start)
-        $rtnurnProfit = $amount - $totalPursPricr - $totalVat;
+            DB()->table('vat_register')
+                ->where('sch_id', $shopId)
+                ->update(['balance' => $newVatBal]);
 
-        $profitData = array('rtn_profit' => $rtnurnProfit);
+            DB()->table('ledger_vat')->insert([
+                'vat_id'           => $vatId,
+                'invoice_id'       => $invoiceId,
+                'sch_id'           => $shopId,
+                'particulars'      => 'Return Sale Vat return',
+                'trangaction_type' => 'Dr.',
+                'amount'           => $totalVat,
+                'rest_balance'     => $newVatBal,
+                'createdBy'        => $shopId,
+            ]);
+        }
 
-        $return_saleTab = DB()->table('return_sale');
-        $return_saleTab->where('rtn_sale_id', $returnId)->update($profitData);
+        // 5. Customer balance + ledger (existing customer only)
+        if (!empty($customerId)) {
+            $oldCusBalance = get_data_by_id('balance', 'customers', 'customer_id', $customerId);
+            $newCusBalance = $oldCusBalance - $amount;
 
-        $profitShop = get_data_by_id('profit', 'shops', 'sch_id', $shopId);
-        $restProfitShop = $profitShop + $rtnurnProfit;
-        $profShopData = array('profit' => $restProfitShop, 'updatedBy' => $userId,);
-        $shopsTab = DB()->table('shops');
-        $shopsTab->where('sch_id', $shopId)->update($profShopData);
+            DB()->table('customers')
+                ->where('customer_id', $customerId)
+                ->update([
+                    'balance'   => $newCusBalance,
+                    'createdBy' => $userId,
+                ]);
 
+            DB()->table('ledger')->insert([
+                'sch_id'           => $shopId,
+                'customer_id'      => $customerId,
+                'rtn_sale_id'      => $returnId,
+                'particulars'      => 'Return Sale Product',
+                'trangaction_type' => 'Cr.',
+                'amount'           => $amount,
+                'rest_balance'     => $newCusBalance,
+                'createdBy'        => $userId,
+                'createdDtm'       => date('Y-m-d H:i:s'),
+            ]);
 
-        $lgproData = array(
-            'sch_id' => $shopId,
-            'rtn_sale_id' => $returnId,
+            // Affiliate commission reverse
+            $affiliateUserId = get_data_by_id('affiliate_user_id', 'customers', 'customer_id', $customerId);
+            if (!empty($affiliateUserId)) {
+                $salesId          = get_data_by_id('sales_id', 'sales', 'invoice_id', $invoiceId);
+                $commissionPercent = get_data_by_id('commission', 'commission', 'sales_id', $salesId);
+                $oldAffBalance    = get_data_by_id('balance', 'affiliate_user', 'affiliate_user_id', $affiliateUserId);
+
+                $commission      = ($amount * $commissionPercent) / 100;
+                $newAffBalance   = $oldAffBalance - $commission;
+
+                DB()->table('affiliate_user')
+                    ->where('affiliate_user_id', $affiliateUserId)
+                    ->update(['balance' => $newAffBalance]);
+            }
+        }
+
+        // 6. Calculate & update return profit
+        $returnProfit = $amount - $totalPurchasePrice - $totalVat;
+
+        DB()->table('return_sale')
+            ->where('rtn_sale_id', $returnId)
+            ->update(['rtn_profit' => $returnProfit]);
+
+        $shopProfit    = get_data_by_id('profit', 'shops', 'sch_id', $shopId);
+        $newShopProfit = $shopProfit + $returnProfit;
+
+        DB()->table('shops')
+            ->where('sch_id', $shopId)
+            ->update([
+                'profit'    => $newShopProfit,
+                'updatedBy' => $userId,
+            ]);
+
+        DB()->table('ledger_profit')->insert([
+            'sch_id'           => $shopId,
+            'rtn_sale_id'      => $returnId,
             'trangaction_type' => 'Dr.',
-            'particulars' => 'Return Profit',
-            'amount' => $rtnurnProfit,
-            'rest_balance' => $restProfitShop,
-            'createdBy' => $userId,
-            'createdDtm' => date('Y-m-d h:i:s')
-        );
-        $ledger_profitTab = DB()->table('ledger_profit');
-        $ledger_profitTab->insert($lgproData);
-        // return profit update(end)
+            'particulars'      => 'Return Profit',
+            'amount'           => $returnProfit,
+            'rest_balance'     => $newShopProfit,
+            'createdBy'        => $userId,
+            'createdDtm'       => date('Y-m-d H:i:s'),
+        ]);
 
+        // 7. Update stock amount + ledger
+        $stockAmount    = get_data_by_id('stockAmount', 'shops', 'sch_id', $shopId);
+        $newStockAmount = $stockAmount + $totalPurchasePrice;
 
-        //stock update
-        $stockBal = get_data_by_id('stockAmount', 'shops', 'sch_id', $shopId);
-        $restBalStock = $stockBal + $totalPursPricr;
+        DB()->table('shops')
+            ->where('sch_id', $shopId)
+            ->update(['stockAmount' => $newStockAmount]);
 
-
-        $stockUpdata = array('stockAmount' => $restBalStock);
-        $shopsTab = DB()->table('shops');
-        $shopsTab->where('sch_id', $shopId)->update($stockUpdata);
-
-
-        $stockLedgData = array(
-            'sch_id' => $shopId,
-            'rtn_sale_id' => $returnId,
+        DB()->table('ledger_stock')->insert([
+            'sch_id'           => $shopId,
+            'rtn_sale_id'      => $returnId,
             'trangaction_type' => 'Dr.',
-            'particulars' => 'Return sale',
-            'amount' => $totalPursPricr,
-            'rest_balance' => $restBalStock,
-            'createdBy' => $userId,
-            'createdDtm' => date('Y-m-d h:i:s')
-        );
-        $ledger_stockTab = DB()->table('ledger_stock');
-        $ledger_stockTab->insert($stockLedgData);
-        //Update salse profit in invoice table (end)
-
-
-//        //cash pay shop cash update and create nagod ledger (start)
-//        if ($nagod > 0) {
-//            //cash pay amount update shops cash (start)
-//            $shopsCash = get_data_by_id('cash', 'shops', 'sch_id', $shopId);
-//            $upCahs = $shopsCash - $nagod;
-//
-//            $shopsData = array(
-//                'cash' => $upCahs,
-//                'updatedBy' => $userId,
-//            );
-//            $shopsTab = DB()->table('shops');
-//            $shopsTab->where('sch_id', $shopId)->update($shopsData);
-//            //cash pay amount update shops cash (end)
-//
-//
-//            //insert ledger in ledger_nagodan cash pay amount(start)
-//            $lgNagData = array(
-//                'sch_id' => $shopId,
-//                'rtn_sale_id' => $returnId,
-//                'trangaction_type' => 'Cr.',
-//                'particulars' => 'Return Sale Cash Pay',
-//                'amount' => $nagod,
-//                'rest_balance' => $upCahs,
-//                'createdBy' => $userId,
-//                'createdDtm' => date('Y-m-d h:i:s')
-//            );
-//            $ledger_nagodanTab = DB()->table('ledger_nagodan');
-//            $ledger_nagodanTab->insert($lgNagData);
-//            //insert ledger in ledger_nagodan cash pay amount(start)
-//
-//
-//            //return sale amount calculet and update customer balance (Start)
-//            if ($customerId) {
-//                $cusOldBalance2 = get_data_by_id('balance', 'customers', 'customer_id', $customerId);
-//                $restBalance2 = $cusOldBalance2 + $nagod;
-//                $cusData2 = array(
-//                    'balance' => $restBalance2,
-//                    'createdBy' => $userId,
-//                );
-//                $customersTab = DB()->table('customers');
-//                $customersTab->where('customer_id', $customerId)->update($cusData2);
-//                //return sale amount calculet and update customer balance (Start)
-//
-//                // Insert customer Ledger (start)
-//                $cusLedData2 = array(
-//                    'sch_id' => $shopId,
-//                    'customer_id' => $customerId,
-//                    'rtn_sale_id' => $returnId,
-//                    'particulars' => 'Return Sale Product cash Pay',
-//                    'trangaction_type' => 'Dr.',
-//                    'amount' => $nagod,
-//                    'rest_balance' => $restBalance2,
-//                    'createdBy' => $userId,
-//                    'createdDtm' => date('Y-m-d h:i:s')
-//                );
-//                $ledgerTab = DB()->table('ledger');
-//                $ledgerTab->insert($cusLedData2);
-//            }
-//            // Insert customer Ledger (start)
-//
-//        }
-//        //cash pay shop cash update and create nagod ledger (end)
-//
-//
-//        // bank pay amount calculate and bank balance update (start)
-//        if ($bankAmount > 0) {
-//            //bank pay amount calculate and update bank balance (start)
-//            $bankCash = get_data_by_id('balance', 'bank', 'bank_id', $bankId);
-//            $upCahs = $bankCash - $bankAmount;
-//
-//            $bankData = array(
-//                'balance' => $upCahs,
-//                'updatedBy' => $userId,
-//            );
-//            $bankTab = DB()->table('bank');
-//            $bankTab->where('bank_id', $bankId)->update($bankData);
-//            //bank pay amount calculate and update bank balance (end)
-//
-//
-//            //insert ledger in table ledger_bank (start)
-//            $lgBankData = array(
-//                'sch_id' => $shopId,
-//                'bank_id' => $bankId,
-//                'rtn_sale_id' => $returnId,
-//                'particulars' => 'Return Sale Bank Pay',
-//                'trangaction_type' => 'Cr.',
-//                'amount' => $bankAmount,
-//                'rest_balance' => $upCahs,
-//                'createdBy' => $userId,
-//                'createdDtm' => date('Y-m-d h:i:s')
-//            );
-//            $ledger_bankTab = DB()->table('ledger_bank');
-//            $ledger_bankTab->insert($lgBankData);
-//            //insert ledger in table ledger_bank (end)
-//
-//            //return sale amount calculet and update customer balance (Start)
-//            if ($customerId) {
-//                $cusOldBalance3 = get_data_by_id('balance', 'customers', 'customer_id', $customerId);
-//                $restBalance3 = $cusOldBalance3 + $bankAmount;
-//                $cusData3 = array(
-//                    'balance' => $restBalance3,
-//                    'createdBy' => $userId,
-//                );
-//                $customersTab = DB()->table('customers');
-//                $customersTab->where('customer_id', $customerId)->update($cusData3);
-//                //return sale amount calculet and update customer balance (Start)
-//
-//                // Insert customer Ledger (start)
-//                $cusLedData3 = array(
-//                    'sch_id' => $shopId,
-//                    'customer_id' => $customerId,
-//                    'rtn_sale_id' => $returnId,
-//                    'particulars' => 'Return Sale Product Bank Pay',
-//                    'trangaction_type' => 'Dr.',
-//                    'amount' => $bankAmount,
-//                    'rest_balance' => $restBalance3,
-//                    'createdBy' => $userId,
-//                    'createdDtm' => date('Y-m-d h:i:s')
-//                );
-//                $ledgerTab = DB()->table('ledger');
-//                $ledgerTab->insert($cusLedData3);
-//            }
-//            // Insert customer Ledger (start)
-//
-//        }
-//        // bank pay amount calculate and bank balance update (end)
-
+            'particulars'      => 'Return sale',
+            'amount'           => $totalPurchasePrice,
+            'rest_balance'     => $newStockAmount,
+            'createdBy'        => $userId,
+            'createdDtm'       => date('Y-m-d H:i:s'),
+        ]);
 
         DB()->transComplete();
 
-        $this->session->setFlashdata('message', '<div class="alert alert-success alert-dismissible" role="alert">Return Product Success<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
-        return redirect()->to(site_url('Admin/Return_sale/'));
+        $this->session->setFlashdata('message', '
+        <div class="alert alert-success alert-dismissible" role="alert">
+            Return Product Success
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>');
 
+        return redirect()->to(site_url('Admin/Return_sale/'));
     }
 
     public function view($id){

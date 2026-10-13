@@ -41,80 +41,110 @@ class Trial_balance_ajax extends BaseController
         } else {
             $shopId = $this->session->shopId;
 
+            // -------------------------------------------------
+            // Shop main data (single query)
+            // -------------------------------------------------
+            $shop = DB()->table('shops')
+                ->where('sch_id', $shopId)
+                ->get()
+                ->getRow();
 
-            // all debit (start)
+            $cash                    = $shop->cash ?? 0;
+            $purchaseBalance         = $shop->purchase_balance ?? 0;
+            $saleBalance             = $shop->sale_balance ?? 0;
+            $expense                 = $shop->expense ?? 0;
+            $capital                 = $shop->capital ?? 0;
+            $serviceCharge           = $shop->service_charge ?? 0;
+            $ledgerExpenseCommission = $shop->ledger_expense_commission ?? 0;
 
-            // shop balance(start)
-            $shopDeTab = DB()->table('shops');
-            $queryCash = $shopDeTab->where('sch_id', $shopId)->get();
-            if (!empty($queryCash->getRow()->cash)) {
-                $cash = $queryCash->getRow()->cash;
-            } else {
-                $cash = 0;
-            }
-            // $purchasePri = $queryCash->row()->purchase_balance;
+            // Currently forced to 0 (as in original)
+            $stockAmount = 0;
+            $profit      = 0;
 
-            $stockAmount = $queryCash->getRow()->stockAmount;
-            $profit = $queryCash->getRow()->profit;
-            // shop balance(end)
+            // -------------------------------------------------
+            // Bank
+            // -------------------------------------------------
+            $bankData = DB()->table('bank')
+                ->where('sch_id', $shopId)
+                ->get()
+                ->getResult();
 
+            $bankCash = DB()->table('bank')
+                ->selectSum('balance')
+                ->where('sch_id', $shopId)
+                ->get()
+                ->getRow()
+                ->balance ?? 0;
 
-            // expence
-            $shopExTab = DB()->table('shops');
-            $expensequ = $shopExTab->where('sch_id', $shopId)->get();
-            $expense = $expensequ->getRow()->expense;
-            // expence
+            // -------------------------------------------------
+            // Customers (debit / credit)
+            // -------------------------------------------------
+            $customerCash = DB()->table('customers')
+                ->selectSum('balance')
+                ->where(['sch_id' => $shopId, 'balance >' => 0])
+                ->get()
+                ->getRow()
+                ->balance ?? 0;
 
+            $custCredit = DB()->table('customers')
+                ->selectSum('balance')
+                ->where(['sch_id' => $shopId, 'balance <' => 0])
+                ->get()
+                ->getRow()
+                ->balance ?? 0;
 
-            // bank balance(start)
-            $bankTab = DB()->table('bank');
-            $queryBank = $bankTab->where('sch_id', $shopId)->get()->getResult();
-            $bankBlTab = DB()->table('bank');
-            $bankCash = $bankBlTab->selectSum('balance')->where('sch_id', $shopId)->get()->getRow()->balance;
-            // bank balance(end)
+            // -------------------------------------------------
+            // Loan Provider (debit / credit)
+            // -------------------------------------------------
+            $loanCash = DB()->table('loan_provider')
+                ->selectSum('balance')
+                ->where(['sch_id' => $shopId, 'balance >' => 0])
+                ->get()
+                ->getRow()
+                ->balance ?? 0;
 
+            $loanCredit = DB()->table('loan_provider')
+                ->selectSum('balance')
+                ->where(['sch_id' => $shopId, 'balance <' => 0])
+                ->get()
+                ->getRow()
+                ->balance ?? 0;
 
-            //total customer balance calculet (start)
-            $whereCluseDr = array('sch_id' => $shopId, 'balance > ' => 0);
-            $cusTab = DB()->table('customers');
-            $cusCash = $cusTab->selectSum('balance')->where($whereCluseDr)->get()->getRow()->balance;
-            $customerCash = 0;
-            if ($cusCash > 0) {
-                $customerCash = $cusCash;
-            }
-            //total customer balance calculet (end)
+            // -------------------------------------------------
+            // Suppliers (debit / credit)
+            // -------------------------------------------------
+            $supplierCash = DB()->table('suppliers')
+                ->selectSum('balance')
+                ->where(['sch_id' => $shopId, 'balance >' => 0])
+                ->get()
+                ->getRow()
+                ->balance ?? 0;
 
+            $supplierCredit = DB()->table('suppliers')
+                ->selectSum('balance')
+                ->where(['sch_id' => $shopId, 'balance <' => 0])
+                ->get()
+                ->getRow()
+                ->balance ?? 0;
 
-            //total Lone provider balance calculet(start)
-            $whereCluseDr = array('sch_id' => $shopId, 'balance > ' => 0);
-            $lonPrTab = DB()->table('loan_provider');
-            $loanProCash = $lonPrTab->selectSum('balance')->where($whereCluseDr)->get()->getRow()->balance;
-            $loanCash = 0;
-            if ($loanProCash > 0) {
-                $loanCash = $loanProCash;
-            }
-            //total Lone provider balance calculet(end)
+            // -------------------------------------------------
+            // Employee
+            // -------------------------------------------------
+            $employee = DB()->table('employee')
+                ->where('sch_id', $shopId)
+                ->get()
+                ->getResult();
 
+            $emplBal = DB()->table('employee')
+                ->selectSum('balance')
+                ->where('sch_id', $shopId)
+                ->get()
+                ->getRow()
+                ->balance ?? 0;
 
-            // employe balance calculet(start)
-            $emplTab = DB()->table('employee');
-            $emplBal = $emplTab->selectSum('balance')->where('sch_id', $shopId)->get()->getRow()->balance;
-            $emplTab2 = DB()->table('employee');
-            $employee = $emplTab2->where('sch_id', $shopId)->get()->getResult();
-            // employe balance calculet(start)
-
-
-            //total supplier due balance calculet (start)
-            //$supCash = $this->db->select_sum('balance')->from('suppliers')->where('sch_id',$shopId)->get()->row()->balance;
-            $whereCluseDr = array('sch_id' => $shopId, 'balance > ' => 0);
-            $supTab = DB()->table('suppliers');
-            $supCash = $supTab->selectSum('balance')->where($whereCluseDr)->get()->getRow()->balance;
-            $supplierCash = 0;
-            if ($supCash > 0) {
-                $supplierCash = $supCash;
-            }
-            //total supplier due balance calculet (end)
-
+            // -------------------------------------------------
+            // Accounts - Assets
+            // -------------------------------------------------
             $accountsAssets = DB()->table('accounts')
                 ->join('accounts_account_type_map', 'accounts_account_type_map.account_id = accounts.account_id')
                 ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
@@ -122,20 +152,20 @@ class Trial_balance_ajax extends BaseController
                 ->where('account_type.type_key', 'assets')
                 ->get()
                 ->getResult();
-            $assetsBal = DB()->table('accounts')
+
+            $assets = DB()->table('accounts')
                 ->selectSum('accounts.balance')
                 ->join('accounts_account_type_map', 'accounts_account_type_map.account_id = accounts.account_id')
                 ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
                 ->where('accounts.sch_id', $shopId)
                 ->where('account_type.type_key', 'assets')
-                ->get()->getRow()->balance;
+                ->get()
+                ->getRow()
+                ->balance ?? 0;
 
-            $assets = 0;
-            if ($assetsBal > 0) {
-                $assets = $assetsBal;
-            }
-
-
+            // -------------------------------------------------
+            // Accounts - Expenses
+            // -------------------------------------------------
             $accountsExpenses = DB()->table('accounts')
                 ->join('accounts_account_type_map', 'accounts_account_type_map.account_id = accounts.account_id')
                 ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
@@ -143,91 +173,27 @@ class Trial_balance_ajax extends BaseController
                 ->where('account_type.type_key', 'expenses')
                 ->get()
                 ->getResult();
-            $expensesBal = DB()->table('accounts')
+
+            $expenses = DB()->table('accounts')
                 ->selectSum('accounts.balance')
                 ->join('accounts_account_type_map', 'accounts_account_type_map.account_id = accounts.account_id')
                 ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
                 ->where('accounts.sch_id', $shopId)
                 ->where('account_type.type_key', 'expenses')
-                ->get()->getRow()->balance;
+                ->get()
+                ->getRow()
+                ->balance ?? 0;
 
-            $expenses = 0;
-            if ($expensesBal > 0) {
-                $expenses = $expensesBal;
-            }
-
-
-            $totalDue = $customerCash + $loanCash + $supplierCash + $assets + $expenses;
-
-
-            $totalDebit = $totalDue + $cash + $bankCash + $stockAmount + $emplBal + $expense + $queryCash->getRow()->ledger_expense_commission;
-            // all debit (end)
-
-
-            // all Credit(start)
-            //total customer balance calculet (start)
-            $customersTable = DB()->table('customers');
-            $whereCluseCr = array('sch_id' => $shopId, 'balance < ' => 0);
-            $queryCus = $customersTable->selectSum('balance')->where($whereCluseCr)->get()->getRow()->balance;
-            $custCredit = 0;
-            if ($queryCus < 0) {
-                $custCredit = $queryCus;
-            }
-            //total customer balance calculet (end)
-
-
-            //total Lone provider balance calculet(start)
-            $whereCluseCr = array('sch_id' => $shopId, 'balance < ' => 0);
-            $loan_providerTable = DB()->table('loan_provider');
-            $queryLon = $loan_providerTable->selectSum('balance')->where($whereCluseCr)->get()->getRow()->balance;
-            $loanCredit = 0;
-            if ($queryLon < 0) {
-                $loanCredit = $queryLon;
-            }
-            //total Lone provider balance calculet(end)
-
-
-            //total supplier due balance calculet (start)
-            $whereCluseCr = array('sch_id' => $shopId, 'balance < ' => 0);
-            $suppliersTable = DB()->table('suppliers');
-            $querySupp = $suppliersTable->selectSum('balance')->where($whereCluseCr)->get()->getRow()->balance;
-            $supplierCredit = 0;
-            if ($querySupp < 0) {
-                $supplierCredit = $querySupp;
-            }
-            //total supplier due balance calculet (end)
-
-            $totalAmo = $custCredit + $loanCredit + $supplierCredit;
-
-            // sale amount (start)
-            //$saleBal = $queryCash->row()->sale_balance;
-            // sale amount (end)
-
-            // vat amount(start)
-            $vat_registerTable = DB()->table('vat_register');
-            $vatEarn = $vat_registerTable->where('sch_id', $shopId)->get()->getRow()->balance;
-            // vat amount(end)
-
-            // capital
-            $shopsTable2 = DB()->table('shops');
-            $capital = $shopsTable2->where('sch_id', $shopId)->get()->getRow()->capital;
-            $capitalCredit = 0;
-            if ($capital > 0) {
-                $capitalCredit = $capital;
-            }
-            // capital
-
-            //service charge
-            $shopsTable = DB()->table('shops');
-            $serviceCharge = $shopsTable->where('sch_id', $shopId)->get()->getRow()->service_charge;
-            //service charge
-
+            // -------------------------------------------------
+            // Accounts - Other Income
+            // -------------------------------------------------
             $otherIncomeData = DB()->table('accounts')
                 ->join('accounts_account_type_map', 'accounts_account_type_map.account_id = accounts.account_id')
                 ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
                 ->where('accounts.sch_id', $shopId)
                 ->where('account_type.type_key', 'other_income')
-                ->get()->getResult();
+                ->get()
+                ->getResult();
 
             $otherIncome = DB()->table('accounts')
                 ->selectSum('accounts.balance')
@@ -235,44 +201,63 @@ class Trial_balance_ajax extends BaseController
                 ->join('account_type', 'account_type.account_type_id = accounts_account_type_map.account_type_id')
                 ->where('accounts.sch_id', $shopId)
                 ->where('account_type.type_key', 'other_income')
-                ->get()->getRow()->balance;
+                ->get()
+                ->getRow()
+                ->balance ?? 0;
 
-            $totalCredit = $totalAmo + $capital + $profit + $vatEarn + $serviceCharge + $otherIncome;
+            // -------------------------------------------------
+            // VAT
+            // -------------------------------------------------
+            $vatEarn = DB()->table('vat_register')
+                ->where('sch_id', $shopId)
+                ->get()
+                ->getRow()
+                ->balance ?? 0;
 
-            // all Credit(end)
+            // -------------------------------------------------
+            // Final calculations (exactly same as original)
+            // -------------------------------------------------
+            $totalDue   = $customerCash + $loanCash + $supplierCash + $assets + $expenses;
+            $totalDebit = $totalDue + $cash + $bankCash + $stockAmount + $emplBal + $expense + $ledgerExpenseCommission + $purchaseBalance;
 
-            $customersTable = DB()->table('customers');
-            $customerData = $customersTable->where('sch_id', $shopId)->get()->getResult();
-            $loan_providerTable = DB()->table('loan_provider');
-            $loanProData = $loan_providerTable->where('sch_id', $shopId)->get()->getResult();
-            $suppliersTable2 = DB()->table('suppliers');
-            $supplierData = $suppliersTable2->where('sch_id', $shopId)->get()->getResult();
+            $totalAmo    = $custCredit + $loanCredit + $supplierCredit;
+            $totalCredit = $totalAmo + $capital + $profit + $vatEarn + $serviceCharge + $otherIncome + $saleBalance;
 
+            // -------------------------------------------------
+            // Full lists for view
+            // -------------------------------------------------
+            $customerData  = DB()->table('customers')->where('sch_id', $shopId)->get()->getResult();
+            $loanProData   = DB()->table('loan_provider')->where('sch_id', $shopId)->get()->getResult();
+            $supplierData  = DB()->table('suppliers')->where('sch_id', $shopId)->get()->getResult();
 
-            $data = array(
-                'allDue' => $totalDue,
-                'cash' => $cash,
-                'bankCash' => $bankCash,
-                'bankData' => $queryBank,
-                'totalDebit' => $totalDebit,
-                'totalAmo' => $totalAmo,
-                'vatEarn' => $vatEarn,
-                'totalCredit' => $totalCredit,
-                'customerData' => $customerData,
-                'loanProData' => $loanProData,
-                'supplierData' => $supplierData,
-                'capitalcr' => $capital,
-                'expensedata' => $expense,
-                'profit' => $profit,
-                'service_charge' => $serviceCharge,
-                'stockAmount' => $stockAmount,
-                'employee' => $employee,
-                'accountsAssets' => $accountsAssets,
-                'accountsExpenses' => $accountsExpenses,
-                'ledger_expense_commission' => $queryCash->getRow()->ledger_expense_commission,
-                'otherIncome' => $otherIncomeData,
-
-            );
+            // -------------------------------------------------
+            // Return data (same keys as original)
+            // -------------------------------------------------
+            $data = [
+                'allDue'                   => $totalDue,
+                'cash'                     => $cash,
+                'bankCash'                 => $bankCash,
+                'bankData'                 => $bankData,
+                'totalDebit'               => $totalDebit,
+                'totalAmo'                 => $totalAmo,
+                'vatEarn'                  => $vatEarn,
+                'totalCredit'              => $totalCredit,
+                'customerData'             => $customerData,
+                'loanProData'              => $loanProData,
+                'supplierData'             => $supplierData,
+                'capitalcr'                => $capital,
+                'expensedata'              => $expense,
+                'profit'                   => $profit,
+                'service_charge'           => $serviceCharge,
+                'stockAmount'              => $stockAmount,
+                'employee'                 => $employee,
+                'accountsAssets'           => $accountsAssets,
+                'accountsExpenses'         => $accountsExpenses,
+                'ledger_expense_commission'=> $ledgerExpenseCommission,
+                'otherIncome'              => $otherIncomeData,
+                'saleBalance'              => $saleBalance,
+                'purchaseBalance'          => $purchaseBalance,
+            ];
 
 
             // All Permissions

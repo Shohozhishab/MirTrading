@@ -193,6 +193,8 @@ class Shops extends BaseController
                     ),
                     array('sch_id' => $shopsId, 'label' => 'edit_permission_expire', 'value' => '10'
                     ),
+                    array('sch_id' => $shopsId, 'label' => 'invoice', 'value' => 'default.php'
+                    ),
 
                 );
                 $this->gen_settingsModel->insertBatch($gen_settingsData);
@@ -642,6 +644,8 @@ class Shops extends BaseController
 
         DB()->table('sale_save')->where('sch_id', $id)->delete();
         DB()->table('sale_save_item')->where('sch_id', $id)->delete();
+
+        DB()->table('existing_transaction')->where('sch_id', $id)->delete();
 
 
         $cash = array(

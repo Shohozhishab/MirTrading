@@ -239,7 +239,7 @@
                                                     <label class="form-check-label" for="sms">Send SMS</label>
                                                 </div>
 
-                                                <button type="submit" class="btn btn-primary" id="createBtn">Create
+                                                <button type="submit" class="btn btn-primary" >Create
                                                 </button>
                                             </div>
                                         </div>

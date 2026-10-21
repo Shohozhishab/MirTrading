@@ -313,6 +313,25 @@ class Return_sale extends BaseController
             ]);
         }
 
+        if (!empty($totalDiscount)) {
+            $discountBalance = get_data_by_id('discount', 'shops', 'sch_id', $shopId);
+            $newDiscountBal  = $discountBalance + $totalDiscount;
+
+            DB()->table('shops')
+                ->where('sch_id', $shopId)
+                ->update(['discount' => $newDiscountBal]);
+
+            DB()->table('ledger_discount')->insert([
+                'invoice_id'       => $invoiceId,
+                'sch_id'           => $shopId,
+                'particulars'      => 'Return Sale Discount return',
+                'trangaction_type' => 'Cr.',
+                'amount'           => $totalDiscount,
+                'rest_balance'     => $newDiscountBal,
+                'createdBy'        => $userId,
+            ]);
+        }
+
         // 5. Customer balance + ledger (existing customer only)
         if (!empty($customerId)) {
             $oldCusBalance = get_data_by_id('balance', 'customers', 'customer_id', $customerId);

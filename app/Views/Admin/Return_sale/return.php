@@ -79,7 +79,7 @@
 
                                 <div class="col-xs-12">
                                     <div class="col-xs-12" id="box_form">
-                                        <div class="col-xs-8">
+                                        <div class="col-xs-7">
                                             <p class="lead">Payment Type:</p>
                                             <img src="<?php print base_url(); ?>/dist/img/credit/cash.jpeg" alt="Cash">
                                             <img src="<?php print base_url(); ?>/dist/img/credit/bank.png" alt="Bank">
@@ -90,7 +90,7 @@
                                                 dopplr jibjab, movity jajah plickers sifteo edmodo ifttt zimbra.
                                             </p>
                                         </div>
-                                        <div class="col-xs-4">
+                                        <div class="col-xs-5">
                                             <div class="col-xs-6">
                                                 <label for="int">Customer</label>
                                             </div>
@@ -140,7 +140,15 @@
 
 
                                             <div class="col-xs-6">
-                                                <label for="int">Total Amount</label>
+                                                <label for="int">Final Return Amount
+                                                    <div class="tooltip-container" style="position: relative; display: inline-flex; align-items: center; cursor: pointer;">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 20 20" fill="none" style="vertical-align: middle;">
+                                                            <path d="M10.0013 13.3334V10M10.0013 6.66669H10.0096M18.3346 10C18.3346 14.6024 14.6037 18.3334 10.0013 18.3334C5.39893 18.3334 1.66797 14.6024 1.66797 10C1.66797 5.39765 5.39893 1.66669 10.0013 1.66669C14.6037 1.66669 18.3346 5.39765 18.3346 10Z" stroke="#A7A7A7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                        </svg>
+                                                        <span class="tooltip-text">Product-Discount+Vat</span>
+                                                    </div>
+                                                </label>
+                                                
                                             </div>
                                             <div class="form-group col-xs-6">
                                                 <input type="text" class="form-control" name="totalPrice" id="totalAmount" readonly>
@@ -174,7 +182,7 @@
 
 
                                         <button type="submit" class="btn btn-primary">Return</button>
-                                        <a href="<?php echo site_url('purchase') ?>" class="btn btn-default">Cancel</a>
+                                        <a href="<?php echo site_url('Admin/Return_sale') ?>" class="btn btn-default">Cancel</a>
                                     </div>
                                 </div>
 

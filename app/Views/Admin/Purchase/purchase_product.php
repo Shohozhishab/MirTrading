@@ -216,7 +216,7 @@
                                                     <label class="form-check-label" for="sms">Send SMS</label>
                                                 </div>
 
-                                                <button type="submit" class="btn btn-primary" id="createBtn">Purchase </button>
+                                                <button type="submit" class="btn btn-primary" >Purchase </button>
                                             </div>
                                         </div>
 

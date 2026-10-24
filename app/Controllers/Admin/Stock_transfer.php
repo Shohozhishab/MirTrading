@@ -114,7 +114,7 @@ class Stock_transfer extends BaseController
 
         if (!empty($data['result'])) {
             $storesTab = DB()->table('stores');
-            $data['stores'] = $storesTab->where('sch_id', $shopId)->get()->getResult();
+            $data['stores'] = $storesTab->where('sch_id', $shopId)->where('store_id !=', $storeId)->get()->getResult();
 
             $data['menu'] = view('Admin/menu_stock', $data);
             echo view('Admin/header');

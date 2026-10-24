@@ -225,6 +225,32 @@ class Return_purchase extends BaseController
             'createdDtm'       => date('Y-m-d H:i:s'),
         ]);
 
+
+        // stock balance update and ledger create (start)
+        $stockBal = get_data_by_id('stockAmount', 'shops', 'sch_id', $shopId);
+        $restBalStock = $stockBal - $amount;
+
+
+        $stockUpdata = array('stockAmount' => $restBalStock);
+        $tabshopsSt = DB()->table('shops');
+        $tabshopsSt->where('sch_id', $shopId)->update($stockUpdata);
+
+
+        $stockLedgData = array(
+            'sch_id' => $shopId,
+            'purchase_id' => $purchaseId,
+            'trangaction_type' => 'Cr.',
+            'particulars' => 'return purchase amount',
+            'amount' => $amount,
+            'rest_balance' => $restBalStock,
+            'createdBy' => $userId,
+            'createdDtm' => date('Y-m-d h:i:s')
+        );
+        $tabledger_stock = DB()->table('ledger_stock');
+        $tabledger_stock->insert($stockLedgData);
+        $ledg_stock_id = DB()->insertID();
+        // stock balance update and ledger create (end)
+
         // 3. Process each returned item
         $itemCount = count($productIds);
 

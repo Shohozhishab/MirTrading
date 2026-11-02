@@ -99,6 +99,7 @@
                                             </thead>
                                             <tbody>
                                             <?php $i = '';
+                                            if (isset(newSession()->cartType) && newSession()->cartType == 'purchase'){
                                             foreach (Cart()->contents() as $row) { ?>
                                                 <tr>
                                                     <td width=""><input type="hidden" class="form-control"
@@ -137,7 +138,7 @@
                                                         </button>
                                                     </td>
                                                 </tr>
-                                            <?php } ?>
+                                            <?php } } ?>
 
                                             </tbody>
                                             <tfoot>
@@ -238,7 +239,7 @@
                                                     <label class="form-check-label" for="sms">Send SMS</label>
                                                 </div>
 
-                                                <button type="submit" class="btn btn-primary" id="createBtn">Create
+                                                <button type="submit" class="btn btn-primary" >Create
                                                 </button>
                                             </div>
                                         </div>

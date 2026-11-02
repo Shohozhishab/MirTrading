@@ -51,7 +51,7 @@
                                         <label for="varchar">Parent Category </label>
                                         <select class="form-control" name="parent_pro_cat" required>
                                             <option value="">Please Select</option>
-                                            <?php echo subCategoryListOption('','product_category','product_category'); ?>
+                                            <?php echo getCatListInOption('', 'prod_cat_id', 'product_category', 'product_category'); ?>
                                         </select>
                                     </div>
                                     <div class="form-group">

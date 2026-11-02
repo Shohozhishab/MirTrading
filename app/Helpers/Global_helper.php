@@ -343,7 +343,7 @@ function getCatListInOption($selected, $tblId, $needCol, $table)
 function subCategoryListOption($selected)
 {
     $table = DB()->table('product_category');
-    $query = $table->where('parent_pro_cat',0)->where('sch_id',$_SESSION['shopId'])->where('status !=',1)->where('deleted IS NULL')->get()->getResult();
+    $query = $table->where('parent_pro_cat !=',0)->where('sch_id',$_SESSION['shopId'])->where('status !=',1)->where('deleted IS NULL')->get()->getResult();
     $options = '';
     foreach ($query as $value) {
         $options .= '<option value="' . $value->prod_cat_id . '" ';
@@ -1824,16 +1824,6 @@ function get_return_status_by_invoice_id($invoiceId){
         $totalReturnQty  += $ret_qty;
     }
 
-//    if ($totalReturnQty == 0) {
-//        $status = 'Not Returned';
-//    } elseif ($totalReturnQty < $totalInvoiceQty) {
-//        $status = 'Partial Return';
-//    } elseif ($totalReturnQty == $totalInvoiceQty) {
-//        $status = 'Fully Returned';
-//    } else {
-//        $status = 'Error';
-//    }
-
     $status = ($totalReturnQty == $totalInvoiceQty)?1:0;
     return $status;
 
@@ -1844,6 +1834,48 @@ function get_available_quantity_to_return($invoiceId,$prod_id,$invQuantity){
     $returnData = $table->selectSum('quantity')->join('return_sale_item','return_sale_item.rtn_sale_id = return_sale.rtn_sale_id' )->where('return_sale.invoice_id',$invoiceId)->where('return_sale_item.prod_id',$prod_id)->get()->getRow();
 
     $result = $invQuantity - $returnData->quantity;
+    return $result ?? 0;
+}
+
+function get_return_status_by_purchase_id($purchaseId){
+
+    $db = DB();
+
+    $builder = $db->table('purchase');
+    $purchaseData = $builder->select('prod_id, quantity')->join('purchase_item', 'purchase_item.purchase_id = purchase.purchase_id')->where('purchase.purchase_id',$purchaseId)->get()->getResult();
+
+
+    $table = DB()->table('return_purchase');
+    $returnData = $table->select('prod_id, quantity')->join('return_purchase_item','return_purchase_item.rtn_purchase_id = return_purchase.rtn_purchase_id' )->where('return_purchase.purchase_id',$purchaseId)->get()->getResult();
+
+    $returnMap = [];
+    foreach ($returnData as $row) {
+        $returnMap[$row->prod_id] = $row->quantity;
+    }
+
+    $totalPurchaseQty = 0;
+    $totalReturnQty  = 0;
+
+    foreach ($purchaseData as $item) {
+        $pur_qty = (int)$item->quantity;
+        $ret_qty = $returnMap[$item->prod_id] ?? 0;
+
+        $ret_qty = min($ret_qty, $pur_qty);
+
+        $totalPurchaseQty += $pur_qty;
+        $totalReturnQty  += $ret_qty;
+    }
+
+    $status = ($totalReturnQty == $totalPurchaseQty)?1:0;
+    return $status;
+
+}
+
+function get_available_quantity_to_return_purchase($purchaseId,$prod_id,$purQuantity){
+    $table = DB()->table('return_purchase');
+    $returnData = $table->selectSum('quantity')->join('return_purchase_item','return_purchase_item.rtn_purchase_id = return_purchase.rtn_purchase_id' )->where('return_purchase.purchase_id',$purchaseId)->where('return_purchase_item.prod_id',$prod_id)->get()->getRow();
+
+    $result = $purQuantity - $returnData->quantity;
     return $result ?? 0;
 }
 
@@ -1950,10 +1982,13 @@ function tableNameArrayKeyByValue($index){
     return $array[$index] ?? null;
 }
 
-function totalProductInStoreByProductIdOrStoreId($prod_id,$store_id){
+function totalProductInStoreByProductIdOrStoreId($prod_id,$store_id,$purchase_price,$selling_price){
     $query = DB()->table('product_stock_relation')
+        ->selectSum('quantity')
         ->where('store_id',$store_id)
         ->where('product_id',$prod_id)
+        ->where('purchase_price',$purchase_price)
+        ->where('selling_price',$selling_price)
         ->get()
         ->getRow();
 
@@ -2130,4 +2165,30 @@ function getUnitCategoriesWithUnits(){
         ],
     ];
     return $units;
+}
+function available_invoice($sel = '')
+{
+    helper('filesystem');
+    $file = get_dir_file_info(FCPATH . '../app/Views/Admin/Invoice/templete');
+    $view = '';
+    foreach ($file as $key => $val) {
+        $s = ($key == $sel) ? "selected" : "";
+        $view .= '<option value="' . $key . '" ' . $s . ' >' . $key . '</option>';
+    }
+    return $view;
+}
+
+function barcodeGenaret($data)
+{
+    $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
+    $tabGenSet = DB()->table('gen_settings');
+
+    $sizeBarcode = $tabGenSet->where('label', 'barcode_img_size')->get()->getRow()->value;
+    $barcodeSize = empty($sizeBarcode) ? '100' : $sizeBarcode;
+
+    $typeBarcode = $tabGenSet->where('label', 'barcode_type')->get()->getRow()->value;
+    $barcodeType = empty($typeBarcode) ? 'C128' : $typeBarcode;
+
+    return '<img src="data:image/png;base64,' . base64_encode($generator->getBarcode((string)$data, $barcodeType)) . '" width="' . $barcodeSize . '">';
+
 }

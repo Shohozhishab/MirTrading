@@ -50,7 +50,7 @@
                     <div class="box-body">
                         <div class="row">
                             <div class="col-lg-4">
-                                <h3 class="box-title">Return Sales List</h3>
+                                <h3 class="box-title">Transfer From</h3>
                             </div>
                             <div class="col-lg-8">
                                 <form method="post" action="<?php echo site_url('Admin/Stock_transfer/search') ?>"  >

@@ -42,6 +42,44 @@
         <?php } ?>
         <div class="row" style="margin-top: 20px;">
 
+            <?php if (isset($filter) && $filter == 1){ ?>
+                <div class="col-xs-12" style="margin-bottom: 15px;">
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <h3 class="box-title"><i class="fa fa-filter"></i> Filter Transactions</h3>
+                        </div>
+                        <div class="box-body">
+                            <form action="<?= base_url('Admin/Products') ?>" method="get" id="filterForm">
+                                <div class="row">
+                                    <div class="form-group col-xs-3">
+                                        <label for="int">Category </label>
+                                        <select class="form-control" onchange="showSubCategory(this.value)" name="category" id="category" required>
+                                            <option value="">Please Select</option>
+                                            <?php echo getCatListInOption($category, 'prod_cat_id', 'product_category', 'product_category'); ?>
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-xs-3">
+                                        <label for="int">Sub Category </label>
+                                        <select class="form-control" name="sub_category" id="subCat" required>
+                                            <option value="">Please Select</option>
+                                            <?= subCategoryListOption($sub_category);?>
+                                        </select>
+                                    </div>
+
+
+                                    <div class="col-md-2" style="margin-top: 25px;">
+                                        <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-search"></i> Filter</button>
+                                    </div>
+                                    <div class="col-md-2" style="margin-top: 25px;">
+                                        <a href="<?= base_url('Admin/Products') ?>" class="btn btn-default btn-block"><i class="fa fa-refresh"></i> Reset</a>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            <?php } ?>
+
             <div class="col-xs-12">
                 <form action="<?php echo base_url('Admin/Products/barcode') ?>" method="post">
                     <div class="box">
@@ -62,8 +100,6 @@
                                     <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
                                 </div>
                             </div>
-
-
                         </div>
                         <!-- /.box-header -->
                         <div class="box-body">

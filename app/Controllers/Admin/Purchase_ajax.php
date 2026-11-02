@@ -72,7 +72,7 @@ class Purchase_ajax extends BaseController
             }
             //purchase table null value delete (end)
 
-
+            $data['menu'] = view('Admin/menu_purchase', $data);
             // All Permissions
             //$perm = array('create','read','update','delete','mod_access');
             $perm = $this->permission->module_permission_list($role_id, $this->module_name);

@@ -105,6 +105,9 @@ class Sales extends BaseController
 
             $data['salesSave'] = DB()->table('sale_save')->where('sale_save_id',$sale_save_id)->get()->getRow();
 
+            if (!empty($this->session->cartType) && $this->session->cartType !== 'sale') {
+                $this->cart->destroy();
+            }
 
             $data['action'] = base_url('Admin/Sales/create_action');
             $data['menu'] = view('Admin/menu_sales', $data);
@@ -204,71 +207,6 @@ class Sales extends BaseController
      * @description This method add to cart
      * @return RedirectResponse
      */
-    public function old_add_cart()
-    {
-
-        $shopId = $this->session->shopId;
-
-        $proId = $this->request->getPost('prod_id');
-        $proName = $this->request->getPost('name');
-        $proPrice = $this->request->getPost('price');
-
-
-        $sale_save_id = $this->request->getPost('sale_save_id');
-        $urlGet = '';
-        if(!empty($sale_save_id)){
-            $urlGet = '?sale_save_id='.$sale_save_id;
-        }
-
-        $storeTab = DB()->table('stores');
-        $store = $storeTab->where('sch_id', $shopId)->where('is_default', 1)->get()->getRow();
-
-        $stockTable = DB()->table('product_stock_relation');
-        $stock = $stockTable->where('store_id',$store->store_id)->where('product_id', $proId)->get()->getRow();
-        $productQnt = $stock->quantity;
-        $qty = 0;
-        foreach ($this->cart->contents() as $row) {
-            if ($proId == $row['id']) {
-                $qty = $row['qty'];
-            }
-        }
-
-        //unit qty
-        $unitIdJson = get_data_by_id('sale_units', 'products', 'prod_id', $proId);
-        $units_id = json_decode($unitIdJson);
-        $unitQty = 0;
-        $unit = array();
-        $units = DB()->table('units')->whereIn('units_id', $units_id)->orderBy('conversion_factor', 'DESC')->get()->getResult();
-        foreach ($units as $val) {
-            $nameUnit = strtolower(str_replace(' ', '_', $val->name));
-            $unit[$nameUnit] = $this->request->getPost($nameUnit);
-            if (!empty($unit[$nameUnit])) {
-                $unitQty += $val->conversion_factor * $unit[$nameUnit];
-            }
-        }
-
-        $totalquantity = $unitQty + $qty;
-        if ($productQnt >= $totalquantity) {
-            if ($totalquantity > 0) {
-                $data = array(
-                    'id' => $proId,
-                    'name' => strval($proName),
-                    'qty' => $totalquantity,
-                    'price' => $proPrice
-                );
-                $this->cart->insert($data);
-            } else {
-                $this->session->setFlashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert"> Invalid Quantity  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
-                return redirect()->to(site_url('Admin/Sales/create'.$urlGet));
-            }
-        } else {
-            $this->session->setFlashdata('message', '<div class="alert alert-warning alert-dismissible" role="alert">Warning: You have no available product quantity to sale<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
-
-        }
-        $this->session->set('cartType', 'sale');
-        return redirect()->to(site_url('Admin/Sales/create'.$urlGet));
-    }
-
     public function add_cart()
     {
 
@@ -1054,7 +992,9 @@ class Sales extends BaseController
     public function customerBalance(){
         $customerId = $this->request->getPost('customer_id');
         $balance = get_data_by_id('balance', 'customers', 'customer_id', $customerId);
-        return $balance;
+        return $this->response->setJSON([
+            'balance' => (float) ($balance ?? 0)
+        ]);
     }
 
     public function salesEdit(){
@@ -2328,6 +2268,7 @@ class Sales extends BaseController
         $dateData = $this->request->getPost('dateData');
         $customer_id = $this->request->getPost('customer_id');
         $customer_name = $this->request->getPost('name');
+        $affiliate_user_id = $this->request->getPost('affiliate_user_id');
         $saleDisc = $this->request->getPost('saleDisc');
         $vat = $this->request->getPost('vat');
         $nagod = $this->request->getPost('nagod');
@@ -2342,6 +2283,7 @@ class Sales extends BaseController
                     'date' => $dateData,
                     'customer_id' => $customer_id,
                     'customer_name' => $customer_name,
+                    'affiliate_user_id' => $affiliate_user_id,
                     'discount' => $saleDisc,
                     'vat' => $vat,
                     'cash_pay' => $nagod,
@@ -2356,7 +2298,8 @@ class Sales extends BaseController
                     DB()->table('sale_save_item')->insert([
                         'sch_id' => $shopId,
                         'sale_save_id' => $sale_save_id,
-                        'prod_id' => $row['id'],
+                        'product_stock_relation_id' => $row['id'],
+                        'prod_id' => $row['prod_id'],
                         'product_name' => $row['name'],
                         'quantity' => $row['qty'],
                         'price' => $row['price'],
@@ -2411,13 +2354,14 @@ class Sales extends BaseController
 
         foreach ($result as $row) {
             $stockTable = DB()->table('product_stock_relation');
-            $stock = $stockTable->where('store_id', $store->store_id)->where('product_id', $row->prod_id)->get()->getRow();
+            $stock = $stockTable->where('product_stock_relation_id', $row->product_stock_relation_id)->get()->getRow();
             $productQnt = $stock->quantity;
 
             if ($productQnt >= $row->quantity) {
                 if ($row->quantity > 0) {
                     $data = array(
-                        'id' => $row->prod_id,
+                        'id' => $row->product_stock_relation_id,
+                        'prod_id' => $row->prod_id,
                         'name' => strval($row->product_name),
                         'qty' => $row->quantity,
                         'price' => $row->price
@@ -2429,7 +2373,7 @@ class Sales extends BaseController
         $this->session->set('cartType', 'sale');
         return redirect()->to(site_url('Admin/Sales/create?sale_save_id=').$id);
     }
-    function draftDelete($sale_save_id){
+    public function draftDelete($sale_save_id){
         if (!empty($sale_save_id)){
             DB()->table('sale_save')->where('sale_save_id',$sale_save_id)->delete();
             DB()->table('sale_save_item')->where('sale_save_id',$sale_save_id)->delete();

@@ -114,6 +114,7 @@ class Settings extends BaseController
         $data['address'] = $this->request->getPost('address');
         $data['mobile'] = $this->request->getPost('mobile');
         $data['comment'] = $this->request->getPost('comment');
+        $invoice = $this->request->getPost('invoice');
         $data['status'] = $this->request->getPost('status');
         $data['updatedBy'] = $userId;
         $data['updatedDtm'] = date('Y-m-d h:i:s');
@@ -128,8 +129,9 @@ class Settings extends BaseController
         if ($this->validation->run($data) == FALSE) {
             print '<div class="alert alert-danger alert-dismissible" role="alert">' . $this->validation->listErrors() . ' <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
         } else {
-            $shopTable = DB()->table('shops');
+            DB()->table('gen_settings')->where('sch_id', $shopId)->where('label', 'invoice')->update(['value' => $invoice]);
 
+            $shopTable = DB()->table('shops');
             if ($shopTable->where('sch_id', $shopId)->update($data)) {
                 print '<div class="alert alert-success alert-dismissible" role="alert"> update data successfully  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
             } else {

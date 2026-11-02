@@ -26,6 +26,7 @@
                                     <th>Product</th>
                                     <th>Quantity </th>
                                     <th>Purchase Price</th>
+                                    <th>Sale Price</th>
                                     <th>Total Price</th>
                                 </tr>
                                 </thead>
@@ -34,6 +35,7 @@
                                     $unit = productIdByDefaultStoreUnit($item->prod_id);
                                     $conversion_factor = get_data_by_id('conversion_factor', 'units', 'units_id', $unit);
                                     $jsonArray = get_data_by_id('purchase_units', 'products', 'prod_id', $item->prod_id);
+                                    $salePrice = get_data_by_id('selling_price', 'product_stock_relation', 'product_stock_relation_id', $item->product_stock_relation_id);
                                     ?>
                                     <tr>
                                         <td width="80px"><?= $i++ ?></td>
@@ -58,6 +60,11 @@
                                             <label for="int"><?= showUnitName($unit);?></label>
                                             <input type="text" name="priceUnit[]" style="width: 100px;" oninput="priceMakeBaseUnit(this.value,'<?= $conversion_factor;?>','<?= $item->prod_id;?>' )" value="<?= unitOrBasePriceByUnitPrice($unit,$item->purchase_price)?>">
 
+                                        </td>
+                                        <td>
+                                            <input type="hidden" name="salePrice[]" id="salePriceUp_<?= $item->prod_id; ?>" value="<?= $salePrice;?>">
+                                            <label for="int"><?= showUnitName($unit);?></label>
+                                            <input type="text" name="salePriceUnit[]" oninput="salePriceMakeBaseUnit(this.value,'<?= $conversion_factor;?>','<?= $item->prod_id;?>' )" value="<?= unitOrBasePriceByUnitPrice($unit,$salePrice)?>" >
                                         </td>
                                         <td><input type="text" name="total_price[]" value="<?= $item->total_price?>" readonly></td>
                                     </tr>
@@ -186,6 +193,15 @@
             $("#priceUp_" + printId).val(total.toFixed(8));
 
             calculateGrandTotal();
+        };
+
+        window.salePriceMakeBaseUnit = function(val, key, printId) {
+            val = parseFloat(val) || 0;
+            key = parseFloat(key) || 1;
+
+            var total = val / key;
+
+            $("#salePriceUp_" + printId).val(total.toFixed(8));
         };
 
         window.qtyMakeBaseUnit = function (printId) {

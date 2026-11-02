@@ -14,7 +14,52 @@
             </div>
         </div>
     </section>
-
+    <style>
+        @media print {
+            .content-header,
+            .no-print,
+            .main-header,
+            .main-sidebar,
+            .main-footer {
+                display: none !important;
+            }
+            body,
+            .wrapper,
+            .content-wrapper,
+            .content {
+                background: #fff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                float: none !important;
+            }
+            .content-wrapper {
+                margin-left: 0 !important;
+                padding-left: 0 !important;
+            }
+            .box {
+                border: none !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .table-bordered,
+            .table-bordered > tbody > tr > td,
+            .table-bordered > thead > tr > th {
+                border-color: #000 !important;
+            }
+            .invoice {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 10px !important;
+            }
+            .row {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+        }
+    </style>
     <section class="invoice">
         <!-- title row -->
         <div class="row">

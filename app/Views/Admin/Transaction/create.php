@@ -355,9 +355,9 @@
                                                             <label for="int">Expenses</label>
                                                             <select class="form-control select2  input" style=" width: 100%;"  name="account_id">
                                                                 <option selected="selected" value="">Please Select </option>
-                                                                <?php foreach ($expenses as $val){ ?>
+                                                                <?php foreach ($account as $val){ if ($val->type_key == 'expenses'){ ?>
                                                                     <option value="<?= $val->account_id;?>"><?= $val->name;?> </option>
-                                                                <?php } ?>
+                                                                <?php } } ?>
                                                             </select>
                                                         </div>
 
@@ -412,9 +412,9 @@
                                                             <label for="int">Other Income</label>
                                                             <select class="form-control select2  input" style="width: 100%;"  name="account_id" required>
                                                                 <option selected="selected" value="">Please Select </option>
-                                                                <?php foreach ($otherIncome as $val){ ?>
+                                                                <?php foreach ($account as $val){ if ($val->type_key == 'other_income'){ ?>
                                                                     <option value="<?= $val->account_id;?>"><?= $val->name;?> </option>
-                                                                <?php } ?>
+                                                                <?php } } ?>
                                                             </select>
                                                         </div>
                                                         <div class="form-group">
@@ -589,9 +589,9 @@
                                                             <label for="int">Assets</label>
                                                             <select class="form-control select2 select2-hidden-accessible input" style=" width: 100%;"  name="account_id">
                                                                 <option selected="selected" value="">Please Select </option>
-                                                                <?php foreach ($assets as $val){ ?>
+                                                                <?php foreach ($account as $val){ if ($val->type_key == 'assets'){ ?>
                                                                     <option value="<?= $val->account_id;?>"><?= $val->name;?> </option>
-                                                                <?php } ?>
+                                                                <?php } } ?>
                                                             </select>
                                                         </div>
 

@@ -49,9 +49,9 @@
                             </div>
                             <div class="col-lg-3">
                                 <?php if (isset($create) && $create == 1){ ?>
-                                    <a href="javascript:void(0)"
-                                       onclick="showData('<?php echo site_url('/Admin/Suppliers_ajax/create/'); ?>','<?php echo '/Admin/Suppliers/create/'; ?>')"
-                                       class="btn btn-block btn-primary"><i class="fa fa-plus"></i> Create Supplier</a>
+                                <a href="javascript:void(0)"
+                                   onclick="showData('<?php echo site_url('/Admin/Suppliers_ajax/create/'); ?>','<?php echo '/Admin/Suppliers/create/'; ?>')"
+                                   class="btn btn-block btn-primary"><i class="fa fa-plus"></i> Create Supplier</a>
                                 <?php } ?>
                             </div>
                             <div class="col-lg-12" style="margin-top: 20px;">
@@ -79,6 +79,7 @@
                             <?php $start = 1;
                             foreach ($supplier as $suppliers) {
                                 $isDeletable = is_deletable('ledger_suppliers','supplier_id',$suppliers->supplier_id);
+                                $isEditable = is_deletable('existing_transaction','supplier_id',$suppliers->supplier_id);
                                 ?>
                                 <tr>
                                     <td width="80px"><?php echo $start++ ?></td>
@@ -88,16 +89,19 @@
                                     <td><?php echo $suppliers->address ?></td>
                                     <td><?php echo showWithPhoneNummberCountryCode($suppliers->phone) ?></td>
                                     <td>
+                                        <?php if ($isEditable == false){?>
+                                            <a href="javascript:void(0)" class="btn btn-info btn-xs" onclick="supTranEdit('<?= $suppliers->supplier_id; ?>')" data-toggle="modal" data-target="#modal-default" >Edit</a>
+                                        <?php } ?>
                                         <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Suppliers_ajax/transaction/' . $suppliers->supplier_id); ?>','<?php echo '/Admin/Suppliers/transaction/' . $suppliers->supplier_id; ?>')"
                                            class="btn btn-primary btn-xs">Transaction</a>
                                         <?php if (isset($update) && $update == 1){ ?>
-                                            <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Suppliers_ajax/update/' . $suppliers->supplier_id); ?>','<?php echo '/Admin/Suppliers/update/' . $suppliers->supplier_id; ?>')"
-                                               class="btn btn-warning btn-xs">Update</a>
+                                        <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Suppliers_ajax/update/' . $suppliers->supplier_id); ?>','<?php echo '/Admin/Suppliers/update/' . $suppliers->supplier_id; ?>')"
+                                           class="btn btn-warning btn-xs">Update</a>
                                         <?php } ?>
                                         <?php if (isset($delete) && $delete == 1){ ?>
-                                            <?php if($isDeletable == true){ ?>
-                                                <a href="<?php echo site_url('/Admin/Suppliers/delete/' . $suppliers->supplier_id); ?>" onclick="return confirm('Are you sure you want to delete this item?');"  class="btn btn-danger btn-xs">Delete</a>
-                                            <?php } ?>
+                                        <?php if($isDeletable == true){ ?>
+                                            <a href="<?php echo site_url('/Admin/Suppliers/delete/' . $suppliers->supplier_id); ?>" onclick="return confirm('Are you sure you want to delete this item?');"  class="btn btn-danger btn-xs">Delete</a>
+                                        <?php } ?>
                                         <?php } ?>
                                     </td>
                                 </tr>
@@ -109,13 +113,13 @@
                         <div class="row no-print" >
                             <div class="col-xs-12">
                                 <?php if (isset($print) && $print == 1){ ?>
-                                    <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
+                                <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
                                 <?php } ?>
                                 <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
-                                    <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','suppliers')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                                <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','suppliers')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
                                 <?php } ?>
                                 <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
-                                    <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','suppliers')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                                <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','suppliers')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
                                 <?php } ?>
                             </div>
                         </div>
@@ -171,6 +175,39 @@
         </div>
         <!-- /.row -->
 
+        <div class="modal fade" id="modal-default">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">Edit Data</h4>
+                    </div>
+                    <div class="modal-body" id="formData">
+
+
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+
     </section>
     <!-- /.content -->
 </div>
+
+<script>
+    function supTranEdit(supplierId) {
+        $.ajax({
+            type: "POST",
+            url: "<?php echo site_url('Admin/Suppliers/supDataEdit') ?>",
+            data: {
+                supplier_id: supplierId
+            },
+            success: function(data) {
+                $('#formData').html(data);
+            }
+        });
+    }
+</script>

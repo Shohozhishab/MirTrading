@@ -36,11 +36,22 @@ class Products_ajax extends BaseController
         } else {
             $shopId = $this->session->shopId;
 
+            $category = $this->request->getGet('category');
+            $sub_category = $this->request->getGet('sub_category');
+
             $productTable = DB()->table('products');
+            $productTable->select('products.*,product_stock_relation.*,stores.store_id,stores.name as store_name,stores.is_default');
             $productTable->join('product_stock_relation','product_stock_relation.product_id = products.prod_id');
             $productTable->join('stores','stores.store_id = product_stock_relation.store_id');
-            $data['products_data'] = $productTable->where('products.sch_id', $shopId)->where('stores.is_default','1')->get()->getResult();
 
+            if (!empty($sub_category)){
+                $productTable->where('products.prod_cat_id', $sub_category);
+            }
+
+            $data['products_data'] = $productTable->where('products.sch_id', $shopId)->groupBy('products.prod_id')->where('stores.is_default','1')->get()->getResult();
+
+            $data['category'] = isset($category)?$category:'';
+            $data['sub_category'] = isset($sub_category)?$sub_category:'';
 
             $data['menu'] = view('Admin/menu_stock');
             // All Permissions

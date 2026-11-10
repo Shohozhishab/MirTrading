@@ -51,11 +51,11 @@
                                             <input type="hidden" name="product_stock_relation_id[]" value="<?= $row->product_stock_relation_id;?>">
                                         </td>
                                         <td><?php echo get_data_by_id('name', 'products', 'prod_id', $row->prod_id) ?></td>
-                                        <td><input type="number" class="quantityReturn form-control" oninput="calculateTotalPrice()" id="quantity"
-                                                   name="quantity[]" placeholder="Quantity" min="<?= empty($availableReturnQty)?0:1;?>" max="<?= $availableReturnQty;?>"
-                                                   value="<?= $availableReturnQty ?>"> </td>
+                                        <td><input type="number" step="any" class="quantityReturn form-control" oninput="calculateTotalPrice()" id="quantity"
+                                                   name="quantity[]" placeholder="Quantity" min="<?= empty($availableReturnQty)?0:1;?>" max="<?= (float)$availableReturnQty;?>"
+                                                   value="<?= (float)$availableReturnQty ?>"> </td>
                                         <td><input type="text" class="purchase_priceReturn form-control" id="searchColumn"
-                                                   name="purchase_price[]" value="<?php echo $row->purchase_price ?>" readonly></td>
+                                                   name="purchase_price[]" value="<?= (float)$row->purchase_price ?>" readonly></td>
                                     </tr>
                                 <?php } ?>
                                 </tbody>
@@ -198,6 +198,11 @@
 
     }
 
+    function cleanNumber(val) {
+        let n = parseFloat(val) || 0;
+        return parseFloat(n.toFixed(8));
+    }
+
     function calculateTotalPrice() {
 
         var totalPrice = 0;
@@ -218,8 +223,8 @@
         }
 
         // Set values
-        $("#totalAmount").val(totalPrice !== 0 ? totalPrice : "");
-        $("#totalDueAmount").val(totalPrice !== 0 ? totalPrice : "");
+        $("#totalAmount").val(totalPrice !== 0 ? cleanNumber(totalPrice) : "");
+        $("#totalDueAmount").val(totalPrice !== 0 ? cleanNumber(totalPrice) : "");
     }
 
 </script>

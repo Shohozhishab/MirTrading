@@ -252,6 +252,93 @@ class Settings extends BaseController
     }
 
     /**
+     * @description This method update invoice settings
+     * @return void
+     */
+    public function invoice_settings_update()
+    {
+        $shopId = $this->session->shopId;
+
+        // single value fields
+        $singleFields = [
+            'invoice_title',
+            'invoice_sub_title',
+            'invoice_address',
+            'invoice_bin_no',
+            'invoice_footer_text',
+        ];
+        foreach ($singleFields as $label) {
+            $value = $this->request->getPost($label);
+            DB()->table('gen_settings')
+                ->where('sch_id', $shopId)
+                ->where('label', $label)
+                ->update(['value' => $value]);
+        }
+
+        // multiple value fields, stored comma-separated in a single row
+        $multiFields = [
+            'invoice_gmail',
+            'invoice_name_phone',
+        ];
+        foreach ($multiFields as $label) {
+            $values = $this->request->getPost($label . '[]') ?: [];
+            $clean = [];
+            foreach ($values as $v) {
+                $v = trim((string) $v);
+                if ($v !== '') {
+                    $clean[] = $v;
+                }
+            }
+            DB()->table('gen_settings')
+                ->where('sch_id', $shopId)
+                ->where('label', $label)
+                ->update(['value' => implode(',', $clean)]);
+        }
+
+        // invoice logo (image upload, no crop)
+        $this->upload_invoice_image($shopId, 'invoice_logo');
+
+        // invoice background image (image upload, no crop)
+        $this->upload_invoice_image($shopId, 'invoice_background_image');
+
+        print '<div class="alert alert-success alert-dismissible" role="alert"> update data successfully  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
+    }
+
+    /**
+     * @description This method uploads an invoice image setting (no crop) and stores the filename in gen_settings
+     * @param int|string $shopId
+     * @param string $label
+     * @return void
+     */
+    private function upload_invoice_image($shopId, $label)
+    {
+        if (empty($_FILES[$label]['name'])) {
+            return;
+        }
+
+        $target_dir = FCPATH . '/uploads/schools/';
+        if (!file_exists($target_dir)) {
+            mkdir($target_dir, 0777);
+        }
+
+        // remove old image if it exists
+        $old_img = get_gen_settings_by_lavel($label);
+        if (!empty($old_img) && file_exists($target_dir . $old_img)) {
+            unlink($target_dir . $old_img);
+        }
+
+        // upload new image (no crop)
+        $pic = $this->request->getFile($label);
+        $namePic = $pic->getRandomName();
+        $pic->move($target_dir, $namePic);
+
+        DB()->table('gen_settings')
+            ->where('sch_id', $shopId)
+            ->where('label', $label)
+            ->update(['value' => $namePic]);
+    }
+
+    /**
      * @description This method database backup
      * @return DownloadResponse|null
      */

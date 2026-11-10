@@ -1724,6 +1724,9 @@ class Purchase extends BaseController
 
     public function purchaseEdit(){
         $purchaseId = $this->request->getPost('id');
+        if (empty($purchaseId)) {
+            $purchaseId = $this->request->getGet('id');
+        }
 
         $purchaseTable = DB()->table('purchase');
         $data['purchase'] = $purchaseTable->where('purchase_id', $purchaseId)->get()->getRow();
@@ -1740,6 +1743,7 @@ class Purchase extends BaseController
 
         $purchaseId = $this->request->getPost('purchase_id');
 
+        $purchase_item_id = $this->request->getPost('purchase_item_id[]');
         $prod_id = $this->request->getPost('prod_id[]');
         $qty = $this->request->getPost('qty[]');
         $price = $this->request->getPost('price[]');
@@ -1754,435 +1758,400 @@ class Purchase extends BaseController
         $totalDue = $this->request->getPost('due');
 
 
+        $oldPurchase = DB()->table('purchase')->where('purchase_id', $purchaseId)->get()->getRow();
+        if (empty($oldPurchase)) {
+            $this->session->setFlashdata('message', '<div class="alert alert-danger">Purchase not found!</div>');
+            return redirect()->to(site_url('Admin/Purchase'));
+        }
+        $oldAmount  = (float)$oldPurchase->amount;
+        $oldNagod   = (float)$oldPurchase->nagad_paid;
+        $oldBank    = (float)$oldPurchase->bank_paid;
+        $oldBankId  = $oldPurchase->bank_id;
+        $oldDue     = (float)$oldPurchase->due;
+        $supplierId = !empty($oldPurchase->supplier_id) ? $oldPurchase->supplier_id : 0;
+
+        $totalPrice = (float)$totalPrice;
+        $cashAmount = (float)$cashAmount;
+        $bankAmount = (float)$bankAmount;
+        $totalDue   = (float)$totalDue;
+
         DB()->transStart();
-        //purchase total price calculate to suppliers balance and update suppliers balance or create suppliers ledger (start)
-        $suppliersInfo = $this->transactionLog->get_table_name_by_row_purchase_id('suppliers',$purchaseId);
-        $supplierCash = get_data_by_id('balance', 'suppliers', 'supplier_id', $suppliersInfo->id);
-        $newCash = ($supplierCash + $suppliersInfo->amount) - $totalPrice;
-        $supplierId = $suppliersInfo->id;
-        $suppData = array(
-            'balance' => $newCash,
-        );
-        $suppliersTable = DB()->table('suppliers');
-        $suppliersTable->where('supplier_id', $suppliersInfo->id)->update($suppData);
 
-        //transaction edit log data insert
-        $this->transactionLog->transaction_log_data_update($suppliersInfo->transaction_log_id,$totalPrice);
-        $this->transactionLog->transaction_edit_log_data_insert('suppliers','','',$this->session->userId,$suppliersInfo->amount,$totalPrice,'',$purchaseId);
-        //insert Transaction in transaction table (end)
+        // 1. ==================== SUPPLIERS BALANCE & LEDGERS ====================
+        if (!empty($supplierId)) {
+            $supplierCash = (float)get_data_by_id('balance', 'suppliers', 'supplier_id', $supplierId);
+            $newSuppBal   = ($supplierCash + $oldDue) - $totalDue;
 
+            DB()->table('suppliers')->where('supplier_id', $supplierId)->update([
+                'balance'   => $newSuppBal,
+                'updatedBy' => $userId,
+            ]);
 
-        //update suppliers ledger
-        $suppliersLedgerInfo = $this->transactionLog->get_table_name_by_row_purchase_id('ledger_suppliers',$purchaseId);
-        $supplierRestBalance = get_data_by_id('rest_balance', 'ledger_suppliers', 'ledg_sup_id', $suppliersLedgerInfo->id);
+            // Supplier Due Ledger ('Purchase Cash Due' - Cr.)
+            $dueLedger = DB()->table('ledger_suppliers')
+                ->where('purchase_id', $purchaseId)
+                ->where('trangaction_type', 'Cr.')
+                ->get()->getRow();
+            if (!empty($dueLedger)) {
+                $newRestBalance = ($dueLedger->rest_balance + $dueLedger->amount) - $totalPrice;
+                DB()->table('ledger_suppliers')->where('ledg_sup_id', $dueLedger->ledg_sup_id)->update([
+                    'amount'       => $totalPrice,
+                    'rest_balance' => $newRestBalance,
+                ]);
+                $this->suppliers_ledger_rest_balance_update($supplierId, $totalPrice, $dueLedger->ledg_sup_id, $dueLedger->amount);
 
-        $newRestBalance = ($supplierRestBalance + $suppliersLedgerInfo->amount) - $totalPrice;
-        $lgSuplData = array(
-            'amount' => $totalPrice,
-            'rest_balance' => $newRestBalance,
-        );
-        $ledger_suppliersTable = DB()->table('ledger_suppliers');
-        $ledger_suppliersTable->where('ledg_sup_id', $suppliersLedgerInfo->id)->update($lgSuplData);
-
-        //transaction edit log data insert
-        $this->transactionLog->transaction_log_data_update($suppliersLedgerInfo->transaction_log_id,$totalPrice);
-        $this->transactionLog->transaction_edit_log_data_insert('ledger_suppliers','','',$this->session->userId,$suppliersLedgerInfo->amount,$totalPrice,'',$purchaseId);
-        //insert Transaction in transaction table (end)
-
-        $this->suppliers_ledger_rest_balance_update($suppliersInfo->id,$totalPrice,$suppliersLedgerInfo->id,$suppliersLedgerInfo->amount);
-        //purchase total price calculate to suppliers balance and update suppliers balance or create suppliers ledger (end)
-
-
-        // purchase balance update and ledger create (start)
-        $purchaseBalanceInfo = $this->transactionLog->get_table_name_by_row_purchase_id_by_colum_name('shops',$purchaseId,'purchase_balance');
-        $purchaseBal = get_data_by_id('purchase_balance', 'shops', 'sch_id', $shopId);
-        $restBalPurc = ($purchaseBal - $purchaseBalanceInfo->amount) + $totalPrice;
-
-
-        $purUpdata = array('purchase_balance' => $restBalPurc);
-        $shopPurBalTable = DB()->table('shops');
-        $shopPurBalTable->where('sch_id', $shopId)->update($purUpdata);
-
-        //transaction edit log data insert
-        $this->transactionLog->transaction_log_data_update($purchaseBalanceInfo->transaction_log_id,$totalPrice);
-        $this->transactionLog->transaction_edit_log_data_insert('ledger_suppliers','','',$this->session->userId,$suppliersLedgerInfo->amount,$totalPrice,'',$purchaseId,'purchase_balance');
-        //insert Transaction in transaction table (end)
-
-        $ledgerPurchaseInfo = $this->transactionLog->get_table_name_by_row_purchase_id('ledger_purchase',$purchaseId);
-        $purchaseLedgerBal = get_data_by_id('rest_balance', 'ledger_purchase', 'ledgPurch_id', $ledgerPurchaseInfo->id);
-        $newPurchaseLedgerBal = ($purchaseLedgerBal - $ledgerPurchaseInfo->amount) + $totalPrice;
-        $purLedgData = array(
-            'amount' => $totalPrice,
-            'rest_balance' => $newPurchaseLedgerBal,
-        );
-        $ledgerPurchaseTable = DB()->table('ledger_purchase');
-        $ledgerPurchaseTable->where('ledgPurch_id', $ledgerPurchaseInfo->id)->update($purLedgData);
-        $this->purchase_ledger_rest_balance_update($purchaseId,$totalPrice);
-        // purchase balance update and ledger create (end)
-
-        //transaction edit log data insert
-        $this->transactionLog->transaction_log_data_update($ledgerPurchaseInfo->transaction_log_id,$totalPrice);
-        $this->transactionLog->transaction_edit_log_data_insert('ledger_purchase','','',$this->session->userId,$ledgerPurchaseInfo->amount,$totalPrice,'',$purchaseId,'');
-        //insert Transaction in transaction table (end)
-
-
-        // stock balance update and ledger create (start)
-        $stockAmountInfo = $this->transactionLog->get_table_name_by_row_purchase_id_by_colum_name('shops',$purchaseId,'stockAmount');
-        $stockBal = get_data_by_id('stockAmount', 'shops', 'sch_id', $shopId);
-        $restBalStock = ($stockBal - $stockAmountInfo->amount) + $totalPrice;
-        $stockUpdata = array('stockAmount' => $restBalStock);
-        $shopStoAmTable = DB()->table('shops');
-        $shopStoAmTable->where('sch_id', $shopId)->update($stockUpdata);
-
-        //transaction edit log data insert
-        $this->transactionLog->transaction_log_data_update($stockAmountInfo->transaction_log_id,$totalPrice);
-        $this->transactionLog->transaction_edit_log_data_insert('shops','','',$this->session->userId,$stockAmountInfo->amount,$totalPrice,'',$purchaseId,'stockAmount');
-        //insert Transaction in transaction table (end)
-
-
-        $ledgerStockInfo = $this->transactionLog->get_table_name_by_row_purchase_id('ledger_stock',$purchaseId);
-        $ledgerStockBal = get_data_by_id('rest_balance', 'ledger_stock', 'stock_id', $ledgerStockInfo->id);
-        $restLedgerStockBal = ($ledgerStockBal - $ledgerStockInfo->amount) + $totalPrice;
-        $stockLedgData = array(
-            'amount' => $totalPrice,
-            'rest_balance' => $restLedgerStockBal,
-        );
-        $ledger_stockTable = DB()->table('ledger_stock');
-        $ledger_stockTable->where('stock_id', $ledgerStockInfo->id)->update($stockLedgData);
-
-        //transaction edit log data insert
-        $this->transactionLog->transaction_log_data_update($ledgerStockInfo->transaction_log_id,$totalPrice);
-        $this->transactionLog->transaction_edit_log_data_insert('ledger_stock','','',$this->session->userId,$ledgerStockInfo->amount,$totalPrice,'',$purchaseId );
-        //insert Transaction in transaction table (end)
-
-        $this->stock_ledger_rest_balance_update($purchaseId,$totalPrice);
-        // stock balance update and ledger create (end)
-
-        if ($cashAmount > 0) {
-            //purchase pay cash amount calculate (start)
-            $shopsCash = get_data_by_id('cash', 'shops', 'sch_id', $shopId);
-            if ($shopsCash >= $cashAmount) {
-                $shopInfo = $this->transactionLog->get_table_name_by_row_purchase_id_by_colum_name('shops',$purchaseId,null);
-                if (!empty($shopInfo)) {
-                    $upCahs = ($shopsCash + $shopInfo->amount) - $cashAmount;
-                    $shopsData = array(
-                        'cash' => $upCahs,
-                    );
-                    $shopCasTable = DB()->table('shops');
-                    $shopCasTable->where('sch_id', $shopId)->update($shopsData);
-
-                    //transaction edit log data insert
-                    $this->transactionLog->transaction_log_data_update($shopInfo->transaction_log_id,$cashAmount);
-                    $this->transactionLog->transaction_edit_log_data_insert('shops','','',$this->session->userId,$shopInfo->amount,$cashAmount,'',$purchaseId );
-                    //insert Transaction in transaction table (end)
-
-                    $ledgerNagodInfo = $this->transactionLog->get_table_name_by_row_purchase_id('ledger_nagodan', $purchaseId);
-                    $ledgerNagodBal = get_data_by_id('rest_balance', 'ledger_nagodan', 'ledg_nagodan_id', $ledgerNagodInfo->id);
-                    $upRestCahs = ($ledgerNagodBal + $ledgerNagodInfo->amount) - $cashAmount;
-                    //nagodan ledger create
-                    $lgNagData = array(
-                        'amount' => $cashAmount,
-                        'rest_balance' => $upRestCahs,
-                    );
-                    $ledger_nagodanTable = DB()->table('ledger_nagodan');
-                    $ledger_nagodanTable->where('ledg_nagodan_id', $ledgerNagodInfo->id)->update($lgNagData);
-
-                    //transaction edit log data insert
-                    $this->transactionLog->transaction_log_data_update($ledgerNagodInfo->transaction_log_id,$cashAmount);
-                    $this->transactionLog->transaction_edit_log_data_insert('ledger_nagodan','','',$this->session->userId,$ledgerNagodInfo->amount,$cashAmount,'',$purchaseId );
-                    //insert Transaction in transaction table (end)
-
-                    $this->cash_ledger_rest_balance_update($shopId, $cashAmount, $ledgerNagodInfo->id, $ledgerNagodInfo->amount);
-                    //purchase pay cash amount calculate to shops cash and update shops cash or create ledger_nagodan statment in ledger_nagodan table (end)
-
-
-                    //purchase pay cash amount calculate to suppliers balance and update suppliers balance or create supplier ledger in ledger_suppliers table (start)
-                    $total = DB()->table('transaction_log')->where('table_name', 'suppliers')->where('purchase_id', $purchaseId)->countAllResults();
-                    $middle = floor($total / 2);
-
-                    $query = DB()->table('transaction_log')
-                        ->where('table_name', 'suppliers')
-                        ->where('purchase_id', $purchaseId)
-                        ->orderBy('transaction_log_id', 'ASC')
-                        ->limit(1, $middle)->get();
-                    $supplierMidInfo = $query->getRow();
-
-                    $supplierccCash = get_data_by_id('balance', 'suppliers', 'supplier_id', $supplierMidInfo->id);
-                    $suppCash = ($supplierccCash - $supplierMidInfo->amount) + $cashAmount;
-
-                    $cashsuppData = array(
-                        'balance' => $suppCash,
-                    );
-                    $suppliersTab = DB()->table('suppliers');
-                    $suppliersTab->where('supplier_id', $supplierMidInfo->id)->update($cashsuppData);
-
-                    //transaction edit log data insert
-                    $this->transactionLog->transaction_log_data_update($supplierMidInfo->transaction_log_id,$cashAmount);
-                    $this->transactionLog->transaction_edit_log_data_insert('suppliers','','',$this->session->userId,$supplierMidInfo->amount,$cashAmount,'',$purchaseId );
-                    //insert Transaction in transaction table (end)
-
-                    $total = DB()->table('transaction_log')->where('table_name', 'ledger_suppliers')->where('purchase_id', $purchaseId)->countAllResults();
-                    $middle = floor($total / 2);
-
-                    $queryLed = DB()->table('transaction_log')
-                        ->where('table_name', 'ledger_suppliers')
-                        ->where('purchase_id', $purchaseId)
-                        ->orderBy('transaction_log_id', 'ASC')
-                        ->limit(1, $middle)->get();
-                    $supplierLedgerMidInfo = $queryLed->getRow();
-
-                    $ledgerSuppOldBal = get_data_by_id('rest_balance', 'ledger_suppliers', 'ledg_sup_id', $supplierLedgerMidInfo->id);
-                    $supplierLedgerRestBal = ($ledgerSuppOldBal - $supplierLedgerMidInfo->amount) + $cashAmount;
-                    //suppliers ledger create
-                    $lgSuplData = array(
-                        'amount' => $cashAmount,
-                        'rest_balance' => $supplierLedgerRestBal,
-                    );
-                    $ledger_suppliersTab = DB()->table('ledger_suppliers');
-                    $ledger_suppliersTab->where('ledg_sup_id', $supplierLedgerMidInfo->id)->update($lgSuplData);
-
-                    //transaction edit log data insert
-                    $this->transactionLog->transaction_log_data_update($supplierLedgerMidInfo->transaction_log_id,$cashAmount);
-                    $this->transactionLog->transaction_edit_log_data_insert('ledger_suppliers','','',$this->session->userId,$supplierLedgerMidInfo->amount,$cashAmount,'',$purchaseId );
-                    //insert Transaction in transaction table (end)
-
-                    $this->suppliers_ledger_rest_balance_update($supplierMidInfo->id, $cashAmount, $supplierLedgerMidInfo->id, $supplierLedgerMidInfo->amount);
-                }else{
-                    $upCahs = $shopsCash - $cashAmount;
-                    $shopsData = array(
-                        'cash' => $upCahs,
-                        'updatedBy' => $userId,
-                    );
-                    $shopCasTable = DB()->table('shops');
-                    $shopCasTable->where('sch_id', $shopId)->update($shopsData);
-                    //insert log (start)
-                    $this->transactionLog->insert_log_data('shops',$shopId,'',$cashAmount,'','','',$purchaseId);
-                    //insert log (end)
-
-                    //nagodan ledger create
-                    $lgNagData = array(
-                        'sch_id' => $shopId,
-                        'purchase_id' => $purchaseId,
-                        'particulars' => 'Purchase Cash Pay',
-                        'trangaction_type' => 'Cr.',
-                        'amount' => $cashAmount,
-                        'rest_balance' => $upCahs,
-                        'createdBy' => $userId,
-                        'createdDtm' => date('Y-m-d h:i:s')
-                    );
-                    $ledger_nagodanTable = DB()->table('ledger_nagodan');
-                    $ledger_nagodanTable->insert($lgNagData);
-                    $ledg_nagodan_id = DB()->insertID();
-                    //purshase pay cash amount calculet to shops cash and update shops cash or create ledger_nagodan statment in ledger_nagodan table (end)
-
-                    //insert log (start)
-                    $this->transactionLog->insert_log_data('ledger_nagodan',$ledg_nagodan_id,'',$cashAmount,'','','',$purchaseId);
-                    //insert log (end)
-
-                    //purshase pay cash amount calculet to suppliers balance and update suppliers balance or create supplier ledger in ledger_suppliers table (start)
-                    $supplierccCash = get_data_by_id('balance', 'suppliers', 'supplier_id', $supplierId);
-                    $suppCash = $supplierccCash + $cashAmount;
-
-                    $cashsuppData = array(
-                        'balance' => $suppCash,
-                        'updatedBy' => $userId,
-                    );
-                    $suppliersTab = DB()->table('suppliers');
-                    $suppliersTab->where('supplier_id', $supplierId)->update($cashsuppData);
-                    //insert log (start)
-                    $this->transactionLog->insert_log_data('suppliers',$supplierId,'',$cashAmount,'','','',$purchaseId);
-                    //insert log (end)
-
-                    //suppliers ledger create
-                    $lgSuplData = array(
-                        'sch_id' => $shopId,
-                        'supplier_id' => $supplierId,
-                        'purchase_id' => $purchaseId,
-                        'particulars' => 'Purchase Cash Pay',
-                        'trangaction_type' => 'Dr.',
-                        'amount' => $cashAmount,
-                        'rest_balance' => $suppCash,
-                        'createdBy' => $userId,
-                        'createdDtm' => date('Y-m-d h:i:s')
-                    );
-                    $ledger_suppliersTab = DB()->table('ledger_suppliers');
-                    $ledger_suppliersTab->insert($lgSuplData);
-                    $ledg_sup_id = DB()->insertID();
-                    //insert log (start)
-                    $this->transactionLog->insert_log_data('ledger_suppliers',$ledg_sup_id,'',$cashAmount,'','','',$purchaseId);
-                    //insert log (end)
+                $supDueLog = DB()->table('transaction_log')->where(['table_name' => 'ledger_suppliers', 'id' => $dueLedger->ledg_sup_id])->get()->getRow();
+                if (!empty($supDueLog)) {
+                    $this->transactionLog->transaction_log_data_update($supDueLog->transaction_log_id, $totalPrice);
                 }
+                $supLog = DB()->table('transaction_log')->where(['table_name' => 'suppliers', 'purchase_id' => $purchaseId])->orderBy('transaction_log_id', 'ASC')->get()->getFirstRow();
+                if (!empty($supLog)) {
+                    $this->transactionLog->transaction_log_data_update($supLog->transaction_log_id, $totalPrice);
+                }
+            } elseif ($totalPrice > 0) {
+                $lgSuplData = [
+                    'sch_id'           => $shopId,
+                    'supplier_id'      => $supplierId,
+                    'purchase_id'      => $purchaseId,
+                    'particulars'      => 'Purchase Cash Due',
+                    'trangaction_type' => 'Cr.',
+                    'amount'           => $totalPrice,
+                    'rest_balance'     => $newSuppBal,
+                    'createdBy'        => $userId,
+                    'createdDtm'       => date('Y-m-d H:i:s')
+                ];
+                DB()->table('ledger_suppliers')->insert($lgSuplData);
+                $ledg_sup_id = DB()->insertID();
+                $this->transactionLog->insert_log_data('ledger_suppliers', $ledg_sup_id, '', $totalPrice, '', '', '', $purchaseId);
+                $this->transactionLog->insert_log_data('suppliers', $supplierId, '', $totalPrice, '', '', '', $purchaseId);
             }
-            //purchase pay cash amount calculate (end)
+
+            // Supplier Cash Pay Ledger ('Purchase Cash Pay' - Dr.)
+            $cashLedger = DB()->table('ledger_suppliers')
+                ->where('purchase_id', $purchaseId)
+                ->where('trangaction_type', 'Dr.')
+                ->like('particulars', 'Cash Pay')
+                ->get()->getRow();
+            if (!empty($cashLedger)) {
+                if ($cashAmount > 0) {
+                    $newRestBalance = ($cashLedger->rest_balance - $cashLedger->amount) + $cashAmount;
+                    DB()->table('ledger_suppliers')->where('ledg_sup_id', $cashLedger->ledg_sup_id)->update([
+                        'amount'       => $cashAmount,
+                        'rest_balance' => $newRestBalance,
+                    ]);
+                    $this->suppliers_ledger_rest_balance_update($supplierId, $cashAmount, $cashLedger->ledg_sup_id, $cashLedger->amount);
+
+                    $cashSupLog = DB()->table('transaction_log')->where(['table_name' => 'ledger_suppliers', 'id' => $cashLedger->ledg_sup_id])->get()->getRow();
+                    if (!empty($cashSupLog)) {
+                        $this->transactionLog->transaction_log_data_update($cashSupLog->transaction_log_id, $cashAmount);
+                    }
+                } else {
+                    DB()->table('ledger_suppliers')->where('ledg_sup_id', $cashLedger->ledg_sup_id)->delete();
+                    DB()->table('transaction_log')->where(['table_name' => 'ledger_suppliers', 'id' => $cashLedger->ledg_sup_id])->delete();
+                }
+            } elseif ($cashAmount > 0) {
+                $lgSuplData = [
+                    'sch_id'           => $shopId,
+                    'supplier_id'      => $supplierId,
+                    'purchase_id'      => $purchaseId,
+                    'particulars'      => 'Purchase Cash Pay',
+                    'trangaction_type' => 'Dr.',
+                    'amount'           => $cashAmount,
+                    'rest_balance'     => $newSuppBal,
+                    'createdBy'        => $userId,
+                    'createdDtm'       => date('Y-m-d H:i:s')
+                ];
+                DB()->table('ledger_suppliers')->insert($lgSuplData);
+                $ledg_sup_id = DB()->insertID();
+                $this->transactionLog->insert_log_data('ledger_suppliers', $ledg_sup_id, '', $cashAmount, '', '', '', $purchaseId);
+            }
+
+            // Supplier Bank Pay Ledger ('Purchase Bank Pay' - Dr.)
+            $bankLedger = DB()->table('ledger_suppliers')
+                ->where('purchase_id', $purchaseId)
+                ->where('trangaction_type', 'Dr.')
+                ->like('particulars', 'Bank Pay')
+                ->get()->getRow();
+            if (!empty($bankLedger)) {
+                if ($bankAmount > 0) {
+                    $newRestBalance = ($bankLedger->rest_balance - $bankLedger->amount) + $bankAmount;
+                    DB()->table('ledger_suppliers')->where('ledg_sup_id', $bankLedger->ledg_sup_id)->update([
+                        'amount'       => $bankAmount,
+                        'rest_balance' => $newRestBalance,
+                    ]);
+                    $this->suppliers_ledger_rest_balance_update($supplierId, $bankAmount, $bankLedger->ledg_sup_id, $bankLedger->amount);
+
+                    $bankSupLog = DB()->table('transaction_log')->where(['table_name' => 'ledger_suppliers', 'id' => $bankLedger->ledg_sup_id])->get()->getRow();
+                    if (!empty($bankSupLog)) {
+                        $this->transactionLog->transaction_log_data_update($bankSupLog->transaction_log_id, $bankAmount);
+                    }
+                } else {
+                    DB()->table('ledger_suppliers')->where('ledg_sup_id', $bankLedger->ledg_sup_id)->delete();
+                    DB()->table('transaction_log')->where(['table_name' => 'ledger_suppliers', 'id' => $bankLedger->ledg_sup_id])->delete();
+                }
+            } elseif ($bankAmount > 0) {
+                $lgSuplData = [
+                    'sch_id'           => $shopId,
+                    'supplier_id'      => $supplierId,
+                    'purchase_id'      => $purchaseId,
+                    'particulars'      => 'Purchase Bank Pay',
+                    'trangaction_type' => 'Dr.',
+                    'amount'           => $bankAmount,
+                    'rest_balance'     => $newSuppBal,
+                    'createdBy'        => $userId,
+                    'createdDtm'       => date('Y-m-d H:i:s')
+                ];
+                DB()->table('ledger_suppliers')->insert($lgSuplData);
+                $ledg_sup_id = DB()->insertID();
+                $this->transactionLog->insert_log_data('ledger_suppliers', $ledg_sup_id, '', $bankAmount, '', '', '', $purchaseId);
+            }
         }
 
-        if ($bankAmount > 0) {
-            //purchase pay bank amount calculate to bank balance and update bank balance or create bank ledger in ledger_bank table (start)
-            $bankCash = get_data_by_id('balance', 'bank', 'bank_id', $bankId);
-            if ($bankCash >= $bankAmount) {
-                $bankInfo = $this->transactionLog->get_table_name_by_row_purchase_id('bank',$purchaseId);
-                if (!empty($bankInfo)) {
-                    $upCahs = ($bankCash + $bankInfo->amount) - $bankAmount;
-                    $bankData = array(
-                        'balance' => $upCahs,
-                    );
-                    $bankTable = DB()->table('bank');
-                    $bankTable->where('bank_id', $bankId)->update($bankData);
+        // 2. ==================== PURCHASE BALANCE ====================
+        $purchaseBal = (float)get_data_by_id('purchase_balance', 'shops', 'sch_id', $shopId);
+        $restBalPurc = ($purchaseBal - $oldAmount) + $totalPrice;
+        DB()->table('shops')->where('sch_id', $shopId)->update(['purchase_balance' => $restBalPurc]);
 
-                    //transaction edit log data insert
-                    $this->transactionLog->transaction_log_data_update($bankInfo->transaction_log_id,$bankAmount);
-                    $this->transactionLog->transaction_edit_log_data_insert('bank','','',$this->session->userId,$bankInfo->amount,$bankAmount,'',$purchaseId );
-                    //insert Transaction in transaction table (end)
-
-                    $bankLedgerInfo = $this->transactionLog->get_table_name_by_row_purchase_id('ledger_bank', $purchaseId);
-                    $bankLedCash = get_data_by_id('rest_balance', 'ledger_bank', 'ledgBank_id', $bankLedgerInfo->id);
-                    $upRestCahs = ($bankLedCash + $bankLedgerInfo->amount) - $bankAmount;
-                    //bank ledger create
-                    $lgBankData = array(
-                        'amount' => $bankAmount,
-                        'rest_balance' => $upRestCahs,
-                    );
-                    $ledger_bankTab = DB()->table('ledger_bank');
-                    $ledger_bankTab->where('ledgBank_id', $bankLedgerInfo->id)->update($lgBankData);
-                    //transaction edit log data insert
-                    $this->transactionLog->transaction_log_data_update($bankLedgerInfo->transaction_log_id,$bankAmount);
-                    $this->transactionLog->transaction_edit_log_data_insert('ledger_bank','','',$this->session->userId,$bankLedgerInfo->amount,$bankAmount,'',$purchaseId );
-                    //insert Transaction in transaction table (end)
-                    $this->bank_ledger_rest_balance_update($bankId, $bankAmount, $bankLedgerInfo->id, $bankLedgerInfo->amount);
-                    //purchase pay bank amount calculate to bank balance and update bank balance or create bank ledger in ledger_bank table (end)
-
-
-                    //purchase pay bank amount calculate to suppliers balance and update suppliers balance or create supplier ledger in ledger_suppliers table (start)
-                    $table = DB()->table('transaction_log');
-                    $supLastInfo = $table->where('purchase_id', $purchaseId)->where('table_name', 'suppliers')->get()->getLastRow();
-                    $suppLierbbCash = get_data_by_id('balance', 'suppliers', 'supplier_id', $supLastInfo->id);
-                    $suppBaCash = ($suppLierbbCash - $supLastInfo->amount) + $bankAmount;
-
-                    $bankSuppData = array(
-                        'balance' => $suppBaCash,
-                    );
-                    $suppliersTab = DB()->table('suppliers');
-                    $suppliersTab->where('supplier_id', $supLastInfo->id)->update($bankSuppData);
-
-                    //transaction edit log data insert
-                    $this->transactionLog->transaction_log_data_update($supLastInfo->transaction_log_id,$bankAmount);
-                    $this->transactionLog->transaction_edit_log_data_insert('suppliers','','',$this->session->userId,$supLastInfo->amount,$bankAmount,'',$purchaseId );
-                    //insert Transaction in transaction table (end)
-
-
-                    $table = DB()->table('transaction_log');
-                    $supLastLedInfo = $table->where('purchase_id', $purchaseId)->where('table_name', 'ledger_suppliers')->get()->getLastRow();
-                    $suppLedgereCash = get_data_by_id('rest_balance', 'ledger_suppliers', 'ledg_sup_id', $supLastLedInfo->id);
-                    $suppLedRestCash = ($suppLedgereCash - $supLastLedInfo->amount) + $bankAmount;
-                    //suppliers ledger create
-                    $lgSuplData = array(
-                        'amount' => $bankAmount,
-                        'rest_balance' => $suppLedRestCash,
-                    );
-                    $ledger_suppliersTab = DB()->table('ledger_suppliers');
-                    $ledger_suppliersTab->where('ledg_sup_id', $supLastLedInfo->id)->update($lgSuplData);
-
-                    //transaction edit log data insert
-                    $this->transactionLog->transaction_log_data_update($supLastLedInfo->transaction_log_id,$bankAmount);
-                    $this->transactionLog->transaction_edit_log_data_insert('ledger_suppliers','','',$this->session->userId,$supLastLedInfo->amount,$bankAmount,'',$purchaseId );
-                    //insert Transaction in transaction table (end)
-
-                    $this->suppliers_ledger_rest_balance_update($supLastInfo->id, $bankAmount, $supLastLedInfo->id, $supLastLedInfo->amount);
-                }else{
-                    $upCahs = $bankCash - $bankAmount;
-                    $bankData = array(
-                        'balance' => $upCahs,
-                        'updatedBy' => $userId,
-                    );
-                    $bankTable = DB()->table('bank');
-                    $bankTable->where('bank_id', $bankId)->update($bankData);
-                    //insert log (start)
-                    $this->transactionLog->insert_log_data('bank',$bankId,'',$bankAmount,'','','',$purchaseId);
-                    //insert log (end)
-
-                    //bank ledger create
-                    $lgBankData = array(
-                        'sch_id' => $shopId,
-                        'bank_id' => $bankId,
-                        'purchase_id' => $purchaseId,
-                        'trangaction_type' => 'Cr.',
-                        'particulars' => 'Purchase Bank Pay',
-                        'amount' => $bankAmount,
-                        'rest_balance' => $upCahs,
-                        'createdBy' => $userId,
-                        'createdDtm' => date('Y-m-d h:i:s')
-                    );
-                    $ledger_bankTab = DB()->table('ledger_bank');
-                    $ledger_bankTab->insert($lgBankData);
-                    $ledgBank_id = DB()->insertID();
-                    //purchase pay bank amount calculate to bank balance and update bank balance or create bank ledger in ledger_bank table (end)
-
-                    //insert log (start)
-                    $this->transactionLog->insert_log_data('ledger_bank',$ledgBank_id,'',$bankAmount,'','','',$purchaseId);
-                    //insert log (end)
-
-                    //purchase pay bank amount calculate to suppliers balance and update suppliers balance or create supplier ledger in ledger_suppliers table (start)
-                    $supplierbbCash = get_data_by_id('balance', 'suppliers', 'supplier_id', $supplierId);
-                    $suppBaCash = $supplierbbCash + $bankAmount;
-
-                    $banksuppData = array(
-                        'balance' => $suppBaCash,
-                        'updatedBy' => $userId,
-                    );
-                    $suppliersTab = DB()->table('suppliers');
-                    $suppliersTab->where('supplier_id', $supplierId)->update($banksuppData);
-                    //insert log (start)
-                    $this->transactionLog->insert_log_data('suppliers',$supplierId,'',$bankAmount,'','','',$purchaseId);
-                    //insert log (end)
-
-                    //suppliers ledger create
-                    $lgSuplData = array(
-                        'sch_id' => $shopId,
-                        'supplier_id' => $supplierId,
-                        'purchase_id' => $purchaseId,
-                        'particulars' => 'Purchase Bank Pay',
-                        'trangaction_type' => 'Dr.',
-                        'amount' => $bankAmount,
-                        'rest_balance' => $suppBaCash,
-                        'createdBy' => $userId,
-                        'createdDtm' => date('Y-m-d h:i:s')
-                    );
-                    $ledger_suppliersTab = DB()->table('ledger_suppliers');
-                    $ledger_suppliersTab->insert($lgSuplData);
-                    $ledg_sup_id = DB()->insertID();
-                    //insert log (start)
-                    $this->transactionLog->insert_log_data('ledger_suppliers',$ledg_sup_id,'',$bankAmount,'','','',$purchaseId);
-                    //insert log (end)
-                }
-            }
-            //purchase pay bank amount calculate to suppliers balance and update suppliers balance or create supplier ledger in ledger_suppliers table (end)
+        $purchaseBalanceInfo = $this->transactionLog->get_table_name_by_row_purchase_id_by_colum_name('shops', $purchaseId, 'purchase_balance');
+        if (!empty($purchaseBalanceInfo)) {
+            $this->transactionLog->transaction_log_data_update($purchaseBalanceInfo->transaction_log_id, $totalPrice);
+            $this->transactionLog->transaction_edit_log_data_insert('shops', '', '', $this->session->userId, $purchaseBalanceInfo->amount, $totalPrice, '', $purchaseId, 'purchase_balance');
+        } elseif ($totalPrice > 0) {
+            $this->transactionLog->insert_log_data('shops', $shopId, '', $totalPrice, '', '', '', $purchaseId, 'purchase_balance');
         }
 
-        $number = count($prod_id);
+        $ledgerPurchaseInfo = $this->transactionLog->get_table_name_by_row_purchase_id('ledger_purchase', $purchaseId);
+        if (!empty($ledgerPurchaseInfo)) {
+            $purchaseLedgerBal    = (float)get_data_by_id('rest_balance', 'ledger_purchase', 'ledgPurch_id', $ledgerPurchaseInfo->id);
+            $newPurchaseLedgerBal = ($purchaseLedgerBal - (float)$ledgerPurchaseInfo->amount) + $totalPrice;
+            DB()->table('ledger_purchase')->where('ledgPurch_id', $ledgerPurchaseInfo->id)->update([
+                'amount'       => $totalPrice,
+                'rest_balance' => $newPurchaseLedgerBal,
+            ]);
+            $this->purchase_ledger_rest_balance_update($purchaseId, $totalPrice);
+            $this->transactionLog->transaction_log_data_update($ledgerPurchaseInfo->transaction_log_id, $totalPrice);
+            $this->transactionLog->transaction_edit_log_data_insert('ledger_purchase', '', '', $this->session->userId, $ledgerPurchaseInfo->amount, $totalPrice, '', $purchaseId, '');
+        }
+
+        // 3. ==================== STOCK AMOUNT ====================
+        $stockBal     = (float)get_data_by_id('stockAmount', 'shops', 'sch_id', $shopId);
+        $restBalStock = ($stockBal - $oldAmount) + $totalPrice;
+        DB()->table('shops')->where('sch_id', $shopId)->update(['stockAmount' => $restBalStock]);
+
+        $stockAmountInfo = $this->transactionLog->get_table_name_by_row_purchase_id_by_colum_name('shops', $purchaseId, 'stockAmount');
+        if (!empty($stockAmountInfo)) {
+            $this->transactionLog->transaction_log_data_update($stockAmountInfo->transaction_log_id, $totalPrice);
+            $this->transactionLog->transaction_edit_log_data_insert('shops', '', '', $this->session->userId, $stockAmountInfo->amount, $totalPrice, '', $purchaseId, 'stockAmount');
+        } elseif ($totalPrice > 0) {
+            $this->transactionLog->insert_log_data('shops', $shopId, '', $totalPrice, '', '', '', $purchaseId, 'stockAmount');
+        }
+
+        $ledgerStockInfo = $this->transactionLog->get_table_name_by_row_purchase_id('ledger_stock', $purchaseId);
+        if (!empty($ledgerStockInfo)) {
+            $ledgerStockBal     = (float)get_data_by_id('rest_balance', 'ledger_stock', 'stock_id', $ledgerStockInfo->id);
+            $restLedgerStockBal = ($ledgerStockBal - (float)$ledgerStockInfo->amount) + $totalPrice;
+            DB()->table('ledger_stock')->where('stock_id', $ledgerStockInfo->id)->update([
+                'amount'       => $totalPrice,
+                'rest_balance' => $restLedgerStockBal,
+            ]);
+            $this->transactionLog->transaction_log_data_update($ledgerStockInfo->transaction_log_id, $totalPrice);
+            $this->transactionLog->transaction_edit_log_data_insert('ledger_stock', '', '', $this->session->userId, $ledgerStockInfo->amount, $totalPrice, '', $purchaseId);
+            $this->stock_ledger_rest_balance_update($purchaseId, $totalPrice);
+        }
+
+        // 4. ==================== CASH (NAGOD) ====================
+        $shopsCash = (float)get_data_by_id('cash', 'shops', 'sch_id', $shopId);
+        $upCash    = ($shopsCash + $oldNagod) - $cashAmount;
+        DB()->table('shops')->where('sch_id', $shopId)->update(['cash' => $upCash]);
+
+        $shopCashLog = DB()->table('transaction_log')->where(['table_name' => 'shops', 'id' => $shopId, 'purchase_id' => $purchaseId])->where('colum_name', null)->get()->getRow();
+        if (!empty($shopCashLog)) {
+            if ($cashAmount > 0) {
+                $this->transactionLog->transaction_log_data_update($shopCashLog->transaction_log_id, $cashAmount);
+                $this->transactionLog->transaction_edit_log_data_insert('shops', '', '', $this->session->userId, $shopCashLog->amount, $cashAmount, '', $purchaseId);
+            } else {
+                DB()->table('transaction_log')->where('transaction_log_id', $shopCashLog->transaction_log_id)->delete();
+            }
+        } elseif ($cashAmount > 0) {
+            $this->transactionLog->insert_log_data('shops', $shopId, '', $cashAmount, '', '', '', $purchaseId);
+        }
+
+        $ledgerNagodInfo = DB()->table('ledger_nagodan')->where('purchase_id', $purchaseId)->get()->getRow();
+        if (!empty($ledgerNagodInfo)) {
+            if ($cashAmount > 0) {
+                $ledgerNagodBal = (float)get_data_by_id('rest_balance', 'ledger_nagodan', 'ledg_nagodan_id', $ledgerNagodInfo->ledg_nagodan_id);
+                $upRestCash     = ($ledgerNagodBal + (float)$ledgerNagodInfo->amount) - $cashAmount;
+                DB()->table('ledger_nagodan')->where('ledg_nagodan_id', $ledgerNagodInfo->ledg_nagodan_id)->update([
+                    'amount'       => $cashAmount,
+                    'rest_balance' => $upRestCash,
+                ]);
+                $this->cash_ledger_rest_balance_update($shopId, $cashAmount, $ledgerNagodInfo->ledg_nagodan_id, $ledgerNagodInfo->amount);
+                $this->transactionLog->transaction_edit_log_data_insert('ledger_nagodan', '', '', $this->session->userId, $ledgerNagodInfo->amount, $cashAmount, '', $purchaseId);
+                $nagLog = DB()->table('transaction_log')->where(['table_name' => 'ledger_nagodan', 'id' => $ledgerNagodInfo->ledg_nagodan_id])->get()->getRow();
+                if (!empty($nagLog)) {
+                    $this->transactionLog->transaction_log_data_update($nagLog->transaction_log_id, $cashAmount);
+                }
+            } else {
+                DB()->table('ledger_nagodan')->where('ledg_nagodan_id', $ledgerNagodInfo->ledg_nagodan_id)->delete();
+                DB()->table('transaction_log')->where(['table_name' => 'ledger_nagodan', 'id' => $ledgerNagodInfo->ledg_nagodan_id])->delete();
+            }
+        } elseif ($cashAmount > 0) {
+            $lgNagData = [
+                'sch_id'           => $shopId,
+                'purchase_id'      => $purchaseId,
+                'trangaction_type' => 'Cr.',
+                'particulars'      => 'Purchase Cash Pay',
+                'amount'           => $cashAmount,
+                'rest_balance'     => $upCash,
+                'createdBy'        => $userId,
+                'createdDtm'       => date('Y-m-d H:i:s')
+            ];
+            DB()->table('ledger_nagodan')->insert($lgNagData);
+            $ledg_nagodan_id = DB()->insertID();
+            $this->transactionLog->insert_log_data('ledger_nagodan', $ledg_nagodan_id, '', $cashAmount, '', '', '', $purchaseId);
+        }
+
+        // 5. ==================== BANK ====================
+        $targetBankId = !empty($bankId) ? $bankId : $oldBankId;
+        if (!empty($targetBankId)) {
+            if ($oldBankId == $bankId) {
+                $bankCash   = (float)get_data_by_id('balance', 'bank', 'bank_id', $targetBankId);
+                $upBankCash = ($bankCash + $oldBank) - $bankAmount;
+                DB()->table('bank')->where('bank_id', $targetBankId)->update(['balance' => $upBankCash]);
+            } else {
+                if (!empty($oldBankId) && $oldBank > 0) {
+                    $oldBankCash = (float)get_data_by_id('balance', 'bank', 'bank_id', $oldBankId);
+                    DB()->table('bank')->where('bank_id', $oldBankId)->update(['balance' => $oldBankCash + $oldBank]);
+                }
+                if (!empty($bankId) && $bankAmount > 0) {
+                    $newBankCash = (float)get_data_by_id('balance', 'bank', 'bank_id', $bankId);
+                    DB()->table('bank')->where('bank_id', $bankId)->update(['balance' => $newBankCash - $bankAmount]);
+                }
+            }
+
+            $bankInfo = DB()->table('transaction_log')->where(['table_name' => 'bank', 'purchase_id' => $purchaseId])->get()->getRow();
+            if (!empty($bankInfo)) {
+                if ($bankAmount > 0) {
+                    $this->transactionLog->transaction_log_data_update($bankInfo->transaction_log_id, $bankAmount);
+                    $this->transactionLog->transaction_edit_log_data_insert('bank', '', '', $this->session->userId, $bankInfo->amount, $bankAmount, '', $purchaseId);
+                } else {
+                    DB()->table('transaction_log')->where('transaction_log_id', $bankInfo->transaction_log_id)->delete();
+                }
+            } elseif ($bankAmount > 0) {
+                $this->transactionLog->insert_log_data('bank', $targetBankId, '', $bankAmount, '', '', '', $purchaseId);
+            }
+
+            $bankLedgerInfo = DB()->table('ledger_bank')->where('purchase_id', $purchaseId)->get()->getRow();
+            if (!empty($bankLedgerInfo)) {
+                if ($bankAmount > 0) {
+                    $bankLedCash = (float)get_data_by_id('rest_balance', 'ledger_bank', 'ledgBank_id', $bankLedgerInfo->ledgBank_id);
+                    $upRestCahs  = ($bankLedCash + (float)$bankLedgerInfo->amount) - $bankAmount;
+                    DB()->table('ledger_bank')->where('ledgBank_id', $bankLedgerInfo->ledgBank_id)->update([
+                        'amount'       => $bankAmount,
+                        'bank_id'      => $targetBankId,
+                        'rest_balance' => $upRestCahs,
+                    ]);
+                    $this->bank_ledger_rest_balance_update($targetBankId, $bankAmount, $bankLedgerInfo->ledgBank_id, $bankLedgerInfo->amount);
+                    $this->transactionLog->transaction_edit_log_data_insert('ledger_bank', '', '', $this->session->userId, $bankLedgerInfo->amount, $bankAmount, '', $purchaseId);
+                    $bLog = DB()->table('transaction_log')->where(['table_name' => 'ledger_bank', 'id' => $bankLedgerInfo->ledgBank_id])->get()->getRow();
+                    if (!empty($bLog)) {
+                        $this->transactionLog->transaction_log_data_update($bLog->transaction_log_id, $bankAmount);
+                    }
+                } else {
+                    DB()->table('ledger_bank')->where('ledgBank_id', $bankLedgerInfo->ledgBank_id)->delete();
+                    DB()->table('transaction_log')->where(['table_name' => 'ledger_bank', 'id' => $bankLedgerInfo->ledgBank_id])->delete();
+                }
+            } elseif ($bankAmount > 0) {
+                $lgBankData = [
+                    'sch_id'           => $shopId,
+                    'bank_id'          => $targetBankId,
+                    'purchase_id'      => $purchaseId,
+                    'particulars'      => 'Purchase Bank Pay',
+                    'trangaction_type' => 'Cr.',
+                    'amount'           => $bankAmount,
+                    'rest_balance'     => !empty($upBankCash) ? $upBankCash : 0,
+                    'createdBy'        => $userId,
+                    'createdDtm'       => date('Y-m-d H:i:s')
+                ];
+                DB()->table('ledger_bank')->insert($lgBankData);
+                $ledgBank_id = DB()->insertID();
+                $this->transactionLog->insert_log_data('ledger_bank', $ledgBank_id, '', $bankAmount, '', '', '', $purchaseId);
+            }
+        }
+
+        $number = !empty($prod_id) && is_array($prod_id) ? count($prod_id) : 0;
         for ($i = 0; $i < $number; $i++) {
-            $purchaseItem = DB()->table('purchase_item')->where('purchase_id',$purchaseId)->where('prod_id',$prod_id[$i])->get()->getRow();
-            if(!empty($purchaseItem)) {
-                $purchaseDate = DB()->table('product_stock_relation')->where('product_stock_relation_id', $purchaseItem->product_stock_relation_id)->get()->getRow();
-                $newQty = $purchaseDate->quantity - $purchaseItem->quantity;
-                $dataQty = array(
-                    'quantity' => $newQty + $qty[$i],
-                    'purchase_price' => $price[$i],
-                    'selling_price' => $salePrice[$i],
-                );
-                DB()->table('product_stock_relation')->where('product_stock_relation_id', $purchaseItem->product_stock_relation_id)->update($dataQty);
+            $itemId = (!empty($purchase_item_id) && !empty($purchase_item_id[$i])) ? $purchase_item_id[$i] : null;
+
+            if ($itemId) {
+                $purchaseItem = DB()->table('purchase_item')->where('purchase_item_id', $itemId)->get()->getRow();
+            } else {
+                $purchaseItem = DB()->table('purchase_item')->where('purchase_id', $purchaseId)->where('prod_id', $prod_id[$i])->get()->getRow();
             }
 
+            if (!empty($purchaseItem)) {
+                $purchaseDate = null;
+                if (!empty($purchaseItem->product_stock_relation_id)) {
+                    $purchaseDate = DB()->table('product_stock_relation')->where('product_stock_relation_id', $purchaseItem->product_stock_relation_id)->get()->getRow();
+                }
 
-            //update purchase Item in purchase item table
-            $purchaseData = array(
-                'purchase_price' => $price[$i],
-                'quantity' => $qty[$i],
-                'total_price' => $total_price[$i],
-            );
-            $purchase_itemTab = DB()->table('purchase_item');
-            $purchase_itemTab->where('purchase_id',$purchaseId)->where('prod_id',$prod_id[$i])->update($purchaseData);
+                if (empty($purchaseDate)) {
+                    $purchaseDate = DB()->table('product_stock_relation')
+                        ->where('sch_id', $shopId)
+                        ->where('product_id', $prod_id[$i])
+                        ->get()
+                        ->getRow();
+                    if (!empty($purchaseDate)) {
+                        DB()->table('purchase_item')->where('purchase_item_id', $purchaseItem->purchase_item_id)->update(['product_stock_relation_id' => $purchaseDate->product_stock_relation_id]);
+                    }
+                }
+
+                if (!empty($purchaseDate)) {
+                    $oldQty = (float)$purchaseItem->quantity;
+                    $newQty = (float)$qty[$i];
+                    $currentStock = (float)$purchaseDate->quantity;
+                    $updatedStock = ($currentStock - $oldQty) + $newQty;
+
+                    $dataQty = array(
+                        'quantity' => $updatedStock,
+                        'purchase_price' => $price[$i],
+                        'selling_price' => !empty($salePrice[$i]) ? $salePrice[$i] : $purchaseDate->selling_price,
+                    );
+                    DB()->table('product_stock_relation')->where('product_stock_relation_id', $purchaseDate->product_stock_relation_id)->update($dataQty);
+                }
+
+                //update purchase Item in purchase item table
+                $purchaseData = array(
+                    'purchase_price' => $price[$i],
+                    'quantity' => $qty[$i],
+                    'total_price' => $total_price[$i],
+                    'updatedBy' => $userId,
+                );
+                DB()->table('purchase_item')->where('purchase_item_id', $purchaseItem->purchase_item_id)->update($purchaseData);
+
+                // Update purchase_item in transaction_log if exists
+                $itemLog = DB()->table('transaction_log')
+                    ->where('purchase_id', $purchaseId)
+                    ->where('table_name', 'purchase_item')
+                    ->where('id', $purchaseItem->purchase_item_id)
+                    ->get()
+                    ->getRow();
+                if (!empty($itemLog)) {
+                    $this->transactionLog->transaction_log_data_update($itemLog->transaction_log_id, $total_price[$i]);
+                }
+            }
         }
         //purchase product insert in product table and purchase item table (end)
+
+        // Update purchase in transaction_log if exists
+        $purLog = DB()->table('transaction_log')
+            ->where('purchase_id', $purchaseId)
+            ->where('table_name', 'purchase')
+            ->get()
+            ->getRow();
+        if (!empty($purLog)) {
+            $this->transactionLog->transaction_log_data_update($purLog->transaction_log_id, $totalPrice);
+        }
 
 
         //purchase all pay amount detail Update in purchase table(start)

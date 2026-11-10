@@ -436,32 +436,45 @@ function goBack() {
 
   <script type="text/javascript">
     //salse moduels search product (start)
-      function findResult(){
-        $('#keyWord').on('keyup',function(){
-          var search_text = $('#keyWord').val();
+      function findResult(explicitVal){
+          var search_text = (explicitVal !== undefined && typeof explicitVal === 'string') ? explicitVal : $('#keyWord').val();
+          if (search_text === undefined || search_text === null) {
+              search_text = $('#keyWord').val() || '';
+          }
+          search_text = $.trim(search_text);
           var sale_save_id = $('#sale_save_id').val();
           if(search_text==""){
-                $('#result').empty();
-            }else{
-                $.ajax({
+              $('#result').empty();
+          }else{
+              $.ajax({
                   type: "POST",
                   url: "<?php echo site_url('Admin/Sales/search_prod') ?>",
-                  data: {keyWord: search_text,sale_save_id:sale_save_id},
+                  data: {keyWord: search_text, sale_save_id: sale_save_id},
 
                   success: function(html){
-
-                    $("#result").html(html).show();
+                      $("#result").html(html).show();
                   }
-                });
-            }
-          });
+              });
+          }
       }
-      //salse moduels search product (end)
+      //sales modules search product (end)
 
+      $(document).on('keydown', '#keyWord', function(e) {
+          if (e.which === 13 || e.keyCode === 13) {
+              e.preventDefault();
+              if (typeof findResult === 'function') {
+                  findResult($(this).val());
+              }
+              if (typeof findResultPurchase === 'function') {
+                  findResultPurchase($(this).val());
+              }
+              return false;
+          }
+      });
 </script>
 
 <script type="text/javascript">
-    //salse moduels search product (start)
+    //lc sales modules search product (start)
       function lcSale(){
         $('#keyWord').on('keyup',function(){
           var search_text = $('#keyWord').val();
@@ -481,8 +494,7 @@ function goBack() {
             }
           });
       }
-      //salse moduels search product (end)
-
+      //lc sales modules search product (end)
 </script>
 
 <script type="text/javascript">
@@ -4098,24 +4110,25 @@ function opening_status(url){
 
 
   // purchase data calculate
-  function findResultPurchase() {
-      $('#keyWord').on('keyup', function() {
-          var search_text = $('#keyWord').val();
-          if (search_text == "") {
-              $('#result').empty();
-          } else {
-              $.ajax({
-                  type: "POST",
-                  url: "<?php echo site_url('Admin/Purchase/search_prod') ?>",
-                  data: {keyWord: search_text},
+  function findResultPurchase(explicitVal) {
+      var search_text = (explicitVal !== undefined && typeof explicitVal === 'string') ? explicitVal : $('#keyWord').val();
+      if (search_text === undefined || search_text === null) {
+          search_text = $('#keyWord').val() || '';
+      }
+      search_text = $.trim(search_text);
+      if (search_text == "") {
+          $('#result').empty();
+      } else {
+          $.ajax({
+              type: "POST",
+              url: "<?php echo site_url('Admin/Purchase/search_prod') ?>",
+              data: {keyWord: search_text},
 
-                  success: function(html) {
-
-                      $("#result").html(html).show();
-                  }
-              });
-          }
-      });
+              success: function(html) {
+                  $("#result").html(html).show();
+              }
+          });
+      }
   }
 
   function calculateRow(row) {
@@ -4198,7 +4211,25 @@ function opening_status(url){
       $('#salePrice_' + printId).val(basePrice.toFixed(8));
   }
 
+// Invoice Settings: dynamic add/remove for multi-value fields (gmail, name & phone)
+  function invoiceMultiAdd(btn){
+      var target = $(btn).data('target');
+      var $container = $('.invoice-multi[data-label="' + target + '"]');
+      if (!$container.length) { return; }
+      var $row = $container.find('.invoice-multi-row').first().clone();
+      $row.find('input').val('');
+      $container.append($row);
+  }
 
+  function invoiceMultiRemove(btn){
+      var $container = $(btn).closest('.invoice-multi');
+      var $row = $(btn).closest('.invoice-multi-row');
+      if ($container.find('.invoice-multi-row').length > 1) {
+          $row.remove();
+      } else {
+          $row.find('input').val('');
+      }
+  }
 
 </script>
 

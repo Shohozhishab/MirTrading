@@ -36,6 +36,21 @@
 
 
     <section class="content">
+        <?php
+        // Dynamic invoice settings (null-safe)
+        $__inv = function ($label) {
+            $row = DB()->table('gen_settings')->where('label', $label)->where('sch_id', $_SESSION['shopId'])->get()->getRow();
+            return $row ? (string) $row->value : '';
+        };
+        $invTitle    = $__inv('invoice_title');
+        $invSubTitle = $__inv('invoice_sub_title');
+        $invAddress  = $__inv('invoice_address');
+        $invBinNo    = $__inv('invoice_bin_no');
+        $invFooter   = $__inv('invoice_footer_text');
+        $invLogo     = $__inv('invoice_logo');
+        $invEmails   = array_values(array_filter(array_map('trim', explode(',', $__inv('invoice_gmail'))), function ($v) { return $v !== ''; }));
+        $invContacts = array_values(array_filter(array_map('trim', explode(',', $__inv('invoice_name_phone'))), function ($v) { return $v !== ''; }));
+        ?>
         <div class="invoice-page" >
             <table class="print-wrapper">
                 <!-- ===================== HEADER (repeats on every page) ===================== -->
@@ -47,7 +62,7 @@
                                 <div class="header-left">
 <!--                                    <img src="--><?php //= base_url('uploads/mirlogo.png')?><!--" class="" alt="">-->
 <!--                                    <img src="--><?php //= base_url('uploads/scooter.png')?><!--" class="left-img" alt="">-->
-                                    <img src="<?= base_url('uploads/logo.png')?>" >
+                                    <img src="<?= no_image_view('/uploads/schools/' . $invLogo, '/uploads/schools/no_image.jpg', $invLogo) ?>" >
                                 </div>
 
                                 <div class="header-right">
@@ -58,29 +73,35 @@
                                     Invoice/Bill
                                 </div>
 
-                                <h1 class="company-name">
-                                    MIR TRADING
-                                </h1>
+                                <?php if ($invTitle !== ''): ?>
+                                    <h1 class="company-name">
+                                        <?= esc($invTitle) ?>
+                                    </h1>
+                                <?php endif; ?>
 
-                                <div class="company-subtitle">
-                                    Importer &amp; Wholesaler
-                                </div>
+                                <?php if ($invSubTitle !== ''): ?>
+                                    <div class="company-subtitle">
+                                        <?= esc($invSubTitle) ?>
+                                    </div>
+                                <?php endif; ?>
 
-                                <div class="company-address">
-                                    Khulna Road, Bokchor Hustala Moor, Jashore
-                                </div>
+                                <?php if ($invAddress !== ''): ?>
+                                    <div class="company-address">
+                                        <?= esc($invAddress) ?>
+                                    </div>
+                                <?php endif; ?>
 
-                                <div class="company-email">
-                                    Email : mirtrading.jsr@gmail.com
-                                </div>
+                                <?php if (!empty($invEmails)): ?>
+                                    <div class="company-email">
+                                        <?php foreach ($invEmails as $i => $email): ?><?= $i > 0 ? '<br>' : '' ?>Email : <?= esc($email) ?><?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
 
-                                <div class="header-contacts">
-                                    Khurshid : 01919-812281,
-                                    Shamim : 01937-238798,
-                                    Rumi : 01775-011922,
-                                    Sazzad : 01712-921951
-
-                                </div>
+                                <?php if (!empty($invContacts)): ?>
+                                    <div class="header-contacts">
+                                        <?= esc(implode(', ', $invContacts)) ?>
+                                    </div>
+                                <?php endif; ?>
 
                             </header>
                         </td>
@@ -124,6 +145,7 @@
                                     <thead>
                                         <tr>
                                             <th>NAME</th>
+                                            <th>WARRANTY DATE</th>
                                             <th>PRODUCTION DATE</th>
                                             <th>PRICE</th>
                                             <th>QTY</th>
@@ -138,9 +160,16 @@
                                         $subCategory = get_data_by_id('product_category', 'product_category', 'prod_cat_id', $catId);
                                         $productName = get_data_by_id('name', 'products', 'prod_id', $row->prod_id);
                                         $unit = productIdByDefaultStoreUnit($row->prod_id);
+                                        $line = isset($serialsByLine[(int) $row->product_stock_relation_id]) ? $serialsByLine[(int) $row->product_stock_relation_id] : null;
                                         ?>
                                         <tr>
-                                            <td><?= $productName . '<br> <small>(' . $category . ' > ' . $subCategory . ')</small>'; ?></td>
+                                            <td>
+                                                <?= $productName . '<br> <small>(' . $category . ' > ' . $subCategory . ')</small>'; ?>
+                                                <?php if (!empty($line['numbers'])) { ?>
+                                                    <br><small><strong>Serial:</strong> <?= esc(implode(', ', $line['numbers'])); ?></small>
+                                                <?php } ?>
+                                            </td>
+                                            <td><?= ($line && !empty($line['warranty'])) ? $line['warranty'] : ''; ?></td>
                                             <td><?= $row->productionDate; ?></td>
                                             <td><?= showWithCurrencySymbol(unitOrBasePriceByUnitPrice($unit, $row->price)); ?></td>
                                             <td><?= unitOrQtyByUnitQty($unit, $row->quantity); ?>/<?php echo showUnitName($unit) ?></td>
@@ -151,7 +180,7 @@
                                 </table>
                                 <div class="totals">
                                     <div class="total-row">
-                                        <div class="total-label"> Subtotal </div>
+                                        <div class="total-label"> Products Price </div>
                                         <div class="total-value">
                                             <?= showWithCurrencySymbol($invoiceData->amount); ?>
                                             <input type="hidden" id="totalAmount" value="<?= $invoiceData->amount ?>" >
@@ -173,7 +202,7 @@
                                         <div class="total-row">
                                             <div class="total-label">
                                                 Vat (<?= $invoiceData->vat ?>%)
-                                                <input type="hidden" id="vat" value="<?= $invoiceData->entire_sale_discount ?>">
+                                                <input type="hidden" id="vat" value="<?= $invoiceData->vat ?>">
                                             </div>
 
                                             <div class="total-value">
@@ -290,17 +319,23 @@
                                     </div>
                                     <div class="footer-center">
 
-                                        <div class="footer-message">
-                                            ফোলা, ফাটা, চাপ খাওয়া, পোড়া, ভাঙ্গা, ডেট ওভার, জিরো ভোল্টেজ মাল ফেরত যোগ্য নয়।
-                                        </div>
+                                        <?php if ($invFooter !== ''): ?>
+                                            <div class="footer-message">
+                                                <?= esc($invFooter) ?>
+                                            </div>
+                                        <?php endif; ?>
 
-                                        <div class="footer-email">
-                                            Email : mirtrading.jsr@gmail.com
-                                        </div>
+                                        <?php if (!empty($invEmails)): ?>
+                                            <div class="footer-email">
+                                                <?php foreach ($invEmails as $i => $email): ?><?= $i > 0 ? '<br>' : '' ?>Email : <?= esc($email) ?><?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
 
-                                        <div class="footer-bin">
-                                            Bin: 003174613-0901
-                                        </div>
+                                        <?php if ($invBinNo !== ''): ?>
+                                            <div class="footer-bin">
+                                                Bin: <?= esc($invBinNo) ?>
+                                            </div>
+                                        <?php endif; ?>
 
                                     </div>
                                     <div class="signature">
@@ -493,8 +528,12 @@
                 }
 
                 .invoice-table th:first-child {
-                    width: 48%;
+                    width: 36%;
                     text-align: left;
+                }
+
+                .invoice-table th:nth-child(2) {
+                    width: 13%;
                 }
 
                 .invoice-table td {
@@ -606,127 +645,31 @@
                 }
 
 
-                /* ========== PRINT STYLES ========== */
-                /*@media print {*/
-                /*    *, *::before, *::after {*/
-                /*        -webkit-print-color-adjust: exact !important;*/
-                /*        print-color-adjust: exact !important;*/
-                /*        color-adjust: exact !important;*/
-                /*    }*/
+                /* ========== PDF COPY FIXES (only for #invoicePage, so html2pdf keeps footer on page 1) ========== */
+                #invoicePage.invoice-page {
+                    min-height: auto; /* total height stays under one A4 page so the footer is not sliced to page 2 */
+                }
 
-                /*    @page {*/
-                /*        size: A4 portrait;*/
-                /*        margin: 10mm 8mm;*/
-                /*    }*/
+                #invoicePage .invoice-content {
+                    min-height: 0 !important; /* was 220mm; 220mm + tall header + footer > printable height, so the footer spilled onto page 2 */
+                }
 
+                /* Keep header / footer blocks from being split across pages */
+                #invoicePage .invoice-header,
+                #invoicePage .invoice-footer,
+                #invoicePage .invoice-footer table,
+                #invoicePage .invoice-footer tr,
+                #invoicePage .invoice-table tr,
+                #invoicePage .totals,
+                #invoicePage .balance-due {
+                    page-break-inside: avoid !important;
+                    break-inside: avoid !important;
+                }
 
-                /*    .print-btn,*/
-                /*    .no-print {*/
-                /*        display: none !important;*/
-                /*    }*/
-
-                /*    .invoice-page {*/
-                /*        width: 100% !important;*/
-                /*        min-height: auto !important;*/
-                /*        margin: 0 !important;*/
-                /*        padding: 0 !important;*/
-                /*        box-shadow: none !important;*/
-                /*        background: white !important;*/
-                /*    }*/
-
-                /*    !* THE IMPORTANT PART - table header/footer repeat *!*/
-                /*    .print-wrapper {*/
-                /*        width: 100% !important;*/
-                /*        border-collapse: collapse !important;*/
-                /*    }*/
-
-                /*    .print-wrapper > thead {*/
-                /*        display: table-header-group !important;*/
-                /*    }*/
-
-                /*    .print-wrapper > tfoot {*/
-                /*        display: table-footer-group !important;*/
-                /*    }*/
-
-                /*    .print-wrapper > tbody {*/
-                /*        display: table-row-group !important;*/
-                /*    }*/
-
-                /*    .print-wrapper > thead > tr > td,*/
-                /*    .print-wrapper > tfoot > tr > td,*/
-                /*    .print-wrapper > tbody > tr > td {*/
-                /*        padding: 0 !important;*/
-                /*        border: none !important;*/
-                /*    }*/
-
-                /*    .invoice-header {*/
-                /*        position: relative !important;*/
-                /*        padding: 8px 12px 6px !important;*/
-                /*        border-bottom: 1px solid #3155a0 !important;*/
-                /*        background: white !important;*/
-                /*    }*/
-
-                /*    .invoice-footer {*/
-                /*        padding: 8px 12px 6px !important;*/
-                /*        border-top: 1px solid #3155a0 !important;*/
-                /*        background: white !important;*/
-                /*    }*/
-
-                /*    .invoice-content {*/
-                /*        padding: 20px 20px 8px !important;*/
-                /*        min-height: 220mm !important;*/
-                /*        !*margin-bottom: 300px;*!*/
-                /*    }*/
-
-                /*    .invoice-table thead {*/
-                /*        display: table-header-group !important;*/
-                /*    }*/
-
-                /*    .invoice-table tr {*/
-                /*        page-break-inside: avoid !important;*/
-                /*        break-inside: avoid !important;*/
-                /*    }*/
-
-                /*    .totals,*/
-                /*    .balance-due {*/
-                /*        page-break-inside: avoid !important;*/
-                /*        break-inside: avoid !important;*/
-                /*    }*/
-
-                /*    !* Colors *!*/
-                /*    .invoice-header,*/
-                /*    .company-name,*/
-                /*    .company-subtitle,*/
-                /*    .company-address,*/
-                /*    .company-email,*/
-                /*    .header-contacts,*/
-                /*    .footer-email,*/
-                /*    .footer-bin,*/
-                /*    .signature span {*/
-                /*        color: #3155a0 !important;*/
-                /*    }*/
-
-                /*    .invoice-badge {*/
-                /*        background: #3155a0 !important;*/
-                /*        color: #fff !important;*/
-                /*    }*/
-
-                /*    .footer-message {*/
-                /*        background: #3155a0 !important;*/
-                /*        color: #fff !important;*/
-                /*    }*/
-
-                /*    .balance-due {*/
-                /*        background: #f4f6f8 !important;*/
-                /*        border-color: #c5cbd4 !important;*/
-                /*    }*/
-
-                /*    .invoice-table thead {*/
-                /*        background: #f4f6f8 !important;*/
-                /*    }*/
-
-                /*}*/
-
+                /* Give the signature/footer block some breathing room after the totals */
+                #invoicePage .invoice-footer {
+                    margin-top: 10mm;
+                }
 
                 @media print {
 
@@ -871,7 +814,7 @@
                             <header class="invoice-header print-header">
 
                                 <div class="header-left">
-                                    <img src="<?= base_url('uploads/logo.png')?>" class="" alt="">
+                                    <img src="<?= no_image_view('/uploads/schools/' . $invLogo, '/uploads/schools/no_image.jpg', $invLogo) ?>" class="" alt="">
 <!--                                    <img src="--><?php //= base_url('uploads/mirlogo.png')?><!--" class="" alt="">-->
 <!--                                    <img src="--><?php //= base_url('uploads/scooter.png')?><!--" class="left-img" alt="">-->
                                 </div>
@@ -884,28 +827,35 @@
                                     Invoice/Bill
                                 </div>
 
-                                <h1 class="company-name">
-                                    MIR TRADING
-                                </h1>
+                                <?php if ($invTitle !== ''): ?>
+                                    <h1 class="company-name">
+                                        <?= esc($invTitle) ?>
+                                    </h1>
+                                <?php endif; ?>
 
-                                <div class="company-subtitle">
-                                    Importer &amp; Wholesaler
-                                </div>
+                                <?php if ($invSubTitle !== ''): ?>
+                                    <div class="company-subtitle">
+                                        <?= esc($invSubTitle) ?>
+                                    </div>
+                                <?php endif; ?>
 
-                                <div class="company-address">
-                                    Khulna Road, Bokchor Hustala Moor, Jashore
-                                </div>
+                                <?php if ($invAddress !== ''): ?>
+                                    <div class="company-address">
+                                        <?= esc($invAddress) ?>
+                                    </div>
+                                <?php endif; ?>
 
-                                <div class="company-email">
-                                    Email : mirtrading.jsr@gmail.com
-                                </div>
+                                <?php if (!empty($invEmails)): ?>
+                                    <div class="company-email">
+                                        <?php foreach ($invEmails as $i => $email): ?><?= $i > 0 ? '<br>' : '' ?>Email : <?= esc($email) ?><?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
 
-                                <div class="header-contacts">
-                                    Khurshid : 01919-812281,
-                                    Shamim : 01937-238798,
-                                    Rumi : 01775-011922,
-                                    Sazzad : 01712-921951
-                                </div>
+                                <?php if (!empty($invContacts)): ?>
+                                    <div class="header-contacts">
+                                        <?= esc(implode(', ', $invContacts)) ?>
+                                    </div>
+                                <?php endif; ?>
 
                             </header>
                         </td>
@@ -965,6 +915,7 @@
                                     <thead>
                                     <tr>
                                         <th>NAME</th>
+                                        <th>WARRANTY DATE</th>
                                         <th>PRODUCTION DATE</th>
                                         <th>PRICE</th>
                                         <th>QTY</th>
@@ -980,9 +931,16 @@
                                         $subCategory = get_data_by_id('product_category', 'product_category', 'prod_cat_id', $catId);
                                         $productName = get_data_by_id('name', 'products', 'prod_id', $row->prod_id);
                                         $unit = productIdByDefaultStoreUnit($row->prod_id);
+                                        $line = isset($serialsByLine[(int) $row->product_stock_relation_id]) ? $serialsByLine[(int) $row->product_stock_relation_id] : null;
                                         ?>
                                         <tr>
-                                            <td><?= $productName . '<br> <small>(' . $category . ' > ' . $subCategory . ')</small>'; ?></td>
+                                            <td>
+                                                <?= $productName . '<br> <small>(' . $category . ' > ' . $subCategory . ')</small>'; ?>
+                                                <?php if (!empty($line['numbers'])) { ?>
+                                                    <br><small><strong>Serial:</strong> <?= esc(implode(', ', $line['numbers'])); ?></small>
+                                                <?php } ?>
+                                            </td>
+                                            <td><?= ($line && !empty($line['warranty'])) ? $line['warranty'] : ''; ?></td>
                                             <td><?= $row->productionDate; ?></td>
                                             <td><?= showWithCurrencySymbol(unitOrBasePriceByUnitPrice($unit, $row->price)); ?></td>
                                             <td><?= unitOrQtyByUnitQty($unit, $row->quantity); ?>/<?php echo showUnitName($unit) ?></td>
@@ -998,7 +956,7 @@
 
                                     <div class="total-row">
                                         <div class="total-label">
-                                            Subtotal
+                                            Products Price
                                         </div>
 
                                         <div class="total-value">
@@ -1146,17 +1104,23 @@
 
                                     <div class="footer-center">
 
-                                        <div class="footer-message">
-                                            ফোলা, ফাটা, চাপ খাওয়া, পোড়া, ভাঙ্গা, ডেট ওভার, জিরো ভোল্টেজ মাল ফেরত যোগ্য নয়।
-                                        </div>
+                                        <?php if ($invFooter !== ''): ?>
+                                            <div class="footer-message">
+                                                <?= esc($invFooter) ?>
+                                            </div>
+                                        <?php endif; ?>
 
-                                        <div class="footer-email">
-                                            Email : mirtrading.jsr@gmail.com
-                                        </div>
+                                        <?php if (!empty($invEmails)): ?>
+                                            <div class="footer-email">
+                                                <?php foreach ($invEmails as $i => $email): ?><?= $i > 0 ? '<br>' : '' ?>Email : <?= esc($email) ?><?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
 
-                                        <div class="footer-bin">
-                                            Bin: 003174613-0901
-                                        </div>
+                                        <?php if ($invBinNo !== ''): ?>
+                                            <div class="footer-bin">
+                                                Bin: <?= esc($invBinNo) ?>
+                                            </div>
+                                        <?php endif; ?>
 
                                     </div>
 
@@ -1184,6 +1148,10 @@
                 <div class="print_line btn btn-primary pull-right" onclick="printDiv('invoicePage')" >
                     <i class="fa fa-print"></i> Print Now
                 </div>
+                <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
+                    <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('invoicePage','Invoice','Inv_<?= $invoiceId ?>.pdf')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                    <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="sharePDFChoose('invoicePage','Invoice','Inv_<?= $invoiceId ?>.pdf')"><i class="fa fa-share-square-o"></i> Share </button>
+                <?php } ?>
             </div>
         </div>
     </section>

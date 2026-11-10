@@ -22,7 +22,8 @@
             <div class="col-xs-12">
                 <h2 class="page-header">
                     <small class="pull-right">Date: <?php echo invoiceDateFormat($returnSaleData->createdDtm);?></small>
-                    <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" width="200" alt="<?php print $shopsName; ?>">
+                    <?php $invLogo = invoice_logo($returnSaleData->sch_id ?? null); ?>
+                    <img src="<?php echo no_image_view('/uploads/schools/' . $invLogo, '/uploads/schools/no_image_logo.jpg', $invLogo); ?>" class="" width="200" alt="<?php print $shopsName; ?>">
 
                 </h2>
             </div>

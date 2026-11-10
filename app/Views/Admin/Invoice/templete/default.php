@@ -60,11 +60,11 @@
             }
         }
     </style>
-    <section class="invoice">
+    <section class="invoice" id="invoicePrint">
         <!-- title row -->
         <div class="row">
 
-            <div class="col-xs-12 no-print">
+            <div class="col-xs-12 no-print" data-html2canvas-ignore="true">
                 <div class="pull-right">
                     <?php
                         $returnStatus = get_return_status_by_invoice_id($invoiceId);
@@ -91,7 +91,8 @@
                     </small>
 
                     <!-- <i class="fa fa-globe"></i> <?php //print $shopsName; ?>. -->
-                    <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" width="200" alt="<?php print $shopsName; ?>">
+                    <?php $invLogo = get_gen_settings_by_lavel('invoice_logo'); ?>
+                    <img src="<?php echo no_image_view('/uploads/schools/'.$invLogo, '/uploads/schools/no_image.jpg', $invLogo); ?>" class="" width="200" alt="<?php print $shopsName; ?>">
 
                 </h2>
             </div>
@@ -141,6 +142,7 @@
                     <tr>
                         <th>No</th>
                         <th>Product</th>
+                        <th>Warranty Date</th>
                         <th>Price</th>
                         <th>Qty</th>
                         <th>Total</th>
@@ -162,9 +164,14 @@
                                 $subCategory = get_data_by_id('product_category','product_category','prod_cat_id',$catId);
                                 $productName =  get_data_by_id('name','products','prod_id',$row->prod_id);
                                 $unit =  productIdByDefaultStoreUnit($row->prod_id);
+                                $line = isset($serialsByLine[(int) $row->product_stock_relation_id]) ? $serialsByLine[(int) $row->product_stock_relation_id] : null;
 
                                 echo $productName.'<br> <small>('.$category.' > '.$subCategory .')</small>';
+                                if (!empty($line['numbers'])) {
+                                    echo '<br><small><strong>Serial:</strong> '.esc(implode(', ', $line['numbers'])).'</small>';
+                                }
                                 ?></td>
+                            <td><?= ($line && !empty($line['warranty'])) ? $line['warranty'] : ''; ?></td>
                             <td><?php echo showWithCurrencySymbol(unitOrBasePriceByUnitPrice($unit,$row->price));?></td>
                             <td><?php echo unitOrQtyByUnitQty($unit,$row->quantity);?>/<?php echo showUnitName($unit) ?></td>
                             <td><?php echo showWithCurrencySymbol($row->total_price);?></td>
@@ -287,10 +294,13 @@
         <!-- /.row -->
 
         <!-- this row will not appear when printing -->
-        <div class="row no-print">
+        <div class="row no-print" data-html2canvas-ignore="true">
             <div class="col-xs-12">
                 <div class="print_line btn btn-primary pull-right" onclick="print(document);"><i class="fa fa-print"></i> Print Now</div>
-
+                <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
+                    <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('invoicePrint','Invoice','Inv_<?= $invoiceId ?>.pdf')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                    <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="sharePDFChoose('invoicePrint','Invoice','Inv_<?= $invoiceId ?>.pdf')"><i class="fa fa-share-square-o"></i> Share </button>
+                <?php } ?>
             </div>
         </div>
     </section>

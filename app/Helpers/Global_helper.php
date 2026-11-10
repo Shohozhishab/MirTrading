@@ -967,6 +967,27 @@ function logo_image(){
     }
     return $result;
 }
+
+/**
+ * @description This function provides invoice logo image with fallback to shop logo
+ * @param int|null $shopId
+ * @return string
+ */
+function invoice_logo($shopId = null){
+    if (empty($shopId)) {
+        $shopId = isset($_SESSION['shopId']) ? $_SESSION['shopId'] : "0";
+    }
+    if (!empty($shopId)) {
+        $row = DB()->table('gen_settings')
+            ->where('label', 'invoice_logo')
+            ->where('sch_id', $shopId)
+            ->get()->getRow();
+        if (!empty($row->value)) {
+            return $row->value;
+        }
+    }
+    return logo_image();
+}
 /**
  * @description This function provides  address show
  * @return string

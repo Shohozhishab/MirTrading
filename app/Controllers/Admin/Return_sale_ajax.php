@@ -99,6 +99,18 @@ class Return_sale_ajax extends BaseController
             $data['action'] = site_url('Admin/Return_sale/create_action');
             $data['invoiceId'] = $id;
 
+            $data['shopCash'] = (float) get_data_by_id('cash', 'shops', 'sch_id', $shopId);
+            $banks = DB()->table('bank')
+                ->where('sch_id', $shopId)
+                ->where('deleted IS NULL')
+                ->get()
+                ->getResult();
+            $bankBalances = [];
+            foreach ($banks as $bank) {
+                $bankBalances[$bank->bank_id] = (float) $bank->balance;
+            }
+            $data['bankBalances'] = $bankBalances;
+            $data['bankId'] = '';
 
             $data['menu'] = view('Admin/menu_sales', $data);
             // All Permissions

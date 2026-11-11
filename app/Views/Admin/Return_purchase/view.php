@@ -22,7 +22,8 @@
             <div class="col-xs-12">
                 <h2 class="page-header">
                     <small class="pull-right">Date: <?php echo invoiceDateFormat($returnPurchaseData->createdDtm);?></small>
-                    <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" width="200" alt="<?php print $shopsName; ?>">
+                    <?php $invLogo = invoice_logo($returnPurchaseData->sch_id ?? null); ?>
+                    <img src="<?php echo no_image_view('/uploads/schools/' . $invLogo, '/uploads/schools/no_image_logo.jpg', $invLogo); ?>" class="" width="200" alt="<?php print $shopsName; ?>">
 
                 </h2>
             </div>
@@ -82,8 +83,8 @@
 
                                 echo $productName.'<br> <small>('.$category.' > '.$subCategory .')</small>';
                                 ?></td>
-                            <td><?php echo $row->price;?></td>
-                            <td><?php echo $row->quantity;?></td>
+                            <td><?php echo showWithCurrencySymbol($row->price);?></td>
+                            <td><?php echo (float)$row->quantity;?></td>
                             <td><?php echo showWithCurrencySymbol($row->total_price);?></td>
                         </tr>
                     <?php } ?>

@@ -221,12 +221,16 @@
 
 <script>
     function purchaseEdit(purchaseId){
+        $('#formData').html('<div class="text-center" style="padding: 30px;"><i class="fa fa-spinner fa-spin fa-2x"></i> Loading...</div>');
         $.ajax({
             type: "POST",
             url: "<?php echo site_url('Admin/Purchase/purchaseEdit') ?>",
             data: {id: purchaseId},
             success: function(data){
                 $('#formData').html(data);
+            },
+            error: function(){
+                $('#formData').html('<div class="alert alert-danger">Failed to load purchase details.</div>');
             }
         });
     }

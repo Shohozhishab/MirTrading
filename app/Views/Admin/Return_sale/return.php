@@ -44,18 +44,18 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <?php foreach ($invoice_item as $row) {   $availableReturnQty = get_available_quantity_to_return($invoiceId,$row->prod_id,$row->quantity); ?>
+                                <?php foreach ($invoice_item as $key => $row) {   $availableReturnQty = get_available_quantity_to_return($invoiceId,$row->prod_id,$row->quantity); ?>
                                     <tr role="row" class="odd">
                                         <td>
-                                            <input type="checkbox" oninput="calculateTotalPrice()" name="returnchecked[]" class="datatablesReturn" id="checkedProd" value="<?php echo $row->prod_id; ?>" <?= empty($availableReturnQty)?'disabled':'';?> >
-                                            <input type="hidden" name="product_stock_relation_id[]" value="<?= $row->product_stock_relation_id;?>">
+                                            <input type="checkbox" oninput="calculateTotalPrice()" name="returnchecked[<?= $key ?>]" class="datatablesReturn" id="checkedProd_<?= $key ?>" value="<?php echo $row->prod_id; ?>" <?= empty($availableReturnQty)?'disabled':'';?> >
+                                            <input type="hidden" name="product_stock_relation_id[<?= $key ?>]" value="<?= $row->product_stock_relation_id;?>">
                                         </td>
                                         <td><?php echo get_data_by_id('name', 'products', 'prod_id', $row->prod_id) ?></td>
-                                        <td><input type="number" class="quantityReturn form-control" oninput="calculateTotalPrice()" id="quantity"
-                                                   name="quantity[]" placeholder="Quantity" min="<?= empty($availableReturnQty)?0:1;?>" max="<?= $availableReturnQty;?>"
-                                                   value="<?= $availableReturnQty ?>"> </td>
-                                        <td><input type="text" class="purchase_priceReturn form-control" id="searchColumn"
-                                                   name="purchase_price[]" value="<?php echo $row->price ?>" readonly></td>
+                                        <td><input type="number" step="any" class="quantityReturn form-control" oninput="calculateTotalPrice()" id="quantity_<?= $key ?>"
+                                                   name="quantity[<?= $key ?>]" placeholder="Quantity" min="<?= empty($availableReturnQty)?0:1;?>" max="<?= (float)$availableReturnQty;?>"
+                                                   value="<?= (float)$availableReturnQty ?>"> </td>
+                                        <td><input type="text" class="purchase_priceReturn form-control" id="searchColumn_<?= $key ?>"
+                                                   name="purchase_price[<?= $key ?>]" value="<?= (float)$row->price ?>" readonly></td>
                                     </tr>
                                 <?php } ?>
                                 </tbody>
@@ -152,8 +152,34 @@
                                             </div>
                                             <div class="form-group col-xs-6">
                                                 <input type="text" class="form-control" name="totalPrice" id="totalAmount" readonly>
-                                                <!-- <input type="hidden" class="form-control" name="totalPrice"  id="totalPrice" readonly > -->
                                             </div>
+
+                                            <div class="col-xs-6">
+                                                <label for="int">Cash</label>
+                                            </div>
+                                            <div class="form-group col-xs-6">
+                                                <input type="number" step="any" min="0" class="form-control nagod" id="nagod" name="nagod" placeholder="Input Cash Amount" oninput="checkCashBalance(); calculateDue();" onchange="checkCashBalance(); calculateDue();">
+                                                <b id="Balance_valid"></b>
+                                            </div>
+
+                                            <div class="col-xs-6">
+                                                <label for="int">Bank</label>
+                                            </div>
+                                            <div class="form-group col-xs-6">
+                                                <select class="form-control" id="bank_id" name="bank_id" onchange="checkBankId(); calculateDue();">
+                                                    <option value="">Select Bank</option>
+                                                    <?php echo getTwoValueInOption($bankId ?? '', 'bank_id', 'name', 'account_no', 'bank'); ?>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-xs-6">
+                                                <label for="int">Bank Amount</label>
+                                            </div>
+                                            <div class="form-group col-xs-6">
+                                                <input type="number" step="any" min="0" class="form-control bankAmount" id="bankAmount" name="bankAmount" placeholder="Input Bank Amount" oninput="checkBankId(); calculateDue();" onchange="checkBankId(); calculateDue();">
+                                                <b id="Bank_valid"></b>
+                                            </div>
+
                                             <div class="col-xs-6">
                                                 <label for="int">Due</label>
                                             </div>
@@ -181,7 +207,7 @@
                                         <?php } ?>
 
 
-                                        <button type="submit" class="btn btn-primary">Return</button>
+                                        <button type="submit" class="btn btn-primary" id="createBtn">Return</button>
                                         <a href="<?php echo site_url('Admin/Return_sale') ?>" class="btn btn-default">Cancel</a>
                                     </div>
                                 </div>
@@ -202,77 +228,140 @@
 </div>
 
 <script>
+    var shopCash = <?= (float) ($shopCash ?? 0); ?>;
+    var bankBalances = <?= json_encode($bankBalances ?? []); ?>;
+    var isWalkInCustomer = <?= (!empty($invoice[0]->customer_name) && empty($invoice[0]->customer_id)) ? 'true' : 'false'; ?>;
+
+    function cleanNumber(val) {
+        let n = parseFloat(val) || 0;
+        return parseFloat(n.toFixed(8));
+    }
+
+    function calculateDue() {
+        var totalAmount = parseFloat($("#totalAmount").val()) || 0;
+        var cashVal     = parseFloat($("#nagod").val()) || 0;
+        var bankVal     = parseFloat($("#bankAmount").val()) || 0;
+
+        var due = Math.max(0, totalAmount - (cashVal + bankVal));
+        if ($("#totalAmount").val() === "") {
+            $("#totalDueAmount").val("");
+        } else {
+            $("#totalDueAmount").val(cleanNumber(due));
+        }
+    }
+
+    function checkCashBalance() {
+        var cashVal = parseFloat($("#nagod").val()) || 0;
+        if (cashVal <= 0) {
+            $("#Balance_valid").html("");
+            return true;
+        }
+        if (cashVal > shopCash) {
+            $("#Balance_valid").html('<span style="color:red">Balance is too low (Shop Cash: ' + shopCash + ')</span>');
+            return false;
+        } else {
+            $("#Balance_valid").html('<span style="color:green">Balance is ok</span>');
+            return true;
+        }
+    }
+
+    function checkBankId() {
+        var bankId  = $("#bank_id").val();
+        var bankVal = parseFloat($("#bankAmount").val()) || 0;
+
+        if (bankVal <= 0) {
+            $("#Bank_valid").html("");
+            return true;
+        }
+        if (!bankId) {
+            $("#Bank_valid").html('<span style="color:red">Please Select Bank</span>');
+            return false;
+        }
+        var avail = bankBalances[bankId] !== undefined ? parseFloat(bankBalances[bankId]) : 0;
+        if (bankVal > avail) {
+            $("#Bank_valid").html('<span style="color:red">Balance is too low (Available: ' + avail + ')</span>');
+            return false;
+        } else {
+            $("#Bank_valid").html('<span style="color:#238A09">Balance is ok</span>');
+            return true;
+        }
+    }
+
     function validateReturnForm() {
-
         let checkedProduct = document.querySelectorAll('.datatablesReturn:checked').length;
-
         let message = '';
 
         // Product validation
         if (checkedProduct == 0) {
-
             message += 'Please select at least one product .<br>';
-
         }
 
         // Quantity validation
         let checkedRows = document.querySelectorAll('.datatablesReturn:checked');
-
         checkedRows.forEach(function (item) {
-
             let row = item.closest('tr');
+            let qty = parseFloat(row.querySelector('.quantityReturn').value) || 0;
+            let maxQty = parseFloat(row.querySelector('.quantityReturn').max) || 0;
 
-            let qty = row.querySelector('.quantityReturn').value;
-
-            let maxQty = row.querySelector('.quantityReturn').max;
-
-            if (qty == '' || qty <= 0) {
-
+            if (qty <= 0) {
                 message += 'Quantity must be greater than 0 .<br>';
-
             }
 
-            if (parseInt(qty) > parseInt(maxQty)) {
-
+            if (qty > maxQty) {
                 message += 'Quantity cannot exceed stock .<br>';
-
             }
-
         });
+
+        let totalAmount = parseFloat($("#totalAmount").val()) || 0;
+        let cashVal     = parseFloat($("#nagod").val()) || 0;
+        let bankVal     = parseFloat($("#bankAmount").val()) || 0;
+        let bankId      = $("#bank_id").val();
+
+        if (cashVal > shopCash) {
+            message += 'Cash amount exceeds shop cash balance (' + shopCash + ').<br>';
+        }
+
+        if (bankVal > 0 && !bankId) {
+            message += 'Please Select Bank.<br>';
+        } else if (bankVal > 0 && bankId) {
+            let availBank = bankBalances[bankId] !== undefined ? parseFloat(bankBalances[bankId]) : 0;
+            if (bankVal > availBank) {
+                message += 'Bank amount exceeds available bank balance (' + availBank + ').<br>';
+            }
+        }
+
+        if (cashVal + bankVal > totalAmount + 0.0001) {
+            message += 'Total Paid (Cash + Bank) cannot exceed Final Return Amount.<br>';
+        }
+
+        if (isWalkInCustomer && totalAmount > 0) {
+            let due = totalAmount - (cashVal + bankVal);
+            if (Math.abs(due) > 0.0001) {
+                message += 'Walk-in / Guest Customer return must be paid in full (Due must be 0.00).<br>';
+            }
+        }
 
         // Final validation
         if (message != '') {
-
             $('#errorMsg').html(
                 '<div class="alert alert-danger">' + message + '</div>'
             );
-
             return false;
-
         }
 
         return true;
-
     }
 
     function calculateTotalPrice() {
-
         var totalPrice = 0;
 
-        var checks = $("input.datatablesReturn");
-        var qnt = $("input[name='quantity[]']");
-        var pur_price = $("input[name='purchase_price[]']");
+        $("input.datatablesReturn:checked").each(function () {
+            var row           = $(this).closest('tr');
+            var quantity      = parseFloat(row.find('.quantityReturn').val()) || 0;
+            var purchasePrice = parseFloat(row.find('.purchase_priceReturn').val()) || 0;
 
-        // Calculate selected product total
-        for (var i = 0; i < checks.length; i++) {
-
-            if (checks[i].checked) {
-                var quantity = parseFloat(qnt[i].value) || 0;
-                var purchasePrice = parseFloat(pur_price[i].value) || 0;
-
-                totalPrice += quantity * purchasePrice;
-            }
-        }
+            totalPrice += quantity * purchasePrice;
+        });
 
         // VAT %
         var vatPercent = parseFloat($("#vat").val()) || 0;
@@ -293,11 +382,11 @@
         var finalAmount = afterDiscount + vatAmount;
 
         // Set values
-        $("#vatAmount").val(vatAmount !== 0 ? vatAmount : "");
-        $("#discountAmount").val(discountAmount !== 0 ? discountAmount : "");
+        $("#vatAmount").val(vatAmount !== 0 ? cleanNumber(vatAmount) : "");
+        $("#discountAmount").val(discountAmount !== 0 ? cleanNumber(discountAmount) : "");
 
-        $("#totalAmount").val(finalAmount !== 0 ? finalAmount : "");
-        $("#totalDueAmount").val(finalAmount !== 0 ? finalAmount : "");
+        $("#totalAmount").val(finalAmount !== 0 ? cleanNumber(finalAmount) : "");
+        calculateDue();
     }
 
 </script>

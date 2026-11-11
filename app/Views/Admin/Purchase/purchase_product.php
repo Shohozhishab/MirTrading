@@ -31,12 +31,15 @@
                                     <span class="input-group-addon " style="background-color:#367FA9; ">
                                         <i class="fa fa-pencil-square-o fa-lg" style="color: white;"></i>
                                     </span>
-                                            <input type="text" class="form-control input-lg" onkeypress="findResultPurchase()"
-                                                   name="keyWord" id="keyWord" value="">
+                                            <input type="text" class="form-control input-lg" 
+                                                   oninput="findResultPurchase(this.value)" 
+                                                   onpaste="var elem=this; setTimeout(function(){ findResultPurchase(elem.value); }, 30);" 
+                                                   onkeyup="findResultPurchase(this.value)"
+                                                   name="keyWord" id="keyWord" value="" autocomplete="off">
 
                                             <span class="input-group-btn">
-                                      <button class="btn btn-primary btn-lg" type="submit">Search</button>
-                                    </span>
+                                              <button class="btn btn-primary btn-lg" type="button" onclick="findResultPurchase($('#keyWord').val())">Search</button>
+                                            </span>
                                         </div>
 
                                     </div>

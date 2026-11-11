@@ -285,21 +285,41 @@
             }
         </style>
 
-        <div class="receipt">
+        <?php
+        // Dynamic invoice settings (null-safe)
+        $__inv = function ($label) {
+            $row = DB()->table('gen_settings')->where('label', $label)->where('sch_id', $_SESSION['shopId'])->get()->getRow();
+            return $row ? (string) $row->value : '';
+        };
+        $invTitle    = $__inv('invoice_title');
+        $invSubTitle = $__inv('invoice_sub_title');
+        $invAddress  = $__inv('invoice_address');
+        $invBinNo    = $__inv('invoice_bin_no');
+        $invFooter   = $__inv('invoice_footer_text');
+        $invLogo     = $__inv('invoice_logo');
+        $invEmails   = array_values(array_filter(array_map('trim', explode(',', $__inv('invoice_gmail'))), function ($v) { return $v !== ''; }));
+        $invContacts = array_values(array_filter(array_map('trim', explode(',', $__inv('invoice_name_phone'))), function ($v) { return $v !== ''; }));
+        ?>
+        <div class="receipt" id="receiptPage" data-pdf-width="58">
 
             <!-- HEADER -->
             <div class="header">
-                <img src="<?= base_url('uploads/logo.png')?>" class="img-logo">
-                <div class="shop-name">MIR TRADING</div>
-                <div class="address">Importer &amp; Wholesaler</div>
-                <div class="test-note">Khulna Road, Bokchor Hustala Moor, Jashore</div>
-                <div class="contact">
-                    Email : mirtrading.jsr@gmail.com<br>
-                    Khurshid : 01919-812281<br>
-                    Shamim : 01937-238798<br>
-                    Rumi : 01775-011922<br>
-                    Sazzad : 01712-921951
-                </div>
+                <img src="<?= no_image_view('/uploads/schools/' . $invLogo, '/uploads/schools/no_image.jpg', $invLogo) ?>" class="img-logo">
+                <?php if ($invTitle !== ''): ?>
+                    <div class="shop-name"><?= esc($invTitle) ?></div>
+                <?php endif; ?>
+                <?php if ($invSubTitle !== ''): ?>
+                    <div class="address"><?= esc($invSubTitle) ?></div>
+                <?php endif; ?>
+                <?php if ($invAddress !== ''): ?>
+                    <div class="test-note"><?= esc($invAddress) ?></div>
+                <?php endif; ?>
+                <?php if (!empty($invEmails) || !empty($invContacts)): ?>
+                    <div class="contact">
+                        <?php foreach ($invEmails as $email): ?>Email : <?= esc($email) ?><br><?php endforeach; ?>
+                        <?php foreach ($invContacts as $contact): ?><?= esc($contact) ?><br><?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
 
             <div class="dashed"></div>
@@ -357,6 +377,7 @@
                 $subCategory = get_data_by_id('product_category', 'product_category', 'prod_cat_id', $catId);
                 $productName = get_data_by_id('name', 'products', 'prod_id', $row->prod_id);
                 $unit = productIdByDefaultStoreUnit($row->prod_id);
+                $line = isset($serialsByLine[(int) $row->product_stock_relation_id]) ? $serialsByLine[(int) $row->product_stock_relation_id] : null;
                 ?>
                 <div class="item-row">
                     <div class="col-item">
@@ -364,6 +385,14 @@
                         <div class="item-detail">(<?= $category . ' > ' . $subCategory; ?>)</div>
                         <div class="item-detail"><?= $row->productionDate; ?></div>
                         <div class="item-detail"><?= showWithCurrencySymbol(unitOrBasePriceByUnitPrice($unit, $row->price)); ?></div>
+                        <?php if ($line) { ?>
+                            <?php if (!empty($line['numbers'])) { ?>
+                                <div class="item-detail"><strong>Serial:</strong> <?= esc(implode(', ', $line['numbers'])); ?></div>
+                            <?php } ?>
+                            <?php if (!empty($line['warranty'])) { ?>
+                                <div class="item-detail"><strong>Warranty:</strong> <?= $line['warranty']; ?></div>
+                            <?php } ?>
+                        <?php } ?>
                     </div>
                     <div class="col-qty"><?= unitOrQtyByUnitQty($unit, $row->quantity); ?>/<?= showUnitName($unit) ?></div>
                     <div class="col-amt"><?= showWithCurrencySymbol($row->total_price); ?></div>
@@ -384,7 +413,7 @@
                     <div class="total-row">
                         <span>Discount (<?= $invoiceData->entire_sale_discount ?>%):</span>
                         <input type="hidden" id="discount" value="<?= $invoiceData->entire_sale_discount ?>">
-                        <span id="discountAmount"></span>
+                        <span class="discountAmount"></span>
                     </div>
                 <?php } ?>
 
@@ -458,14 +487,16 @@
 
             <!-- ========== FOOTER ========== -->
             <div class="footer">
-                <div class="footer-message">
-                    ফোলা, ফাটা, চাপ খাওয়া, পোড়া, ভাঙ্গা, ডেট ওভার, জিরো ভোল্টেজ মাল ফেরত যোগ্য নয়।
-                </div>
+                <?php if ($invFooter !== ''): ?>
+                    <div class="footer-message"><?= esc($invFooter) ?></div>
+                <?php endif; ?>
 
-                <div class="footer-info">
-                    Email : mirtrading.jsr@gmail.com<br>
-                    Bin: 003174613-0901
-                </div>
+                <?php if (!empty($invEmails) || $invBinNo !== ''): ?>
+                    <div class="footer-info">
+                        <?php foreach ($invEmails as $email): ?>Email : <?= esc($email) ?><br><?php endforeach; ?>
+                        <?php if ($invBinNo !== ''): ?>Bin: <?= esc($invBinNo) ?><?php endif; ?>
+                    </div>
+                <?php endif; ?>
 
                 <div class="signature-row">
                     <div class="signature">
@@ -486,6 +517,10 @@
                 <div class="print_line btn btn-primary pull-right" onclick="print(document);">
                     <i class="fa fa-print"></i> Print Now
                 </div>
+                <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
+                    <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('receiptPage','Invoice','Inv_<?= $invoiceId ?>.pdf')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                    <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="sharePDFChoose('receiptPage','Invoice','Inv_<?= $invoiceId ?>.pdf')"><i class="fa fa-share-square-o"></i> Share </button>
+                <?php } ?>
             </div>
         </div>
     </section>

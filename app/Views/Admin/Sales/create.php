@@ -33,11 +33,14 @@
                                     <span class="input-group-addon " style="background-color:#367FA9; ">
                                         <i class="fa fa-pencil-square-o fa-lg" style="color: white;"></i>
                                     </span>
-                                    <input type="text" class="form-control input-lg" onkeypress="findResult()"
-                                           name="keyWord" id="keyWord" value="">
+                                    <input type="text" class="form-control input-lg" 
+                                           oninput="findResult(this.value)" 
+                                           onpaste="var elem=this; setTimeout(function(){ findResult(elem.value); }, 30);" 
+                                           onkeyup="findResult(this.value)"
+                                           name="keyWord" id="keyWord" value="" autocomplete="off">
 
                                     <span class="input-group-btn">
-                                      <button class="btn btn-primary btn-lg" type="submit">Search</button>
+                                      <button class="btn btn-primary btn-lg" type="button" onclick="findResult($('#keyWord').val())">Search</button>
                                     </span>
                                 </div>
 

@@ -527,18 +527,33 @@ function goBack() {
 
   //customer ledger search (start)
   function customerLedg(id){
+      var customerId = (id !== undefined && id !== null && id !== '') ? id : $('#customerId').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      if(customerId == '' || customerId == null){
+        return false;
+      }
+
+      if($.fn.DataTable.isDataTable('#example1')){
+        $('#example1').DataTable().destroy();
+      }
+
       $.ajax({
-        type: "POST",
+        type: "GET",
         url: "<?php echo site_url('Admin/Ledger/search_customerLedg') ?>",
-        data: {id: id},
+        data: {customer_id: customerId, st_date: st_date, en_date: en_date},
         success: function(html){
-          $("#customerLedg").html(html).show();
+          var target = ($('#customerLedgerResult').length) ? $('#customerLedgerResult') : $('#customerLedg');
+          target.html(html).show();
+          syncCustomerLedgerPrint();
           var ladgerTable = $('#example1').DataTable({
             "pageLength": 10,
             "order": [ 0, 'asc' ],
             'ordering'    : true,
           })
           ladgerTable.page('last').draw('page');
+          updateCustomerLedgerUrl();
         }
       });
   }
@@ -556,22 +571,115 @@ function goBack() {
   //customer ledger search (end)
 
 
-  //bank ledger search (start)
-  function bankLedg(id){
+  //customer ledger filter without page reload(start)
+  function customerLedgerFilter(){
+      var customerId = $('#customerId').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      if(customerId == '' || customerId == null){
+        if($.fn.DataTable.isDataTable('#example1')){
+          $('#example1').DataTable().destroy();
+        }
+        $("#customerLedgerResult").html('');
+        $("#ledgPrint").html('');
+        updateCustomerLedgerUrl();
+        return false;
+      }
+
       $.ajax({
         type: "POST",
+        url: "<?php echo site_url('Admin/Ledger/search_dateTodate') ?>",
+        data: {customerId: customerId, st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#customerLedgerResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          $("#customerLedgerResult").html(html);
+          syncCustomerLedgerPrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          })
+          ladgerTable.page('last').draw('page');
+          updateCustomerLedgerUrl();
+        }
+      });
+  }
+
+  function resetCustomerLedgerFilter(){
+    $('#customerId').val('').trigger('change');
+    $('#st_date').val('');
+    $('#en_date').val('');
+    if($.fn.DataTable.isDataTable('#example1')){
+      $('#example1').DataTable().destroy();
+    }
+    $("#customerLedgerResult").html('');
+    $("#ledgPrint").html('');
+    updateCustomerLedgerUrl();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncCustomerLedgerPrint(){
+    var printHtml = $('#ajaxCustLedgPrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxCustLedgPrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateCustomerLedgerUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var customerId = $('#customerId').val();
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Ledger') ?>';
+    var params = [];
+    if(customerId){ params.push('customer_id=' + encodeURIComponent(customerId)); }
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //customer ledger filter without page reload(end)
+
+
+  //bank ledger search (start)
+  function bankLedg(id){
+      var bankId = (id !== undefined && id !== null && id !== '') ? id : $('#bankId').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      if(bankId == '' || bankId == null){
+        return false;
+      }
+
+      if($.fn.DataTable.isDataTable('#example1')){
+        $('#example1').DataTable().destroy();
+      }
+
+      $.ajax({
+        type: "GET",
         url: "<?php echo site_url('Admin/Ledger_bank/search_bankLedg') ?>",
-        data: {id: id},
+        data: {bank_id: bankId, st_date: st_date, en_date: en_date},
 
         success: function(html){
 
-          $("#bankLedg").html(html).show();
+          var target = ($('#bankLedgerResult').length) ? $('#bankLedgerResult') : $('#bankLedg');
+          target.html(html).show();
+          syncBankLedgerPrint();
           var ladgerTable = $('#example1').DataTable({
                 "pageLength": 10,
                 "order": [ 0, 'asc' ],
                 'ordering'    : true,
               })
               ladgerTable.page('last').draw('page');
+              updateBankLedgerUrl();
         }
       });
   }
@@ -588,6 +696,85 @@ function goBack() {
       });
   }
   //bank ledger search (end)
+
+
+
+  //bank ledger filter without page reload(start)
+  function bankLedgerFilter(){
+      var bankId = $('#bankId').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      if(bankId == '' || bankId == null){
+        if($.fn.DataTable.isDataTable('#example1')){
+          $('#example1').DataTable().destroy();
+        }
+        $("#bankLedgerResult").html('');
+        $("#ledgPrint").html('');
+        updateBankLedgerUrl();
+        return false;
+      }
+
+      $.ajax({
+        type: "POST",
+        url: "<?php echo site_url('Admin/Ledger_bank/search_dateTodate') ?>",
+        data: {bankId: bankId, st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#bankLedgerResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          $("#bankLedgerResult").html(html);
+          syncBankLedgerPrint();
+          var ladgerTable = $('#example1').DataTable({
+                "pageLength": 10,
+                "order": [ 0, 'asc' ],
+                'ordering'    : true,
+              })
+              ladgerTable.page('last').draw('page');
+              updateBankLedgerUrl();
+        }
+      });
+  }
+
+  function resetBankLedgerFilter(){
+    $('#bankId').val('').trigger('change');
+    $('#st_date').val('');
+    $('#en_date').val('');
+    if($.fn.DataTable.isDataTable('#example1')){
+      $('#example1').DataTable().destroy();
+    }
+    $("#bankLedgerResult").html('');
+    $("#ledgPrint").html('');
+    updateBankLedgerUrl();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncBankLedgerPrint(){
+    var printHtml = $('#ajaxBankLedgPrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxBankLedgPrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateBankLedgerUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var bankId = $('#bankId').val();
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Ledger_bank') ?>';
+    var params = [];
+    if(bankId){ params.push('bank_id=' + encodeURIComponent(bankId)); }
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //bank ledger filter without page reload(end)
 
 
 
@@ -609,12 +796,26 @@ function goBack() {
 
   //loan provider ledger search(start)
   function lonProviLedg(id){
+    var loanProId = (id !== undefined && id !== null && id !== '') ? id : $('#loanProId').val();
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+
+    if(loanProId == '' || loanProId == null){
+      return false;
+    }
+
+    if($.fn.DataTable.isDataTable('#example1')){
+      $('#example1').DataTable().destroy();
+    }
+
     $.ajax({
-        type: "POST",
+        type: "GET",
         url: "<?php echo site_url('Admin/Ledger_loan/search_lonProvLedg') ?>",
-        data: {id: id},
+        data: {loan_pro_id: loanProId, st_date: st_date, en_date: en_date},
         success: function(html){
-          $("#lonProvLedg").html(html).show();
+          var target = ($('#loanLedgerResult').length) ? $('#loanLedgerResult') : $('#lonProvLedg');
+          target.html(html).show();
+          syncLoanLedgerPrint();
           var ladgerTable = $('#example1').DataTable({
                 "pageLength": 10,
                 "order": [ 0, 'asc' ],
@@ -638,37 +839,2050 @@ function goBack() {
   //loan provider ledger search(end)
 
 
+  //loan provider ledger filter without page reload(start)
+  function loanLedgerFilter(){
+    var loanProId = $('#loanProId').val();
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+
+    if(loanProId == '' || loanProId == null){
+      if($.fn.DataTable.isDataTable('#example1')){
+        $('#example1').DataTable().destroy();
+      }
+      $("#loanLedgerResult").html('');
+      $("#ledgPrint").html('');
+      updateLoanLedgerUrl();
+      return false;
+    }
+
+    $.ajax({
+      type: "POST",
+      url: "<?php echo site_url('Admin/Ledger_loan/search_dateTodate') ?>",
+      data: {loanProId: loanProId, st_date: st_date, en_date: en_date},
+      beforeSend: function(){
+        if($.fn.DataTable.isDataTable('#example1')){
+          $('#example1').DataTable().destroy();
+        }
+        $("#loanLedgerResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+      },
+      success: function(html){
+        $("#loanLedgerResult").html(html);
+        syncLoanLedgerPrint();
+        var ladgerTable = $('#example1').DataTable({
+          "pageLength": 10,
+          "order": [ 0, 'asc' ],
+          'ordering'    : true,
+        });
+        ladgerTable.page('last').draw('page');
+        updateLoanLedgerUrl();
+      }
+    });
+  }
+
+  function resetLoanLedgerFilter(){
+    $('#loanProId').val('').trigger('change');
+    $('#st_date').val('');
+    $('#en_date').val('');
+    if($.fn.DataTable.isDataTable('#example1')){
+      $('#example1').DataTable().destroy();
+    }
+    $("#loanLedgerResult").html('');
+    $("#ledgPrint").html('');
+    updateLoanLedgerUrl();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncLoanLedgerPrint(){
+    var printHtml = $('#ajaxLedgPrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxLedgPrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateLoanLedgerUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var loanProId = $('#loanProId').val();
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Ledger_loan') ?>';
+    var params = [];
+    if(loanProId){ params.push('loan_pro_id=' + encodeURIComponent(loanProId)); }
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //loan provider ledger filter without page reload(end)
+
+
 
   //suppliers ledger search(start)
   function supplierLedgher(id){
+    var supplierId = (id !== undefined && id !== null && id !== '') ? id : $('#supplierId').val();
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+
+    if(supplierId == '' || supplierId == null){
+      return false;
+    }
+
+    if($.fn.DataTable.isDataTable('#example1')){
+      $('#example1').DataTable().destroy();
+    }
+
     $.ajax({
-      type: "POST",
+      type: "GET",
       url: "<?php echo site_url('Admin/Ledger_suppliers/search_supplierLedg') ?>",
-      data: {id: id},
+      data: {supplier_id: supplierId, st_date: st_date, en_date: en_date},
       success: function(html){
-        $("#supplierLedg").html(html).show();
+        var target = ($('#supplierLedgerResult').length) ? $('#supplierLedgerResult') : $('#supplierLedg');
+        target.html(html).show();
+        syncSupplierLedgerPrint();
         var ladgerTable = $('#example1').DataTable({
-            "pageLength": 10,
-            "order": [ 0, 'asc' ],
-            'ordering'    : true,
-          })
-          ladgerTable.page('last').draw('page');
+          "pageLength": 10,
+          "order": [ 0, 'asc' ],
+          'ordering'    : true,
+        });
+        ladgerTable.page('last').draw('page');
+        updateSupplierLedgerUrl();
       }
     });
   }
 
 
   function supplierLedgherPrint(id){
+    var supplierId = (id !== undefined && id !== null && id !== '') ? id : $('#supplierId').val();
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
     $.ajax({
       type: "POST",
       url: "<?php echo site_url('Admin/Ledger_suppliers/search_supplierLedgPrint') ?>",
-      data: {id: id},
+      data: {id: supplierId, st_date: st_date, en_date: en_date},
       success: function(html){
         $("#ledgPrint").html(html).show();
       }
     });
   }
-   //suppliers ledger search(end)
+  //suppliers ledger search(end)
+
+  //supplier ledger filter without page reload(start)
+  function supplierLedgerFilter(){
+      var supplierId = $('#supplierId').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      if(supplierId == '' || supplierId == null){
+        if($.fn.DataTable.isDataTable('#example1')){
+          $('#example1').DataTable().destroy();
+        }
+        $("#supplierLedgerResult").html('');
+        $("#ledgPrint").html('');
+        updateSupplierLedgerUrl();
+        return false;
+      }
+
+      $.ajax({
+        type: "POST",
+        url: "<?php echo site_url('Admin/Ledger_suppliers/search_dateTodate') ?>",
+        data: {supplierId: supplierId, st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#supplierLedgerResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          var target = ($('#supplierLedgerResult').length) ? $('#supplierLedgerResult') : $('#supplierLedg');
+          target.html(html).show();
+          syncSupplierLedgerPrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+          updateSupplierLedgerUrl();
+        }
+      });
+  }
+
+  function resetSupplierLedgerFilter(){
+    $('#supplierId').val('').trigger('change');
+    $('#st_date').val('');
+    $('#en_date').val('');
+    if($.fn.DataTable.isDataTable('#example1')){
+      $('#example1').DataTable().destroy();
+    }
+    $("#supplierLedgerResult").html('');
+    $("#ledgPrint").html('');
+    updateSupplierLedgerUrl();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncSupplierLedgerPrint(){
+    var printHtml = $('#ajaxSuppLedgPrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxSuppLedgPrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateSupplierLedgerUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var supplierId = $('#supplierId').val();
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Ledger_suppliers') ?>';
+    var params = [];
+    if(supplierId){ params.push('supplier_id=' + encodeURIComponent(supplierId)); }
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //supplier ledger filter without page reload(end)
+
+  //purchase ledger filter without page reload(start)
+  function purchaseLedgerFilter(){
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+        type: "POST",
+        url: "<?php echo site_url('Admin/Ledger_purchase/search_dateTodate') ?>",
+        data: {st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#purchaseLedgerResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          var target = ($('#purchaseLedgerResult').length) ? $('#purchaseLedgerResult') : $('#purchaseLedg');
+          target.html(html).show();
+          syncPurchaseLedgerPrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+          updatePurchaseLedgerUrl();
+        }
+      });
+  }
+
+  function resetPurchaseLedgerFilter(){
+    $('#st_date').val('');
+    $('#en_date').val('');
+    purchaseLedgerFilter();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncPurchaseLedgerPrint(){
+    var printHtml = $('#ajaxPurchLedgPrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxPurchLedgPrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updatePurchaseLedgerUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Ledger_purchase') ?>';
+    var params = [];
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //purchase ledger filter without page reload(end)
+
+  //sale ledger filter without page reload(start)
+  function salesLedgerFilter(){
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+        type: "POST",
+        url: "<?php echo site_url('Admin/Ledger_sales/search_dateTodate') ?>",
+        data: {st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#salesLedgerResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          var target = ($('#salesLedgerResult').length) ? $('#salesLedgerResult') : $('#salesLedg');
+          target.html(html).show();
+          syncSalesLedgerPrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+          updateSalesLedgerUrl();
+        }
+      });
+  }
+
+  function resetSalesLedgerFilter(){
+    $('#st_date').val('');
+    $('#en_date').val('');
+    salesLedgerFilter();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncSalesLedgerPrint(){
+    var printHtml = $('#ajaxSaleLedgPrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxSaleLedgPrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateSalesLedgerUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Ledger_sales') ?>';
+    var params = [];
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //sale ledger filter without page reload(end)
+
+  //stock ledger filter without page reload(start)
+  function stockLedgerFilter(){
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+        type: "POST",
+        url: "<?php echo site_url('Admin/Ledger_stock/search_dateTodate') ?>",
+        data: {st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#stockLedgerResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          var target = ($('#stockLedgerResult').length) ? $('#stockLedgerResult') : $('#stockLedg');
+          target.html(html).show();
+          syncStockLedgerPrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+          updateStockLedgerUrl();
+        }
+      });
+  }
+
+  function resetStockLedgerFilter(){
+    $('#st_date').val('');
+    $('#en_date').val('');
+    stockLedgerFilter();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncStockLedgerPrint(){
+    var printHtml = $('#ajaxStockLedgPrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxStockLedgPrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateStockLedgerUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Ledger_stock') ?>';
+    var params = [];
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //stock ledger filter without page reload(end)
+
+  //profit ledger filter without page reload(start)
+  function profitLedgerFilter(){
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+        type: "POST",
+        url: "<?php echo site_url('Admin/Ledger_profit/search_dateTodate') ?>",
+        data: {st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#profitLedgerResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          var target = ($('#profitLedgerResult').length) ? $('#profitLedgerResult') : $('#profitLedg');
+          target.html(html).show();
+          syncProfitLedgerPrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+          updateProfitLedgerUrl();
+        }
+      });
+  }
+
+  function resetProfitLedgerFilter(){
+    $('#st_date').val('');
+    $('#en_date').val('');
+    profitLedgerFilter();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncProfitLedgerPrint(){
+    var printHtml = $('#ajaxProfitLedgPrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxProfitLedgPrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateProfitLedgerUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Ledger_profit') ?>';
+    var params = [];
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //profit ledger filter without page reload(end)
+
+  //capital ledger filter without page reload(start)
+  function capitalLedgerFilter(){
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+        type: "POST",
+        url: "<?php echo site_url('Admin/Ledger_capital/search_dateTodate') ?>",
+        data: {st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#capitalLedgerResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          var target = ($('#capitalLedgerResult').length) ? $('#capitalLedgerResult') : $('#capitalLedg');
+          target.html(html).show();
+          syncCapitalLedgerPrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+          updateCapitalLedgerUrl();
+        }
+      });
+  }
+
+  function resetCapitalLedgerFilter(){
+    $('#st_date').val('');
+    $('#en_date').val('');
+    capitalLedgerFilter();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncCapitalLedgerPrint(){
+    var printHtml = $('#ajaxCapitalLedgPrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxCapitalLedgPrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateCapitalLedgerUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Ledger_capital') ?>';
+    var params = [];
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //capital ledger filter without page reload(end)
+
+  //vat ledger filter without page reload(start)
+  function vatLedgerFilter(){
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+        type: "POST",
+        url: "<?php echo site_url('Admin/Ledger_vat/search_dateTodate') ?>",
+        data: {st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#vatLedgerResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          var target = ($('#vatLedgerResult').length) ? $('#vatLedgerResult') : $('#vatLedg');
+          target.html(html).show();
+          syncVatLedgerPrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+          updateVatLedgerUrl();
+        }
+      });
+  }
+
+  function resetVatLedgerFilter(){
+    $('#st_date').val('');
+    $('#en_date').val('');
+    vatLedgerFilter();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncVatLedgerPrint(){
+    var printHtml = $('#ajaxVatLedgPrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxVatLedgPrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateVatLedgerUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Ledger_vat') ?>';
+    var params = [];
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //vat ledger filter without page reload(end)
+
+  //other sales ledger filter without page reload(start)
+  function otherSalesLedgerFilter(){
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+        type: "POST",
+        url: "<?php echo site_url('Admin/Ledger_other_sales/search_dateTodate') ?>",
+        data: {st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#otherSalesLedgerResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          var target = ($('#otherSalesLedgerResult').length) ? $('#otherSalesLedgerResult') : $('#otherSalesLedg');
+          target.html(html).show();
+          syncOtherSalesLedgerPrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+          updateOtherSalesLedgerUrl();
+        }
+      });
+  }
+
+  function resetOtherSalesLedgerFilter(){
+    $('#st_date').val('');
+    $('#en_date').val('');
+    otherSalesLedgerFilter();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncOtherSalesLedgerPrint(){
+    var printHtml = $('#ajaxOtherSalesLedgPrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxOtherSalesLedgPrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateOtherSalesLedgerUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Ledger_other_sales') ?>';
+    var params = [];
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //other sales ledger filter without page reload(end)
+
+  //service charge ledger filter without page reload(start)
+  function serviceChargeLedgerFilter(){
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+        type: "POST",
+        url: "<?php echo site_url('Admin/Ledger_service_charge/search_dateTodate') ?>",
+        data: {st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#serviceChargeLedgerResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          var target = ($('#serviceChargeLedgerResult').length) ? $('#serviceChargeLedgerResult') : $('#serviceChargeLedg');
+          target.html(html).show();
+          syncServiceChargeLedgerPrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+          updateServiceChargeLedgerUrl();
+        }
+      });
+  }
+
+  function resetServiceChargeLedgerFilter(){
+    $('#st_date').val('');
+    $('#en_date').val('');
+    serviceChargeLedgerFilter();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncServiceChargeLedgerPrint(){
+    var printHtml = $('#ajaxServiceChargeLedgPrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxServiceChargeLedgPrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateServiceChargeLedgerUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Ledger_service_charge') ?>';
+    var params = [];
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //service charge ledger filter without page reload(end)
+
+  //discount ledger filter without page reload(start)
+  function discountLedgerFilter(){
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+        type: "POST",
+        url: "<?php echo site_url('Admin/Ledger_discount/search_dateTodate') ?>",
+        data: {st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#discountLedgerResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          var target = ($('#discountLedgerResult').length) ? $('#discountLedgerResult') : $('#discountLedg');
+          target.html(html).show();
+          syncDiscountLedgerPrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+          updateDiscountLedgerUrl();
+        }
+      });
+  }
+
+  function resetDiscountLedgerFilter(){
+    $('#st_date').val('');
+    $('#en_date').val('');
+    discountLedgerFilter();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncDiscountLedgerPrint(){
+    var printHtml = $('#ajaxDiscountLedgPrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxDiscountLedgPrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateDiscountLedgerUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Ledger_discount') ?>';
+    var params = [];
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //discount ledger filter without page reload(end)
+
+  //account ledger filter without page reload(start)
+  function accountLedgerFilter(){
+      var accountId = $('#accountId').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      if(accountId == '' || accountId == null){
+        if($.fn.DataTable.isDataTable('#example1')){
+          $('#example1').DataTable().destroy();
+        }
+        $("#accountLedgerResult").html('');
+        $("#ledgPrint").html('');
+        updateAccountLedgerUrl();
+        return false;
+      }
+
+      $.ajax({
+        type: "POST",
+        url: "<?php echo site_url('Admin/Ledger_accounts/search_dateTodate') ?>",
+        data: {accountId: accountId, st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#accountLedgerResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          var target = ($('#accountLedgerResult').length) ? $('#accountLedgerResult') : $('#accountLedg');
+          target.html(html).show();
+          syncAccountLedgerPrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+          updateAccountLedgerUrl();
+        }
+      });
+  }
+
+  function resetAccountLedgerFilter(){
+    $('#accountId').val('').trigger('change');
+    $('#st_date').val('');
+    $('#en_date').val('');
+    if($.fn.DataTable.isDataTable('#example1')){
+      $('#example1').DataTable().destroy();
+    }
+    $("#accountLedgerResult").html('');
+    $("#ledgPrint").html('');
+    updateAccountLedgerUrl();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncAccountLedgerPrint(){
+    var printHtml = $('#ajaxAccountLedgPrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxAccountLedgPrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateAccountLedgerUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var accountId = $('#accountId').val();
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Ledger_accounts') ?>';
+    var params = [];
+    if(accountId){ params.push('account_id=' + encodeURIComponent(accountId)); }
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //account ledger filter without page reload(end)
+
+  //stock transfer filter without page reload(start)
+  function stockTransferFilter(){
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+        type: "POST",
+        url: "<?php echo site_url('Admin/Stock_transfer/search_dateTodate') ?>",
+        data: {st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#stockTransferResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          var target = ($('#stockTransferResult').length) ? $('#stockTransferResult') : $('#stockTransferLedg');
+          target.html(html).show();
+          syncStockTransferPrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+          updateStockTransferUrl();
+        }
+      });
+  }
+
+  function resetStockTransferFilter(){
+    $('#st_date').val('');
+    $('#en_date').val('');
+    stockTransferFilter();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncStockTransferPrint(){
+    var printHtml = $('#ajaxStockTransferPrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxStockTransferPrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateStockTransferUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Stock_transfer') ?>';
+    var params = [];
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //stock transfer filter without page reload(end)
+
+  //exchange product filter without page reload(start)
+  function exchangeProductFilter(){
+      var customer = $('#customerId').val();
+      var status = $('#status').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+        type: "POST",
+        url: "<?php echo site_url('Admin/Exchange_product/search_dateTodate') ?>",
+        data: {customer: customer, status: status, st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#exchangeProductResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          var target = ($('#exchangeProductResult').length) ? $('#exchangeProductResult') : $('#exchangeProductLedg');
+          target.html(html).show();
+          syncExchangeProductPrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+          updateExchangeProductUrl();
+        }
+      });
+  }
+
+  function resetExchangeProductFilter(){
+    $('#customerId').val('');
+    $('#status').val('');
+    if($.fn.select2){
+      $('#customerId').trigger('change.select2');
+      $('#status').trigger('change.select2');
+    }
+    $('#st_date').val('');
+    $('#en_date').val('');
+    exchangeProductFilter();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncExchangeProductPrint(){
+    var printHtml = $('#ajaxExchangeProductPrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxExchangeProductPrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateExchangeProductUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var customer = $('#customerId').val();
+    var status = $('#status').val();
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Exchange_product') ?>';
+    var params = [];
+    if(customer){ params.push('customer=' + encodeURIComponent(customer)); }
+    if(status){ params.push('status=' + encodeURIComponent(status)); }
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //exchange product filter without page reload(end)
+
+  //return sale filter without page reload(start)
+  function returnSaleFilter(){
+      var customer = $('#customerId').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+        type: "POST",
+        url: "<?php echo site_url('Admin/Return_sale/search_dateTodate') ?>",
+        data: {customer: customer, st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#returnSaleResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          var target = ($('#returnSaleResult').length) ? $('#returnSaleResult') : $('#returnSaleLedg');
+          target.html(html).show();
+          syncReturnSalePrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+          updateReturnSaleUrl();
+        }
+      });
+  }
+
+  function resetReturnSaleFilter(){
+    $('#customerId').val('');
+    if($.fn.select2){
+      $('#customerId').trigger('change.select2');
+    }
+    $('#st_date').val('');
+    $('#en_date').val('');
+    returnSaleFilter();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncReturnSalePrint(){
+    var printHtml = $('#ajaxReturnSalePrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxReturnSalePrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateReturnSaleUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var customer = $('#customerId').val();
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Return_sale') ?>';
+    var params = [];
+    if(customer){ params.push('customer=' + encodeURIComponent(customer)); }
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //return sale filter without page reload(end)
+
+  //sales filter without page reload(start)
+  function salesFilter(){
+      var customer = $('#customerId').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+        type: "POST",
+        url: "<?php echo site_url('Admin/Sales/search_dateTodate') ?>",
+        data: {customer: customer, st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#salesResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          var target = ($('#salesResult').length) ? $('#salesResult') : $('#salesLedg');
+          target.html(html).show();
+          syncSalesPrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+          updateSalesUrl();
+        }
+      });
+  }
+
+  function resetSalesFilter(){
+    $('#customerId').val('');
+    if($.fn.select2){
+      $('#customerId').trigger('change.select2');
+    }
+    $('#st_date').val('');
+    $('#en_date').val('');
+    salesFilter();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncSalesPrint(){
+    var printHtml = $('#ajaxSalesPrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxSalesPrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateSalesUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var customer = $('#customerId').val();
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Sales') ?>';
+    var params = [];
+    if(customer){ params.push('customer=' + encodeURIComponent(customer)); }
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //sales filter without page reload(end)
+
+  //service filter without page reload(start)
+  function serviceFilter(){
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+        type: "POST",
+        url: "<?php echo site_url('Admin/Service/search_dateTodate') ?>",
+        data: {st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#serviceResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          var target = ($('#serviceResult').length) ? $('#serviceResult') : $('#serviceLedg');
+          target.html(html).show();
+          syncServicePrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+          updateServiceUrl();
+        }
+      });
+  }
+
+  function resetServiceFilter(){
+    $('#st_date').val('');
+    $('#en_date').val('');
+    serviceFilter();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncServicePrint(){
+    var printHtml = $('#ajaxServicePrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxServicePrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateServiceUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Service') ?>';
+    var params = [];
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //service filter without page reload(end)
+
+  //purchase filter without page reload(start)
+  function purchaseFilter(){
+      var supplier_id = $('#supplierId').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+        type: "POST",
+        url: "<?php echo site_url('Admin/Purchase/search_dateTodate') ?>",
+        data: {supplier_id: supplier_id, st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#purchaseResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          var target = ($('#purchaseResult').length) ? $('#purchaseResult') : $('#purchaseLedg');
+          target.html(html).show();
+          syncPurchasePrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+          updatePurchaseUrl();
+        }
+      });
+  }
+
+  function resetPurchaseFilter(){
+    $('#supplierId').val('');
+    if($.fn.select2){
+      $('#supplierId').trigger('change.select2');
+    }
+    $('#st_date').val('');
+    $('#en_date').val('');
+    purchaseFilter();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncPurchasePrint(){
+    var printHtml = $('#ajaxPurchasePrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxPurchasePrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updatePurchaseUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var supplier_id = $('#supplierId').val();
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Purchase') ?>';
+    var params = [];
+    if(supplier_id){ params.push('supplier_id=' + encodeURIComponent(supplier_id)); }
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //purchase filter without page reload(end)
+
+  //return purchase filter without page reload(start)
+  function returnPurchaseFilter(){
+      var supplier_id = $('#supplierId').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+        type: "POST",
+        url: "<?php echo site_url('Admin/Return_purchase/search_dateTodate') ?>",
+        data: {supplier_id: supplier_id, st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
+          }
+          $("#returnPurchaseResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+        },
+        success: function(html){
+          var target = ($('#returnPurchaseResult').length) ? $('#returnPurchaseResult') : $('#returnPurchaseLedg');
+          target.html(html).show();
+          syncReturnPurchasePrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+          updateReturnPurchaseUrl();
+        }
+      });
+  }
+
+  function resetReturnPurchaseFilter(){
+    $('#supplierId').val('');
+    if($.fn.select2){
+      $('#supplierId').trigger('change.select2');
+    }
+    $('#st_date').val('');
+    $('#en_date').val('');
+    returnPurchaseFilter();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncReturnPurchasePrint(){
+    var printHtml = $('#ajaxReturnPurchasePrint').html();
+    if(printHtml !== undefined && printHtml !== null){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxReturnPurchasePrint').remove();
+    }
+  }
+
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateReturnPurchaseUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var supplier_id = $('#supplierId').val();
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Return_purchase') ?>';
+    var params = [];
+    if(supplier_id){ params.push('supplier_id=' + encodeURIComponent(supplier_id)); }
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //return purchase filter without page reload(end)
+
+  //transaction filter without page reload(start)
+  function transactionFilter(){
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+      var category = $('#hidden_category').val();
+      var customer_id = $('#hidden_customer_id').val();
+      var supplier_id = $('#hidden_supplier_id').val();
+      var loan_pro_id = $('#hidden_loan_pro_id').val();
+      var bank_id = $('#hidden_bank_id').val();
+      var employee_id = $('#hidden_employee_id').val();
+
+      $.ajax({
+          type: "POST",
+          url: "<?php echo site_url('Admin/Transaction/search_dateTodate') ?>",
+          data: {
+              st_date: st_date,
+              en_date: en_date,
+              category: category,
+              customer_id: customer_id,
+              supplier_id: supplier_id,
+              loan_pro_id: loan_pro_id,
+              bank_id: bank_id,
+              employee_id: employee_id
+          },
+          beforeSend: function(){
+              $('#transactionResult').html('<div class="text-center" style="padding:50px;"><i class="fa fa-spinner fa-spin fa-2x"></i> Loading...</div>');
+          },
+          success: function(html){
+              $('#transactionResult').html(html);
+              initTransactionDataTables();
+              if($.fn.select2){
+                  $('#transactionResult .select2').select2();
+              }
+              updateTransactionUrl();
+          },
+          error: function(){
+              $('#transactionResult').html('<div class="alert alert-danger">Failed to load transaction data.</div>');
+          }
+      });
+  }
+
+  function resetTransactionFilter(){
+      $('#st_date').val('');
+      $('#en_date').val('');
+      $('#hidden_customer_id').val('');
+      $('#hidden_supplier_id').val('');
+      $('#hidden_loan_pro_id').val('');
+      $('#hidden_bank_id').val('');
+      $('#hidden_employee_id').val('');
+      transactionFilter();
+  }
+
+  function initTransactionDataTables(){
+      var tables = ['#customer2', '#supplier2', '#account2', '#fund2', '#expense2', '#other2', '#employee2', '#vat2', '#assets1'];
+      tables.forEach(function(tblId){
+          if($.fn.DataTable && $.fn.DataTable.isDataTable(tblId)){
+              $(tblId).DataTable().destroy();
+          }
+          if($(tblId).length){
+              $(tblId).DataTable({
+                  "pageLength": 10,
+                  "order": [ 0, 'asc' ],
+                  "ordering": true
+              });
+          }
+      });
+  }
+
+  function updateTransactionUrl(){
+      if(!window.history || !window.history.replaceState){ return; }
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+      var category = $('#hidden_category').val();
+      var customer_id = $('#hidden_customer_id').val();
+      var supplier_id = $('#hidden_supplier_id').val();
+      var loan_pro_id = $('#hidden_loan_pro_id').val();
+      var bank_id = $('#hidden_bank_id').val();
+      var employee_id = $('#hidden_employee_id').val();
+
+      var url = '<?php echo site_url('Admin/Transaction') ?>';
+      var params = [];
+      if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+      if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+      if(category){ params.push('category=' + encodeURIComponent(category)); }
+      if(customer_id){ params.push('customer_id=' + encodeURIComponent(customer_id)); }
+      if(supplier_id){ params.push('supplier_id=' + encodeURIComponent(supplier_id)); }
+      if(loan_pro_id){ params.push('loan_pro_id=' + encodeURIComponent(loan_pro_id)); }
+      if(bank_id){ params.push('bank_id=' + encodeURIComponent(bank_id)); }
+      if(employee_id){ params.push('employee_id=' + encodeURIComponent(employee_id)); }
+
+      if(params.length){ url = url + '?' + params.join('&'); }
+      window.history.replaceState(null, '', url);
+  }
+  //transaction filter without page reload(end)
+
+  //product filter without page reload(start)
+  function productFilter(){
+      var category = $('#category').val();
+      var sub_category = $('#subCat').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+          type: "POST",
+          url: "<?php echo site_url('Admin/Products/search_dateTodate') ?>",
+          data: {
+              category: category,
+              sub_category: sub_category,
+              st_date: st_date,
+              en_date: en_date
+          },
+          beforeSend: function(){
+              $('#productResult').html('<div class="text-center" style="padding:50px;"><i class="fa fa-spinner fa-spin fa-2x"></i> Loading...</div>');
+          },
+          success: function(html){
+              $('#productResult').html(html);
+              if($.fn.DataTable && $.fn.DataTable.isDataTable('#example1')){
+                  $('#example1').DataTable().destroy();
+              }
+              if($('#example1').length){
+                  $('#example1').DataTable({
+                      "pageLength": 10,
+                      "order": [ 0, 'asc' ],
+                      "ordering": true
+                  });
+              }
+              syncProductPrint();
+              updateProductUrl();
+          },
+          error: function(){
+              $('#productResult').html('<div class="alert alert-danger">Failed to load product data.</div>');
+          }
+      });
+  }
+
+  function resetProductFilter(){
+      $('#category').val('');
+      $('#subCat').html('<option value="">Please Select</option>');
+      $('#st_date').val('');
+      $('#en_date').val('');
+      productFilter();
+  }
+
+  function syncProductPrint(){
+      var printHtml = $('#ajaxProductPrint').html();
+      if(printHtml !== undefined && printHtml !== null){
+          $('#ledgPrint').html(printHtml);
+          $('#ajaxProductPrint').remove();
+      }
+  }
+
+  function updateProductUrl(){
+      if(!window.history || !window.history.replaceState){ return; }
+      var category = $('#category').val();
+      var sub_category = $('#subCat').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      var url = '<?php echo site_url('Admin/Products') ?>';
+      var params = [];
+      if(category){ params.push('category=' + encodeURIComponent(category)); }
+      if(sub_category){ params.push('sub_category=' + encodeURIComponent(sub_category)); }
+      if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+      if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+
+      if(params.length){ url = url + '?' + params.join('&'); }
+      window.history.replaceState(null, '', url);
+  }
+  //product filter without page reload(end)
+
+  //transaction events filter without page reload(start)
+  function transactionEventsFilter(){
+      var event_type = $('#eventType').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+          type: "POST",
+          url: "<?php echo site_url('Admin/Transaction_events/search_dateTodate') ?>",
+          data: {
+              event_type: event_type,
+              st_date: st_date,
+              en_date: en_date
+          },
+          beforeSend: function(){
+              $('#transactionEventsResult').html('<div class="text-center" style="padding:50px;"><i class="fa fa-spinner fa-spin fa-2x"></i> Loading...</div>');
+          },
+          success: function(html){
+              $('#transactionEventsResult').html(html);
+              if($.fn.DataTable && $.fn.DataTable.isDataTable('#example1')){
+                  $('#example1').DataTable().destroy();
+              }
+              if($('#example1').length){
+                  $('#example1').DataTable({
+                      "pageLength": 10,
+                      "order": [ 0, 'asc' ],
+                      "ordering": true
+                  });
+              }
+              syncTransactionEventsPrint();
+              updateTransactionEventsUrl();
+          },
+          error: function(){
+              $('#transactionEventsResult').html('<div class="alert alert-danger">Failed to load transaction events data.</div>');
+          }
+      });
+  }
+
+  function resetTransactionEventsFilter(){
+      $('#eventType').val('');
+      $('#st_date').val('');
+      $('#en_date').val('');
+      transactionEventsFilter();
+  }
+
+  function syncTransactionEventsPrint(){
+      var printHtml = $('#ajaxTransactionEventsPrint').html();
+      if(printHtml !== undefined && printHtml !== null){
+          $('#ledgPrint').html(printHtml);
+          $('#ajaxTransactionEventsPrint').remove();
+      }
+  }
+
+  function updateTransactionEventsUrl(){
+      if(!window.history || !window.history.replaceState){ return; }
+      var event_type = $('#eventType').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      var url = '<?php echo site_url('Admin/Transaction_events') ?>';
+      var params = [];
+      if(event_type){ params.push('event_type=' + encodeURIComponent(event_type)); }
+      if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+      if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+
+      if(params.length){ url = url + '?' + params.join('&'); }
+      window.history.replaceState(null, '', url);
+  }
+  //transaction events filter without page reload(end)
+
+  //income statement filter without page reload(start)
+  function incomeStatementFilter(source){
+      if(source === 'period'){
+          $('#month').val('');
+          $('#st_date').val('');
+          $('#en_date').val('');
+      } else if(source === 'month'){
+          $('#period').val('0');
+          $('#st_date').val('');
+          $('#en_date').val('');
+      } else if(source === 'date'){
+          $('#period').val('0');
+          $('#month').val('');
+      }
+
+      var period = $('#period').val();
+      var month = $('#month').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+          type: "POST",
+          url: "<?php echo site_url('Admin/Income_statement/search_dateTodate') ?>",
+          data: {
+              period: period,
+              month: month,
+              st_date: st_date,
+              en_date: en_date
+          },
+          beforeSend: function(){
+              $('#incomeStatementResult').html('<div class="text-center" style="padding:50px;"><i class="fa fa-spinner fa-spin fa-2x"></i> Loading...</div>');
+          },
+          success: function(html){
+              $('#incomeStatementResult').html(html);
+              syncIncomeStatementPrint();
+              updateIncomeStatementUrl();
+          },
+          error: function(){
+              $('#incomeStatementResult').html('<div class="alert alert-danger">Failed to load income statement data.</div>');
+          }
+      });
+  }
+
+  function resetIncomeStatementFilter(){
+      $('#period').val('30');
+      $('#month').val('');
+      $('#st_date').val('');
+      $('#en_date').val('');
+      incomeStatementFilter('period');
+  }
+
+  function syncIncomeStatementPrint(){
+      var printHtml = $('#ajaxIncomeStatementPrint').html();
+      if(printHtml !== undefined && printHtml !== null){
+          $('#incomePrint').html(printHtml);
+          $('#ajaxIncomeStatementPrint').remove();
+      }
+  }
+
+  function updateIncomeStatementUrl(){
+      if(!window.history || !window.history.replaceState){ return; }
+      var period = $('#period').val();
+      var month = $('#month').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      var url = '<?php echo site_url('Admin/Income_statement') ?>';
+      var params = [];
+      if(period && period !== '0'){ params.push('period=' + encodeURIComponent(period)); }
+      if(month){ params.push('month=' + encodeURIComponent(month)); }
+      if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+      if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+
+      if(params.length){ url = url + '?' + params.join('&'); }
+      window.history.replaceState(null, '', url);
+  }
+  //income statement filter without page reload(end)
+
+  //sales report filter without page reload(start)
+  function salesReportFilter(){
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+      var customer_id = $('#customerId').val();
+      var prod_id = $('#prodId').val();
+
+      $.ajax({
+          type: "POST",
+          url: "<?php echo site_url('Admin/Sales_report/search_dateTodate') ?>",
+          data: {
+              st_date: st_date,
+              en_date: en_date,
+              customer_id: customer_id,
+              prod_id: prod_id
+          },
+          beforeSend: function(){
+              $('#salesReportResult').html('<div class="text-center" style="padding:50px;"><i class="fa fa-spinner fa-spin fa-2x"></i> Loading...</div>');
+          },
+          success: function(html){
+              $('#salesReportResult').html(html);
+              if($.fn.DataTable && $.fn.DataTable.isDataTable('#example1')){
+                  $('#example1').DataTable().destroy();
+              }
+              if($('#example1').length){
+                  $('#example1').DataTable({
+                      "pageLength": 10,
+                      "order": [ 0, 'asc' ],
+                      "ordering": true
+                  });
+              }
+              syncSalesReportPrint();
+              updateSalesReportUrl();
+          },
+          error: function(){
+              $('#salesReportResult').html('<div class="alert alert-danger">Failed to load sales report data.</div>');
+          }
+      });
+  }
+
+  function resetSalesReportFilter(){
+      $('#st_date').val('');
+      $('#en_date').val('');
+      $('#customerId').val('');
+      if($.fn.select2){
+          $('#customerId').trigger('change.select2');
+      }
+      $('#prodId').val('');
+      if($.fn.select2){
+          $('#prodId').trigger('change.select2');
+      }
+      salesReportFilter();
+  }
+
+  function syncSalesReportPrint(){
+      var printHtml = $('#ajaxSalesReportPrint').html();
+      if(printHtml !== undefined && printHtml !== null && printHtml.trim() !== ''){
+          $('#ledgPrint').html(printHtml);
+          $('#ajaxSalesReportPrint').remove();
+      }
+  }
+
+  function updateSalesReportUrl(){
+      if(!window.history || !window.history.replaceState){ return; }
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+      var customer_id = $('#customerId').val();
+      var prod_id = $('#prodId').val();
+
+      var url = '<?php echo site_url('Admin/Sales_report') ?>';
+      var params = [];
+      if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+      if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+      if(customer_id){ params.push('customer_id=' + encodeURIComponent(customer_id)); }
+      if(prod_id){ params.push('prod_id=' + encodeURIComponent(prod_id)); }
+
+      if(params.length){ url = url + '?' + params.join('&'); }
+      window.history.replaceState(null, '', url);
+  }
+  //sales report filter without page reload(end)
+
+  //purchase report filter without page reload(start)
+  function purchaseReportFilter(){
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+      var supplier_id = $('#supplierId').val();
+      var prod_id = $('#prodId').val();
+
+      $.ajax({
+          type: "POST",
+          url: "<?php echo site_url('Admin/Purchase_report/search_dateTodate') ?>",
+          data: {
+              st_date: st_date,
+              en_date: en_date,
+              supplier_id: supplier_id,
+              prod_id: prod_id
+          },
+          beforeSend: function(){
+              $('#purchaseReportResult').html('<div class="text-center" style="padding:50px;"><i class="fa fa-spinner fa-spin fa-2x"></i> Loading...</div>');
+          },
+          success: function(html){
+              $('#purchaseReportResult').html(html);
+              if($.fn.DataTable && $.fn.DataTable.isDataTable('#example1')){
+                  $('#example1').DataTable().destroy();
+              }
+              if($('#example1').length){
+                  $('#example1').DataTable({
+                      "pageLength": 10,
+                      "order": [ 0, 'asc' ],
+                      "ordering": true
+                  });
+              }
+              syncPurchaseReportPrint();
+              updatePurchaseReportUrl();
+          },
+          error: function(){
+              $('#purchaseReportResult').html('<div class="alert alert-danger">Failed to load purchase report data.</div>');
+          }
+      });
+  }
+
+  function resetPurchaseReportFilter(){
+      $('#st_date').val('');
+      $('#en_date').val('');
+      $('#supplierId').val('');
+      if($.fn.select2){
+          $('#supplierId').trigger('change.select2');
+      }
+      $('#prodId').val('');
+      if($.fn.select2){
+          $('#prodId').trigger('change.select2');
+      }
+      purchaseReportFilter();
+  }
+
+  function syncPurchaseReportPrint(){
+      var printHtml = $('#ajaxPurchaseReportPrint').html();
+      if(printHtml !== undefined && printHtml !== null && printHtml.trim() !== ''){
+          $('#ledgPrint').html(printHtml);
+          $('#ajaxPurchaseReportPrint').remove();
+      }
+  }
+
+  function updatePurchaseReportUrl(){
+      if(!window.history || !window.history.replaceState){ return; }
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+      var supplier_id = $('#supplierId').val();
+      var prod_id = $('#prodId').val();
+
+      var url = '<?php echo site_url('Admin/Purchase_report') ?>';
+      var params = [];
+      if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+      if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+      if(supplier_id){ params.push('supplier_id=' + encodeURIComponent(supplier_id)); }
+      if(prod_id){ params.push('prod_id=' + encodeURIComponent(prod_id)); }
+
+      if(params.length){ url = url + '?' + params.join('&'); }
+      window.history.replaceState(null, '', url);
+  }
+  //purchase report filter without page reload(end)
+
+  //employee ledger filter without page reload(start)
+  function employeeLedgerFilter(){
+    var employeeId = $('#employeeId').val();
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+
+    if(employeeId == '' || employeeId == null){
+      if($.fn.DataTable && $.fn.DataTable.isDataTable('#example1')){
+        $('#example1').DataTable().destroy();
+      }
+      $("#employeeLedgerResult").html('');
+      $("#ledgPrint").html('');
+      updateEmployeeLedgerUrl();
+      return false;
+    }
+
+    $.ajax({
+      type: "POST",
+      url: "<?php echo site_url('Admin/Ledger_employee/search_dateTodate') ?>",
+      data: {employeeId: employeeId, st_date: st_date, en_date: en_date},
+      beforeSend: function(){
+        if($.fn.DataTable && $.fn.DataTable.isDataTable('#example1')){
+          $('#example1').DataTable().destroy();
+        }
+        $("#employeeLedgerResult").html('<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>');
+      },
+      success: function(html){
+        $("#employeeLedgerResult").html(html).show();
+        syncEmployeeLedgerPrint();
+        if($.fn.DataTable && $.fn.DataTable.isDataTable('#example1')){
+          $('#example1').DataTable().destroy();
+        }
+        if($('#example1').length){
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+        }
+        updateEmployeeLedgerUrl();
+      },
+      error: function(){
+        $("#employeeLedgerResult").html('<div class="alert alert-danger">Failed to load employee ledger data.</div>');
+      }
+    });
+  }
+
+  function resetEmployeeLedgerFilter(){
+    $('#employeeId').val('');
+    if($.fn.select2){
+      $('#employeeId').trigger('change.select2');
+    }
+    $('#st_date').val('');
+    $('#en_date').val('');
+    if($.fn.DataTable && $.fn.DataTable.isDataTable('#example1')){
+      $('#example1').DataTable().destroy();
+    }
+    $("#employeeLedgerResult").html('');
+    $("#ledgPrint").html('');
+    updateEmployeeLedgerUrl();
+  }
+
+  function syncEmployeeLedgerPrint(){
+    var printHtml = $('#ajaxEmpLedgPrint').html();
+    if(printHtml !== undefined && printHtml !== null && printHtml.trim() !== ''){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxEmpLedgPrint').remove();
+    }
+  }
+
+  function updateEmployeeLedgerUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var employeeId = $('#employeeId').val();
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Ledger_employee') ?>';
+    var params = [];
+    if(employeeId){ params.push('employee_id=' + encodeURIComponent(employeeId)); }
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+  //employee ledger filter without page reload(end)
+
+  //affiliate commission filter without page reload(start)
+  function affiliateCommissionFilter(){
+      var affiliate_user_id = $('#affiliateUserId').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+          type: "POST",
+          url: "<?php echo site_url('Admin/Affiliate_commission/search_dateTodate') ?>",
+          data: {
+              affiliate_user_id: affiliate_user_id,
+              st_date: st_date,
+              en_date: en_date
+          },
+          beforeSend: function(){
+              $('#affiliateCommissionResult').html('<div class="text-center" style="padding:50px;"><i class="fa fa-spinner fa-spin fa-2x"></i> Loading...</div>');
+          },
+          success: function(html){
+              $('#affiliateCommissionResult').html(html);
+              if($.fn.DataTable && $.fn.DataTable.isDataTable('#example1')){
+                  $('#example1').DataTable().destroy();
+              }
+              if($('#example1').length){
+                  $('#example1').DataTable({
+                      "pageLength": 10,
+                      "order": [ 0, 'asc' ],
+                      "ordering": true
+                  });
+              }
+              syncAffiliateCommissionPrint();
+              updateAffiliateCommissionUrl();
+          },
+          error: function(){
+              $('#affiliateCommissionResult').html('<div class="alert alert-danger">Failed to load commission data.</div>');
+          }
+      });
+  }
+
+  function resetAffiliateCommissionFilter(){
+      $('#affiliateUserId').val('');
+      if($.fn.select2){
+          $('#affiliateUserId').trigger('change.select2');
+      }
+      $('#st_date').val('');
+      $('#en_date').val('');
+      affiliateCommissionFilter();
+  }
+
+  function syncAffiliateCommissionPrint(){
+      var printHtml = $('#ajaxAffiliateCommissionPrint').html();
+      if(printHtml !== undefined && printHtml !== null && printHtml.trim() !== ''){
+          $('#ledgPrint').html(printHtml);
+          $('#ajaxAffiliateCommissionPrint').remove();
+      }
+  }
+
+  function updateAffiliateCommissionUrl(){
+      if(!window.history || !window.history.replaceState){ return; }
+      var affiliate_user_id = $('#affiliateUserId').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      var url = '<?php echo site_url('Admin/Affiliate_commission') ?>';
+      var params = [];
+      if(affiliate_user_id){ params.push('affiliate_user_id=' + encodeURIComponent(affiliate_user_id)); }
+      if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+      if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+
+      if(params.length){ url = url + '?' + params.join('&'); }
+      window.history.replaceState(null, '', url);
+  }
+  //affiliate commission filter without page reload(end)
+
+  //affiliate commission pay filter without page reload(start)
+  function affiliateCommissionPayFilter(){
+      var affiliate_user_id = $('#affiliateUserId').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+          type: "POST",
+          url: "<?php echo site_url('Admin/Affiliate_commission_pay/search_dateTodate') ?>",
+          data: {
+              affiliate_user_id: affiliate_user_id,
+              st_date: st_date,
+              en_date: en_date
+          },
+          beforeSend: function(){
+              $('#affiliateCommissionPayResult').html('<div class="text-center" style="padding:50px;"><i class="fa fa-spinner fa-spin fa-2x"></i> Loading...</div>');
+          },
+          success: function(html){
+              $('#affiliateCommissionPayResult').html(html);
+              if($.fn.DataTable && $.fn.DataTable.isDataTable('#example1')){
+                  $('#example1').DataTable().destroy();
+              }
+              if($('#example1').length){
+                  $('#example1').DataTable({
+                      "pageLength": 10,
+                      "order": [ 0, 'asc' ],
+                      "ordering": true
+                  });
+              }
+              syncAffiliateCommissionPayPrint();
+              updateAffiliateCommissionPayUrl();
+          },
+          error: function(){
+              $('#affiliateCommissionPayResult').html('<div class="alert alert-danger">Failed to load commission pay data.</div>');
+          }
+      });
+  }
+
+  function resetAffiliateCommissionPayFilter(){
+      $('#affiliateUserId').val('');
+      if($.fn.select2){
+          $('#affiliateUserId').trigger('change.select2');
+      }
+      $('#st_date').val('');
+      $('#en_date').val('');
+      affiliateCommissionPayFilter();
+  }
+
+  function syncAffiliateCommissionPayPrint(){
+      var printHtml = $('#ajaxAffiliateCommissionPayPrint').html();
+      if(printHtml !== undefined && printHtml !== null && printHtml.trim() !== ''){
+          $('#ledgPrint').html(printHtml);
+          $('#ajaxAffiliateCommissionPayPrint').remove();
+      }
+  }
+
+  function updateAffiliateCommissionPayUrl(){
+      if(!window.history || !window.history.replaceState){ return; }
+      var affiliate_user_id = $('#affiliateUserId').val();
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      var url = '<?php echo site_url('Admin/Affiliate_commission_pay') ?>';
+      var params = [];
+      if(affiliate_user_id){ params.push('affiliate_user_id=' + encodeURIComponent(affiliate_user_id)); }
+      if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+      if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+
+      if(params.length){ url = url + '?' + params.join('&'); }
+      window.history.replaceState(null, '', url);
+  }
+  //affiliate commission pay filter without page reload(end)
+
+  //capital filter without page reload(start)
+  function capitalFilter(){
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      $.ajax({
+          type: "POST",
+          url: "<?php echo site_url('Admin/Capital/search_dateTodate') ?>",
+          data: {
+              st_date: st_date,
+              en_date: en_date
+          },
+          beforeSend: function(){
+              $('#capitalResult').html('<div class="text-center" style="padding:50px;"><i class="fa fa-spinner fa-spin fa-2x"></i> Loading...</div>');
+          },
+          success: function(html){
+              $('#capitalResult').html(html);
+              if($.fn.DataTable && $.fn.DataTable.isDataTable('#example1')){
+                  $('#example1').DataTable().destroy();
+              }
+              if($('#example1').length){
+                  $('#example1').DataTable({
+                      "pageLength": 10,
+                      "order": [ 0, 'desc' ],
+                      'ordering'    : true,
+                  });
+              }
+              syncCapitalPrint();
+              updateCapitalUrl();
+          },
+          error: function(){
+              $('#capitalResult').html('<div class="alert alert-danger">Failed to load capital data.</div>');
+          }
+      });
+  }
+
+  function resetCapitalFilter(){
+      $('#st_date').val('');
+      $('#en_date').val('');
+      capitalFilter();
+  }
+
+  function syncCapitalPrint(){
+      var printHtml = $('#ajaxCapitalPrint').html();
+      if(printHtml !== undefined && printHtml !== null && printHtml.trim() !== ''){
+          $('#ledgPrint').html(printHtml);
+          $('#ajaxCapitalPrint').remove();
+      }
+  }
+
+  function updateCapitalUrl(){
+      if(!window.history || !window.history.replaceState){ return; }
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
+
+      var url = '<?php echo site_url('Admin/Capital/list') ?>';
+      var params = [];
+      if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+      if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+
+      if(params.length){ url = url + '?' + params.join('&'); }
+      window.history.replaceState(null, '', url);
+  }
+  //capital filter without page reload(end)
 
    // Lc ledger(start)
    function lcLedgview(id){
@@ -1234,7 +3448,9 @@ function calculateDueAndShowBtn() {
 
           success: function(val){
 
-            $("#supplierLedg").html(val).show();
+            var target = ($('#supplierLedgerResult').length) ? $('#supplierLedgerResult') : $('#supplierLedg');
+            target.html(val).show();
+            syncSupplierLedgerPrint();
 
             var ladgerTable = $('#example1').DataTable({
                 "pageLength": 10,
@@ -1506,74 +3722,85 @@ function calculateDueAndShowBtn() {
 </script>
 
 <script type="text/javascript">
-  //Nagod ledgher date to date search (start)
-  function nagodLedSerc()
-  {
-    var st_date = $('#st_date').val();
-    var en_date = $('#en_date').val();
-    var error = 0;
-    $('#st_date').css("border-color", "white");
-    $('#st_date').css("background-color", "#ccc");
-    $('#en_date').css("border-color", "white");
-    $('#en_date').css("background-color", "#ccc");
-
-
-    if (st_date == '') {
-      $('#st_date').css("border-color", "red");
-      $('#st_date').css("background-color", "#ff9393");
-      error = 1;
-    }
-    if (en_date == '') {
-      $('#en_date').css("border-color", "red");
-      $('#en_date').css("background-color", "#ff9393");
-      error = 1;
-    }
-
-    if (error == 0){
+  //Nagod / Cash ledger date to date filter (start)
+  function nagodLedgerFilter(){
+      var st_date = $('#st_date').val();
+      var en_date = $('#en_date').val();
 
       $.ajax({
-          type: "POST",
-          url: "<?php echo site_url('Admin/Ledger_nagodan/search') ?>",
-          data: {st_date:st_date,en_date:en_date},
-          beforeSend: function() {
-            $("#loading-image").show();
-          },
-          success: function(val){
-            $("#loading-image").hide();
-            $("#ledger_cash").html(val).show();
-            var ladgerTable = $('#example1').DataTable({
-                "pageLength": 10,
-                "order": [ 0, 'asc' ],
-                'ordering'    : true,
-              })
-            ladgerTable.page('last').draw('page');
+        type: "POST",
+        url: "<?php echo site_url('Admin/Ledger_nagodan/search_dateTodate') ?>",
+        data: {st_date: st_date, en_date: en_date},
+        beforeSend: function(){
+          if($.fn.DataTable.isDataTable('#example1')){
+            $('#example1').DataTable().destroy();
           }
-        });
+          var loader = '<div class="box"><div class="box-body text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</div></div>';
+          if($('#nagodLedgerResult').length){
+            $("#nagodLedgerResult").html(loader);
+          } else if($('#ledger_cash').length){
+            $("#ledger_cash").html(loader);
+          }
+        },
+        success: function(html){
+          var target = ($('#nagodLedgerResult').length) ? $('#nagodLedgerResult') : $('#ledger_cash');
+          target.html(html).show();
+          syncNagodLedgerPrint();
+          var ladgerTable = $('#example1').DataTable({
+            "pageLength": 10,
+            "order": [ 0, 'asc' ],
+            'ordering'    : true,
+          });
+          ladgerTable.page('last').draw('page');
+          updateNagodLedgerUrl();
+        }
+      });
+  }
+
+  function resetNagodLedgerFilter(){
+    $('#st_date').val('');
+    $('#en_date').val('');
+    nagodLedgerFilter();
+  }
+
+  // move the printable rows of the filtered result into #ledgPrint (Print / PDF / CSV)
+  function syncNagodLedgerPrint(){
+    var printHtml = $('#ajaxNagodLedgPrint').html();
+    if(printHtml !== undefined && printHtml !== null && printHtml.trim() !== ''){
+      $('#ledgPrint').html(printHtml);
+      $('#ajaxNagodLedgPrint').remove();
     }
   }
 
+  // keep the browser url in sync with the current filter (so reload/print keeps it)
+  function updateNagodLedgerUrl(){
+    if(!window.history || !window.history.replaceState){ return; }
+    var st_date = $('#st_date').val();
+    var en_date = $('#en_date').val();
+    var url = '<?php echo site_url('Admin/Ledger_nagodan') ?>';
+    var params = [];
+    if(st_date){ params.push('st_date=' + encodeURIComponent(st_date)); }
+    if(en_date){ params.push('en_date=' + encodeURIComponent(en_date)); }
+    if(params.length){ url = url + '?' + params.join('&'); }
+    window.history.replaceState(null, '', url);
+  }
+
+  // Aliases for convenience / backward compatibility
+  var cashLedgerFilter = nagodLedgerFilter;
+  var resetCashLedgerFilter = resetNagodLedgerFilter;
+  var syncCashLedgerPrint = syncNagodLedgerPrint;
+  var updateCashLedgerUrl = updateNagodLedgerUrl;
+
+  function nagodLedSerc()
+  {
+    nagodLedgerFilter();
+  }
 
   function nagodLedSercPrint()
   {
-    var st_date = $('#st_date').val();
-    var en_date = $('#en_date').val();
-
-
-      $.ajax({
-          type: "POST",
-          url: "<?php echo site_url('Admin/Ledger_nagodan/searchPrint') ?>",
-          data: {st_date:st_date,en_date:en_date},
-          beforeSend: function() {
-            $("#loading-image").show();
-          },
-          success: function(val){
-          $("#loading-image").hide();
-            $("#ledger_cashPrint").html(val).show();
-            $("#printbutt").css('display','block');
-          }
-        });
-    }
-  //Nagod ledgher date to date search (end)
+    syncNagodLedgerPrint();
+  }
+  //Nagod / Cash ledger date to date filter (end)
 </script>
 
 <script type="text/javascript">
@@ -1843,8 +4070,30 @@ function calculateDueAndShowBtn() {
   function printDiv(divName) {
        var printContents = document.getElementById(divName).innerHTML;
        document.body.innerHTML = printContents;
-       window.print();
-       location.reload();
+       var printed = false;
+       var doPrint = function(){
+         if(printed){ return; }
+         printed = true;
+         window.print();
+         location.reload();
+       };
+       // wait for the images (logo) to load, otherwise they are missing on the printout
+       var imgs = Array.prototype.slice.call(document.images || []);
+       var pending = imgs.filter(function(img){ return !img.complete; });
+       if(pending.length === 0){
+         doPrint();
+         return;
+       }
+       var loaded = 0;
+       var onReady = function(){
+         loaded++;
+         if(loaded >= pending.length){ doPrint(); }
+       };
+       pending.forEach(function(img){
+         img.addEventListener('load', onReady);
+         img.addEventListener('error', onReady);
+       });
+       setTimeout(doPrint, 3000);
   }
 
   function showData(url,getUrl2){
@@ -1908,9 +4157,26 @@ function calculateDueAndShowBtn() {
               "order": [ 0, 'asc' ],
               'ordering'    : true,
           });
+          $('#assets1').DataTable({
+              "pageLength": 10,
+              "order": [ 0, 'asc' ],
+              'ordering'    : true,
+          });
 
         yearpicker();
         history.pushState({ foo: 'bar' }, '', '<?php echo base_url() ?>'+getUrl2);
+        if (getUrl2) {
+          $('.sidebar-menu a').each(function() {
+            var fn = $(this).attr('onclick') || '';
+            if (fn.indexOf("'" + getUrl2 + "'") !== -1 || fn.indexOf('"' + getUrl2 + '"') !== -1) {
+              $('.treeview-menu li').removeClass('active');
+              $('ul .active').removeClass('active');
+              $('.treeview .menu-open').removeClass('active menu-open');
+              $(this).parent().addClass('active');
+              $(this).closest('.treeview').addClass('active menu-open');
+            }
+          });
+        }
       }
     });
   }

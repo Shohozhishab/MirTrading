@@ -42,23 +42,9 @@ class Purchase extends BaseController
         } else {
             $shopId = $this->session->shopId;
 
+            $supplier_id = $this->request->getGet('supplier_id');
             $st_date = $this->request->getGet('st_date');
             $en_date = $this->request->getGet('en_date');
-
-            $table = DB()->table('purchase');
-            $table->where('sch_id', $shopId);
-            // Apply date filters only if they are present in the request
-            if (!empty($st_date) && !empty($en_date)) {
-                // Assuming your database column name is 'date'
-                $table->where('date >=', $st_date . ' 00:00:00');
-                $table->where('date <=', $en_date . ' 23:59:59');
-            }
-            $data['purchase_data'] = $table->get()->getResult();
-
-            $data['st_date'] = isset($st_date)?$st_date:'';
-            $data['en_date'] = isset($en_date)?$en_date:'';
-
-
 
             //purchase table null value delete (start)
             $purcTable = DB()->table('purchase');
@@ -78,7 +64,13 @@ class Purchase extends BaseController
             }
             //purchase table null value delete (end)
 
+            $data['purchase_data'] = $this->purchaseQuery($supplier_id, $st_date, $en_date, $shopId);
 
+            $data['supplier_id'] = isset($supplier_id) ? $supplier_id : '';
+            $data['st_date'] = isset($st_date) ? $st_date : '';
+            $data['en_date'] = isset($en_date) ? $en_date : '';
+            $data['id'] = $shopId;
+            $data['shopId'] = $shopId;
 
             $data['menu'] = view('Admin/menu_purchase', $data);
             // All Permissions
@@ -96,6 +88,180 @@ class Purchase extends BaseController
             }
             echo view('Admin/footer');
         }
+    }
+
+    /**
+     * @description This method search purchase date to date
+     * @return void
+     */
+    public function search_dateTodate()
+    {
+        $shopId = $this->session->shopId;
+
+        $supplier_id = $this->request->getPost('supplier_id') ?? $this->request->getGet('supplier_id');
+        $st_date = $this->request->getPost('st_date') ?? $this->request->getGet('st_date');
+        $en_date = $this->request->getPost('en_date') ?? $this->request->getGet('en_date');
+
+        $query = $this->purchaseQuery($supplier_id, $st_date, $en_date, $shopId);
+
+        print $this->purchaseBox($query, $supplier_id, $st_date, $en_date, $shopId);
+    }
+
+    /**
+     * @description This method search purchase print date to date
+     * @return void
+     */
+    public function search_dateTodatePrint()
+    {
+        $shopId = $this->session->shopId;
+
+        $supplier_id = $this->request->getPost('supplier_id') ?? $this->request->getGet('supplier_id');
+        $st_date = $this->request->getPost('st_date') ?? $this->request->getGet('st_date');
+        $en_date = $this->request->getPost('en_date') ?? $this->request->getGet('en_date');
+
+        $query = $this->purchaseQuery($supplier_id, $st_date, $en_date, $shopId);
+
+        $view = '<div class="col-xs-12" style="text-transform: capitalize;" >'
+            . view('Admin/Purchase/print_table', [
+                'purchase_data' => $query,
+                'supplier_id' => $supplier_id,
+                'st_date' => $st_date,
+                'en_date' => $en_date,
+                'id' => $shopId,
+                'shopId' => $shopId
+            ])
+            . '</div>';
+
+        print $view;
+    }
+
+    /**
+     * @description This method builds the purchase query
+     * @param string|int $supplier_id
+     * @param string $st_date
+     * @param string $en_date
+     * @param int|null $shopId
+     * @return array
+     */
+    private function purchaseQuery($supplier_id = '', $st_date = '', $en_date = '', $shopId = null)
+    {
+        $shopId = $shopId ?? $this->session->shopId;
+        $table = DB()->table('purchase');
+        $table->where('sch_id', $shopId);
+        $table->where('deleted IS NULL');
+
+        if (!empty($supplier_id)) {
+            $table->where('supplier_id', $supplier_id);
+        }
+        if (!empty($st_date)) {
+            $table->where('date >=', $st_date . ' 00:00:00');
+        }
+        if (!empty($en_date)) {
+            $table->where('date <=', $en_date . ' 23:59:59');
+        }
+        $table->orderBy('purchase_id', 'ASC');
+
+        return $table->get()->getResult();
+    }
+
+    /**
+     * @description This method builds the purchase table box and embedded print container
+     * @param array $purchase_data
+     * @param string|int $supplier_id
+     * @param string $st_date
+     * @param string $en_date
+     * @param int|null $shopId
+     * @return string
+     */
+    private function purchaseBox($purchase_data, $supplier_id = '', $st_date = '', $en_date = '', $shopId = null)
+    {
+        $shopId = $shopId ?? $this->session->shopId;
+        $transaction_flow = $this->permission->have_access($this->session->role, $this->module_name, 'transaction_flow');
+        $read = $this->permission->have_access($this->session->role, $this->module_name, 'read');
+        $update = $this->permission->have_access($this->session->role, $this->module_name, 'update');
+
+        $totalAmount = 0;
+        $totalDue = 0;
+
+        $view = '<div class="box">
+                    <div class="box-body">
+                        <table id="example1" class="table table-bordered table-striped text-capitalize">
+                            <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Purchase Date</th>
+                                <th>Supplier</th>
+                                <th>Total Amount</th>
+                                <th>Due</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody>';
+
+        $i = 1;
+        foreach ($purchase_data as $purchase) {
+            $pAmount = !empty($purchase->amount) ? $purchase->amount : get_data_by_id('amount', 'purchase', 'purchase_id', $purchase->purchase_id);
+            $pDue = !empty($purchase->due) ? $purchase->due : get_data_by_id('due', 'purchase', 'purchase_id', $purchase->purchase_id);
+            $totalAmount += (float)$pAmount;
+            $totalDue += (float)$pDue;
+
+            $actionBtns = '';
+            if (isset($transaction_flow) && $transaction_flow == 1) {
+                $actionBtns .= '<a href="javascript:void(0)" onclick="showData(\'' . site_url('/Admin/Purchase_ajax/transaction_flow/' . $purchase->purchase_id) . '\',\'/Admin/Purchase/transaction_flow/' . $purchase->purchase_id . '\')" class="btn btn-success btn-xs">Transaction Flow</a> ';
+            }
+            if (isset($read) && $read == 1) {
+                $actionBtns .= '<a href="javascript:void(0)" onclick="showData(\'' . site_url('/Admin/Purchase_ajax/view/' . $purchase->purchase_id) . '\',\'/Admin/Purchase/view/' . $purchase->purchase_id . '\')" class="btn btn-primary btn-xs">View</a> ';
+            }
+            if (isset($update) && $update == 1) {
+                $actionBtns .= '<a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="purchaseEdit(\'' . $purchase->purchase_id . '\')" data-toggle="modal" data-target="#modal-default">Edit</a>';
+            }
+
+            $view .= '<tr>
+                        <td>' . $i++ . '</td>
+                        <td>' . invoiceDateFormat($purchase->date) . '</td>
+                        <td>' . get_data_by_id('name', 'suppliers', 'supplier_id', $purchase->supplier_id) . '</td>
+                        <td>' . showWithCurrencySymbol($pAmount) . '</td>
+                        <td>' . showWithCurrencySymbol($pDue) . '</td>
+                        <td>' . $actionBtns . '</td>
+                    </tr>';
+        }
+
+        $view .= '</tbody>
+                    <tfoot>
+                    <tr>
+                        <th>No</th>
+                        <th>Purchase Date</th>
+                        <th>Supplier</th>
+                        <th>Total Amount</th>
+                        <th>Due</th>
+                        <th>Action</th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th>Total</th>
+                        <th>= ' . showWithCurrencySymbol($totalAmount) . '</th>
+                        <th>= ' . showWithCurrencySymbol($totalDue) . '</th>
+                        <th></th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>';
+
+        // printable version of the same (filtered) rows
+        $view .= '<div id="ajaxPurchasePrint" style="display: none;">'
+            . view('Admin/Purchase/print_table', [
+                'purchase_data' => $purchase_data,
+                'supplier_id' => $supplier_id,
+                'st_date' => $st_date,
+                'en_date' => $en_date,
+                'id' => $shopId,
+                'shopId' => $shopId
+            ])
+            . '</div>';
+
+        return $view;
     }
 
     /**

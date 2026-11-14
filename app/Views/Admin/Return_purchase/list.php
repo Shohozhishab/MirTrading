@@ -76,33 +76,34 @@
                         </div>
                         <?php if (isset($filter) && $filter == 1){ ?>
                             <div class="col-lg-12">
-                                <form action="<?= base_url('Admin/Return_purchase')?>" method="get">
+                                <form action="<?= base_url('Admin/Return_purchase')?>" method="get" onsubmit="return false;">
                                     <div class="col-lg-3 ">
                                         <label>Supplier</label><br>
-                                        <select class="form-control select2" name="supplier_id" >
+                                        <select class="form-control select2" name="supplier_id" id="supplierId" onchange="returnPurchaseFilter()" style="width: 100%;">
                                             <option value="">Please Select</option>
                                             <?= getAllListInOptionWithStatus( $supplierId, 'supplier_id', 'name', 'suppliers', 'name' );?>
                                         </select>
                                     </div>
                                     <div class="col-xs-3" >
                                         <label>Start Date</label>
-                                        <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>" id="st_date" >
+                                        <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>" id="st_date" onchange="returnPurchaseFilter()">
                                     </div>
                                     <div class="col-xs-3" >
                                         <label>End Date</label>
-                                        <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>" id="en_date" >
+                                        <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>" id="en_date" onchange="returnPurchaseFilter()">
                                     </div>
                                     <div class="col-lg-1 ">
-                                        <button style="margin-top: 25px;" class="btn btn-primary" type="submit"> <i class="fa fa-search"></i> Filter </button>
+                                        <button style="margin-top: 25px;" class="btn btn-primary" type="button" onclick="returnPurchaseFilter()"> <i class="fa fa-search"></i> Filter </button>
                                     </div>
                                     <div class="col-lg-2 ">
-                                        <a href="<?= base_url('Admin/Return_purchase') ?>" style="margin-top: 25px;" class="btn btn-default btn-block"><i class="fa fa-refresh"></i> Reset</a>
+                                        <button type="button" onclick="resetReturnPurchaseFilter()" style="margin-top: 25px;" class="btn btn-default btn-block"><i class="fa fa-refresh"></i> Reset</button>
                                     </div>
                                 </form>
                             </div>
                         <?php } ?>
                         <div class="col-lg-12" style="margin-top: 30px"></div>
 
+                        <div id="returnPurchaseResult">
                         <table id="example1" class="table table-bordered table-striped text-capitalize" style="margin-top: 20px;">
                             <thead>
                             <tr>
@@ -114,7 +115,12 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <?php $i = 1; foreach ($return_purchase_data as $return) { ?>
+                            <?php 
+                            $i = 1; 
+                            $totalAmount = 0;
+                            foreach ($return_purchase_data as $return) { 
+                                $totalAmount += (float)$return->amount;
+                            ?>
                                 <tr>
                                     <td><?php echo $i++ ?></td>
                                     <td><?php echo invoiceDateFormat($return->createdDtm) ?></td>
@@ -129,7 +135,24 @@
                             <?php } ?>
 
                             </tbody>
+                            <tfoot>
+                            <tr>
+                                <th>No</th>
+                                <th>Date</th>
+                                <th>Supplier</th>
+                                <th>Total Amount</th>
+                                <th>Action</th>
+                            </tr>
+                            <tr>
+                                <th></th>
+                                <th></th>
+                                <th>Total</th>
+                                <th>= <?php echo showWithCurrencySymbol($totalAmount); ?></th>
+                                <th></th>
+                            </tr>
+                            </tfoot>
                         </table>
+                        </div>
 
                         <div class="row no-print" >
                             <div class="col-xs-12">
@@ -145,41 +168,15 @@
                             </div>
                         </div>
 
-                        <div class="col-md-12" id="ledgPrint" style="display: none; text-transform: capitalize; " >
-                            <div class="col-xs-12" style="margin-bottom: 20px;   ">
-                                <div class="col-xs-6">
-                                    <?php if(logo_image() == NULL){ ?>
-                                        <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg" alt="User Image" >
-                                    <?php }else{ ?>
-                                        <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
-                                    <?php } ?>
-                                </div>
-                                <div class="col-xs-6">
-                                    <?php print address(); ?>
-                                </div>
-                            </div>
-                            <div class="col-md-12" >
-                                <table class="table table-bordered table-striped text-capitalize" >
-                                    <thead>
-                                    <tr>
-                                        <th>No</th>
-                                        <th>Date</th>
-                                        <th>Supplier</th>
-                                        <th>Total Amount</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <?php $i = 1; foreach ($return_purchase_data as $return) { ?>
-                                        <tr>
-                                            <td><?php echo $i++ ?></td>
-                                            <td><?php echo invoiceDateFormat($return->createdDtm) ?></td>
-                                            <td><?php echo get_data_by_id('name', 'suppliers', 'supplier_id', $return->supplier_id) ?></td>
-                                            <td><?php echo showWithCurrencySymbol($return->amount) ?></td>
-                                        </tr>
-                                    <?php } ?>
-
-                                    </tbody>
-                                </table>
+                        <div style="display: none;">
+                            <div id="ledgPrint">
+                                <?php echo view('Admin/Return_purchase/print_table', [
+                                    'return_purchase_data' => $return_purchase_data,
+                                    'supplierId' => $supplierId,
+                                    'st_date' => $st_date,
+                                    'en_date' => $en_date,
+                                    'id' => isset($id) ? $id : (isset($shopId) ? $shopId : null)
+                                ]); ?>
                             </div>
                         </div>
                     </div>

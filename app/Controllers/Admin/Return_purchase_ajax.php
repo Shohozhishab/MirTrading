@@ -48,15 +48,19 @@ class Return_purchase_ajax extends BaseController
             if (!empty($supplier_id)){
                 $table->where('return_purchase.supplier_id', $supplier_id);
             }
-            if (!empty($st_date) && !empty($en_date)) {
+            if (!empty($st_date)) {
                 $table->where('return_purchase.createdDtm >=', $st_date . ' 00:00:00');
+            }
+            if (!empty($en_date)) {
                 $table->where('return_purchase.createdDtm <=', $en_date . ' 23:59:59');
             }
-            $data['return_purchase_data'] = $table->get()->getResult();
+            $data['return_purchase_data'] = $table->orderBy('return_purchase.rtn_purchase_id', 'ASC')->get()->getResult();
 
-            $data['supplierId'] = isset($supplier_id)?$supplier_id:'';
-            $data['st_date'] = isset($st_date)?$st_date:'';
-            $data['en_date'] = isset($en_date)?$en_date:'';
+            $data['supplierId'] = isset($supplier_id) ? $supplier_id : '';
+            $data['st_date'] = isset($st_date) ? $st_date : '';
+            $data['en_date'] = isset($en_date) ? $en_date : '';
+            $data['id'] = $shopId;
+            $data['shopId'] = $shopId;
 
             $data['menu'] = view('Admin/menu_purchase', $data);
             // All Permissions

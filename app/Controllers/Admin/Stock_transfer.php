@@ -40,20 +40,12 @@ class Stock_transfer extends BaseController
             $st_date = $this->request->getGet('st_date');
             $en_date = $this->request->getGet('en_date');
 
-            $table = DB()->table('stock_transfer');
-            $table->where('sch_id', $shopId);
-            // Apply date filters only if they are present in the request
-            if (!empty($st_date) && !empty($en_date)) {
-                // Assuming your database column name is 'date'
-                $table->where('createdDtm >=', $st_date . ' 00:00:00');
-                $table->where('createdDtm <=', $en_date . ' 23:59:59');
-            }
-            $data['transfer'] = $table->get()->getResult();
+            $data['transfer'] = $this->stockTransferQuery($st_date, $en_date, $shopId);
 
             $data['st_date'] = isset($st_date)?$st_date:'';
             $data['en_date'] = isset($en_date)?$en_date:'';
-
-
+            $data['id'] = $shopId;
+            $data['shopId'] = $shopId;
 
             $storesTab = DB()->table('stores');
             $data['stores'] = $storesTab->where('sch_id', $shopId)->get()->getResult();
@@ -80,6 +72,146 @@ class Stock_transfer extends BaseController
             }
             echo view('Admin/footer');
         }
+    }
+
+    /**
+     * @description This method search stock transfer date to date
+     * @return void
+     */
+    public function search_dateTodate()
+    {
+        $shopId = $this->session->shopId;
+
+        $st_date = $this->request->getPost('st_date') ?? $this->request->getGet('st_date');
+        $en_date = $this->request->getPost('en_date') ?? $this->request->getGet('en_date');
+
+        $query = $this->stockTransferQuery($st_date, $en_date, $shopId);
+
+        print $this->stockTransferBox($query, $st_date, $en_date, $shopId);
+    }
+
+    /**
+     * @description This method search stock transfer print date to date
+     * @return void
+     */
+    public function search_dateTodatePrint()
+    {
+        $shopId = $this->session->shopId;
+
+        $st_date = $this->request->getPost('st_date') ?? $this->request->getGet('st_date');
+        $en_date = $this->request->getPost('en_date') ?? $this->request->getGet('en_date');
+
+        $query = $this->stockTransferQuery($st_date, $en_date, $shopId);
+
+        $view = '<div class="col-xs-12" style="text-transform: capitalize;" >'
+            . view('Admin/Stock_transfer/print_table', ['transfer' => $query, 'st_date' => $st_date, 'en_date' => $en_date])
+            . '</div>';
+
+        print $view;
+    }
+
+    /**
+     * @description This method builds the stock transfer query
+     * @param string $st_date
+     * @param string $en_date
+     * @param int|null $shopId
+     * @return array
+     */
+    private function stockTransferQuery($st_date = '', $en_date = '', $shopId = null)
+    {
+        $shopId = $shopId ?? $this->session->shopId;
+        $table = DB()->table('stock_transfer');
+        $table->where('sch_id', $shopId);
+        if (!empty($st_date) && !empty($en_date)) {
+            $table->where('createdDtm >=', $st_date . ' 00:00:00');
+            $table->where('createdDtm <=', $en_date . ' 23:59:59');
+        }
+        $table->orderBy('stock_transfer_id', 'ASC');
+
+        return $table->get()->getResult();
+    }
+
+    /**
+     * @description This method builds the stock transfer table box and embedded print container
+     * @param array $transfer
+     * @param string $st_date
+     * @param string $en_date
+     * @param int|null $shopId
+     * @return string
+     */
+    private function stockTransferBox($transfer, $st_date = '', $en_date = '', $shopId = null)
+    {
+        $shopId = $shopId ?? $this->session->shopId;
+        $read = $this->permission->have_access($this->session->role, $this->module_name, 'read');
+
+        $totalQty = 0;
+        foreach ($transfer as $item) {
+            $totalQty += get_stock_transfer_qty_by_id($item->stock_transfer_id) ?? 0;
+        }
+
+        $view = '<div class="box">
+                    <div class="box-body">
+                        <table id="example1" class="table table-bordered table-striped text-capitalize">
+                            <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Date</th>
+                                <th>From Store</th>
+                                <th>To Store</th>
+                                <th>Quantity</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody>';
+
+        $i = 1;
+        foreach ($transfer as $item) {
+            $actionBtn = '';
+            if (isset($read) && $read == 1) {
+                $actionBtn = '<a href="javascript:void(0)" onclick="showData(\'' . site_url('/Admin/Stock_transfer_ajax/view/' . $item->stock_transfer_id) . '\',\'/Admin/Stock_transfer/view/' . $item->stock_transfer_id . '\')" class="btn btn-primary btn-xs">View</a>';
+            }
+
+            $qty = get_stock_transfer_qty_by_id($item->stock_transfer_id) ?? 0;
+
+            $view .= '<tr>
+                        <td>' . $i++ . '</td>
+                        <td>' . globalTimeStamp($item->createdDtm) . '</td>
+                        <td>' . get_data_by_id('name', 'stores', 'store_id', $item->from_stock_id) . '</td>
+                        <td>' . get_data_by_id('name', 'stores', 'store_id', $item->to_stock_id) . '</td>
+                        <td>' . $qty . '</td>
+                        <td>' . $actionBtn . '</td>
+                    </tr>';
+        }
+
+        $view .= '</tbody>
+                    <tfoot>
+                    <tr>
+                        <th>No</th>
+                        <th>Date</th>
+                        <th>From Store</th>
+                        <th>To Store</th>
+                        <th>Quantity</th>
+                        <th>Action</th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th>Total</th>
+                        <th>= ' . $totalQty . '</th>
+                        <th></th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>';
+
+        // printable version of the same (filtered) rows
+        $view .= '<div id="ajaxStockTransferPrint" style="display: none;">'
+            . view('Admin/Stock_transfer/print_table', ['transfer' => $transfer, 'st_date' => $st_date, 'en_date' => $en_date])
+            . '</div>';
+
+        return $view;
     }
 
     public function search()

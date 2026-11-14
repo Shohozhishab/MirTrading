@@ -51,11 +51,11 @@
                         <h3 class="box-title"><i class="fa fa-filter"></i> Filter Sales</h3>
                     </div>
                     <div class="box-body">
-                        <form action="<?= base_url('Admin/Sales') ?>" method="get">
+                        <form action="<?= base_url('Admin/Sales') ?>" method="get" onsubmit="return false;">
                             <div class="row">
                                 <div class="col-lg-2 ">
                                     <label>Customer</label><br>
-                                    <select class="form-control select2" name="customer" >
+                                    <select class="form-control select2" name="customer" id="customerId" onchange="salesFilter()" style="width: 100%;">
                                         <option value="">Please Select</option>
                                         <?= getAllListInOptionWithStatus( $customer_id, 'customer_id', 'customer_name', 'customers', 'customer_name' );?>
                                     </select>
@@ -63,22 +63,22 @@
                                 <div class="col-md-3">
                                     <label>Start Date</label>
                                     <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>"
-                                           id="st_date" >
+                                           id="st_date" onchange="salesFilter()">
                                 </div>
                                 <div class="col-md-3">
                                     <label>End Date</label>
                                     <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>"
-                                           id="en_date" >
+                                           id="en_date" onchange="salesFilter()">
                                 </div>
 
                                 <div class="col-md-2" style="margin-top: 25px;">
-                                    <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-search"></i>
+                                    <button type="button" onclick="salesFilter()" class="btn btn-primary btn-block"><i class="fa fa-search"></i>
                                         Filter
                                     </button>
                                 </div>
                                 <div class="col-md-2" style="margin-top: 25px;">
-                                    <a href="<?= base_url('Admin/Sales') ?>" class="btn btn-default btn-block"><i
-                                                class="fa fa-refresh"></i> Reset</a>
+                                    <button type="button" onclick="resetSalesFilter()" class="btn btn-default btn-block"><i
+                                                class="fa fa-refresh"></i> Reset</button>
                                 </div>
                             </div>
                         </form>
@@ -94,151 +94,143 @@
             </div>
             <?php } ?>
             <div class="col-xs-12">
-                <div class="box">
-                    <div class="box-header">
-                        <div class="row">
-                            <div class="col-lg-12" style="margin-top: 20px;">
-                                <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
+                <div id="salesResult">
+                    <div class="box">
+                        <div class="box-header">
+                            <div class="row">
+                                <div class="col-lg-12" style="margin-top: 20px;">
+                                    <?php if (session()->getFlashdata('message') !== NULL) : echo session()->getFlashdata('message'); endif; ?>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <!-- /.box-header -->
-                    <div class="box-body">
-                        <table id="example1" class="table table-bordered table-striped text-capitalize">
-                            <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Date</th>
-                                <th>Customer</th>
-                                <th>Invoice Id</th>
-                                <th>Total Amount</th>
-                                <th>Total Due</th>
-                                <?php if (isset($profit) && $profit == 1){ ?>
-                                <th>Profit</th>
-                                <?php } ?>
-                                <th>Action</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <?php $i = 1;
-                            foreach ($sales as $val) {
-                                $cus_id = get_data_by_id('customer_id', 'invoice', 'invoice_id', $val->invoice_id);
-                                $cusName = !empty($cus_id) ? get_data_by_id('customer_name', 'customers', 'customer_id', $cus_id) : get_data_by_id('customer_name', 'invoice', 'invoice_id', $val->invoice_id);
-                                $profitOr = get_data_by_id('profit', 'invoice', 'invoice_id', $val->invoice_id);
-                                ?>
+                        <!-- /.box-header -->
+                        <div class="box-body">
+                            <table id="example1" class="table table-bordered table-striped text-capitalize">
+                                <thead>
                                 <tr>
-                                    <td><?php echo $i++ ?></td>
-                                    <td><?php echo invoiceDateFormat($val->date) ?></td>
-                                    <td><?php echo $cusName ?></td>
-                                    <td><?php echo $val->invoice_id ?></td>
-                                    <td><?php echo showWithCurrencySymbol(get_data_by_id('amount', 'invoice', 'invoice_id', $val->invoice_id)) ?></td>
-                                    <td><?php echo showWithCurrencySymbol(get_data_by_id('due', 'invoice', 'invoice_id', $val->invoice_id)) ?></td>
+                                    <th>No</th>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th>Invoice Id</th>
+                                    <th>Total Amount</th>
+                                    <th>Total Due</th>
                                     <?php if (isset($profit) && $profit == 1){ ?>
-                                    <td><?php echo showWithCurrencySymbol($profitOr) ?></td>
+                                    <th>Profit</th>
                                     <?php } ?>
-                                    <td>
-                                        <?php if (isset($transaction_flow) && $transaction_flow == 1){ ?>
-                                        <a href="javascript:void(0)"
-                                           onclick="showData('<?php echo site_url('/Admin/Sales_ajax/transaction_flow/' . $val->sales_id); ?>','<?php echo '/Admin/Sales/transaction_flow/' . $val->sales_id; ?>')"
-                                           class="btn btn-success btn-xs">Transaction Flow </a>
-                                        <?php } ?>
-                                        <?php if (isset($read) && $read == 1){ ?>
-                                        <a href="javascript:void(0)"
-                                           onclick="showData('<?php echo site_url('/Admin/Invoice_ajax/view/' . $val->invoice_id); ?>','<?php echo '/Admin/Invoice/view/' . $val->invoice_id; ?>')"
-                                           class="btn btn-primary btn-xs">View</a>
-                                        <?php } ?>
-                                        <?php if (isset($update) && $update == 1){ ?>
-                                            <a href="javascript:void(0)" class="btn btn-xs btn-warning"
-                                                   onclick="saleEdit('<?= $val->sales_id; ?>')" data-toggle="modal"
-                                                   data-target="#modal-default">Edit</a>
-                                        <?php } ?>
-                                    </td>
+                                    <th>Action</th>
                                 </tr>
-                            <?php } ?>
+                                </thead>
+                                <tbody>
+                                <?php $i = 1;
+                                $totalAmount = 0;
+                                $totalDue = 0;
+                                $totalProfit = 0;
+                                foreach ($sales as $val) {
+                                    $cus_id = get_data_by_id('customer_id', 'invoice', 'invoice_id', $val->invoice_id);
+                                    $cusName = !empty($cus_id) ? get_data_by_id('customer_name', 'customers', 'customer_id', $cus_id) : get_data_by_id('customer_name', 'invoice', 'invoice_id', $val->invoice_id);
+                                    $profitOr = get_data_by_id('profit', 'invoice', 'invoice_id', $val->invoice_id);
+                                    $invAmount = get_data_by_id('amount', 'invoice', 'invoice_id', $val->invoice_id);
+                                    $invDue = get_data_by_id('due', 'invoice', 'invoice_id', $val->invoice_id);
 
-                            </tbody>
-                        </table>
-
-                        <div class="row no-print">
-                            <div class="col-xs-12">
-                                <?php if (isset($print) && $print == 1){ ?>
-                                    <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right"><i
-                                                class="fa fa-print "></i> Print Now
-                                    </button>
-                                <?php } ?>
-                                <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
-                                    <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;"
-                                            onclick="downloadPDF('ledgPrint','sales')"><i class="fa fa-file-pdf-o "></i>
-                                        Download PDF
-                                    </button>
-                                <?php } ?>
-                                <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
-                                    <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;"
-                                            onclick="downloadCSV('ledgPrint','sales')"><i class="fa fa-file-excel-o "></i>
-                                        Download CSV
-                                    </button>
-                                <?php } ?>
-                            </div>
-                        </div>
-
-                        <div class="col-md-12" id="ledgPrint" style="display: none; text-transform: capitalize; ">
-                            <div class="col-xs-12" style="margin-bottom: 20px;   ">
-                                <div class="col-xs-6">
-                                    <?php if (logo_image() == NULL) { ?>
-                                        <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg"
-                                             alt="User Image">
-                                    <?php } else { ?>
-                                        <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>"
-                                             class="" alt="User Image">
-                                    <?php } ?>
-                                </div>
-                                <div class="col-xs-6">
-                                    <?php print address(); ?>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <table class="table table-bordered table-striped text-capitalize">
-                                    <thead>
+                                    $totalAmount += $invAmount;
+                                    $totalDue += $invDue;
+                                    $totalProfit += $profitOr;
+                                    ?>
                                     <tr>
-                                        <th>No</th>
-                                        <th>Date</th>
-                                        <th>Customer</th>
-                                        <th>Invoice Id</th>
-                                        <th>Total Amount</th>
-                                        <th>Total Due</th>
+                                        <td><?php echo $i++ ?></td>
+                                        <td><?php echo invoiceDateFormat($val->date) ?></td>
+                                        <td><?php echo $cusName ?></td>
+                                        <td><?php echo $val->invoice_id ?></td>
+                                        <td><?php echo showWithCurrencySymbol($invAmount) ?></td>
+                                        <td><?php echo showWithCurrencySymbol($invDue) ?></td>
                                         <?php if (isset($profit) && $profit == 1){ ?>
-                                        <th>Profit</th>
+                                        <td><?php echo showWithCurrencySymbol($profitOr) ?></td>
                                         <?php } ?>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <?php $j = 1;
-                                    foreach ($sales as $item) {
-                                        $cus_id = get_data_by_id('customer_id', 'invoice', 'invoice_id', $item->invoice_id);
-                                        $cusName = !empty($cus_id) ? get_data_by_id('customer_name', 'customers', 'customer_id', $cus_id) : get_data_by_id('customer_name', 'invoice', 'invoice_id', $item->invoice_id);
-                                        $profitor = get_data_by_id('profit', 'invoice', 'invoice_id', $item->invoice_id);
-                                        ?>
-                                        <tr>
-                                            <td><?php echo $j++ ?></td>
-                                            <td><?php echo invoiceDateFormat($item->date) ?></td>
-                                            <td><?php echo $cusName ?></td>
-                                            <td><?php echo $item->invoice_id ?></td>
-                                            <td><?php echo showWithCurrencySymbol(get_data_by_id('amount', 'invoice', 'invoice_id', $item->invoice_id)) ?></td>
-                                            <td><?php echo showWithCurrencySymbol(get_data_by_id('due', 'invoice', 'invoice_id', $item->invoice_id)) ?></td>
-                                            <?php if (isset($profit) && $profit == 1){ ?>
-                                            <td><?php echo showWithCurrencySymbol($profitor) ?></td>
+                                        <td>
+                                            <?php if (isset($transaction_flow) && $transaction_flow == 1){ ?>
+                                            <a href="javascript:void(0)"
+                                               onclick="showData('<?php echo site_url('/Admin/Sales_ajax/transaction_flow/' . $val->sales_id); ?>','<?php echo '/Admin/Sales/transaction_flow/' . $val->sales_id; ?>')"
+                                               class="btn btn-success btn-xs">Transaction Flow </a>
                                             <?php } ?>
-                                        </tr>
-                                    <?php } ?>
+                                            <?php if (isset($read) && $read == 1){ ?>
+                                            <a href="javascript:void(0)"
+                                               onclick="showData('<?php echo site_url('/Admin/Invoice_ajax/view/' . $val->invoice_id); ?>','<?php echo '/Admin/Invoice/view/' . $val->invoice_id; ?>')"
+                                               class="btn btn-primary btn-xs">View</a>
+                                            <?php } ?>
+                                            <?php if (isset($update) && $update == 1){ ?>
+                                                <a href="javascript:void(0)" class="btn btn-xs btn-warning"
+                                                       onclick="saleEdit('<?= $val->sales_id; ?>')" data-toggle="modal"
+                                                       data-target="#modal-default">Edit</a>
+                                            <?php } ?>
+                                        </td>
+                                    </tr>
+                                <?php } ?>
 
-                                    </tbody>
-                                </table>
-                            </div>
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th>Invoice Id</th>
+                                    <th>Total Amount</th>
+                                    <th>Total Due</th>
+                                    <?php if (isset($profit) && $profit == 1){ ?>
+                                    <th>Profit</th>
+                                    <?php } ?>
+                                    <th>Action</th>
+                                </tr>
+                                <tr>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th>Total</th>
+                                    <th>= <?php echo showWithCurrencySymbol($totalAmount); ?></th>
+                                    <th>= <?php echo showWithCurrencySymbol($totalDue); ?></th>
+                                    <?php if (isset($profit) && $profit == 1){ ?>
+                                    <th>= <?php echo showWithCurrencySymbol($totalProfit); ?></th>
+                                    <?php } ?>
+                                    <th></th>
+                                </tr>
+                                </tfoot>
+                            </table>
                         </div>
                     </div>
-                    <!-- /.box-body -->
                 </div>
-                <!-- /.box -->
+
+                <div class="row no-print">
+                    <div class="col-xs-12">
+                        <?php if (isset($print) && $print == 1){ ?>
+                            <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right"><i
+                                        class="fa fa-print "></i> Print Now
+                            </button>
+                        <?php } ?>
+                        <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
+                            <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;"
+                                    onclick="downloadPDF('ledgPrint','sales')"><i class="fa fa-file-pdf-o "></i>
+                                Download PDF
+                            </button>
+                        <?php } ?>
+                        <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
+                            <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;"
+                                    onclick="downloadCSV('ledgPrint','sales')"><i class="fa fa-file-excel-o "></i>
+                                Download CSV
+                            </button>
+                        <?php } ?>
+                    </div>
+                </div>
+
+                <div style="display: none;">
+                    <div id="ledgPrint">
+                        <?php echo view('Admin/Sales/print_table', [
+                            'sales' => $sales,
+                            'customer_id' => $customer_id,
+                            'st_date' => $st_date,
+                            'en_date' => $en_date,
+                            'profit' => isset($profit) ? $profit : 0
+                        ]); ?>
+                    </div>
+                </div>
             </div>
 
         </div>

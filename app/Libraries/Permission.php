@@ -2,45 +2,110 @@
 
 class Permission{
 
+    /**
+     * In-memory cache for loaded role rows
+     * @var array<int|string, object|null>
+     */
+    protected static $roles_cache = [];
+
+    /**
+     * In-memory cache for decoded role permission arrays
+     * @var array<int|string, array>
+     */
+    protected static $permissions_cache = [];
+
     public $admin_permissions = '{"Dashboard":{"mod_access":"1","purchess":"1","sale":"1","transaction":"1","cash_ledger":"1","customer_ledger":"1","supplier_ledger":"1","bank_ledger":"1","account_head_ledger":"1","bank_balance":"1","cash":"1","due":"1","oweing":"1","products":"1","customers":"1"},"Bank":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Customers":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","return_list":"1","replace_product":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Purchase":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Purchase_item":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Product_category":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Bank_deposit":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1","transaction_flow":"1"},"Settings":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Bank_withdraw":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1","transaction_flow":"1"},"Warranty_manage":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Suppliers":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Sales":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","discount":"1","warranty":"1","vat_option":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1","transaction_flow":"1","profit":"1","draft_sale":"1"},"Role":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Money_receipt":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Loan_provider":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Ledger_suppliers":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Ledger_nagodan":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Ledger_loan":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"User":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Stores":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Ledger_lc":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Ledger_bank":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Invoice":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","discount":"1","warranty":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Expense_category":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Balance_report":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Ledger":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Customer_type":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Products":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Transaction":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1","transaction_flow":"1"},"Chaque":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Stock_report":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Sales_report":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Purchase_report":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Daily_book":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Brand":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Employee":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Ledger_employee":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Return_sale":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Return_purchase":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Vat_register":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Ledger_vat":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Acquisition_due":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Owe_amount":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Ledger_sales":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Ledger_purchase":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Trial_balance":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Capital":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Ledger_capital":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Ledger_profit":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Ledger_stock":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Ledger_expense":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"HeadToheadTransfer":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Ledger_other_sales":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Ledger_discount":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Previous_data_show":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Service_type":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Service":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Service_invoice":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Ledger_service_charge":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"ExchangeProduct":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"StockTransfer":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"AffiliateUser":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"TransactionEvents":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Report":{"mod_access":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Assets":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Expenses":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Ledger_accounts":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"Unit_categories":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1"},"Unit":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1"},"Unit_set":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1"},"OtherIncome":{"mod_access":"1","create":"1","read":"1","update":"1","delete":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"},"IncomeStatement":{"mod_access":"1","filter":"1","download_CSV":"1","download_PDF":"1","print":"1"}}';
 
     public $all_permissions = '{"Dashboard":{"mod_access":"0","purchess":"0","sale":"0","transaction":"0","cash_ledger":"0","customer_ledger":"0","supplier_ledger":"0","bank_ledger":"0","account_head_ledger":"0","bank_balance":"0","cash":"0","due":"0","oweing":"0","products":"0","customers":"0"},"Bank":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Customers":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Purchase":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Purchase_item":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Product_category":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Bank_deposit":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0","transaction_flow":"0"},"Settings":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Bank_withdraw":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0","transaction_flow":"0"},"Warranty_manage":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Suppliers":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Sales":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","discount":"0","warranty":"0","vat_option":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0","transaction_flow":"0","profit":"0"},"Role":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Money_receipt":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Loan_provider":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Ledger_suppliers":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Ledger_nagodan":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Ledger_loan":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"User":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Stores":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Ledger_lc":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Ledger_bank":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Invoice":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","discount":"0","warranty":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Expense_category":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Balance_report":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Ledger":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Customer_type":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Products":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Transaction":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0","transaction_flow":"0"},"Chaque":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Stock_report":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Sales_report":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Purchase_report":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Daily_book":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Brand":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Employee":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Ledger_employee":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Return_sale":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Return_purchase":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Vat_register":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Ledger_vat":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Acquisition_due":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Owe_amount":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Ledger_sales":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Ledger_purchase":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Trial_balance":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Capital":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Ledger_capital":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Ledger_profit":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Ledger_stock":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Ledger_expense":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"HeadToheadTransfer":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Ledger_other_sales":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Ledger_discount":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Previous_data_show":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Service_type":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Service":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Service_invoice":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Ledger_service_charge":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"ExchangeProduct":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"StockTransfer":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"AffiliateUser":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"TransactionEvents":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0","filter":"0","download_CSV":"0","download_PDF":"0","print":"0"},"Report":{"mod_access":"0","download_CSV":"0","download_PDF":"0","print":"0"}}';
 
     /**
-     * @description This method provides user access check
+     * @description Loads role row from DB once and caches it in static memory
+     * @param int|string $roleId
+     * @return object|null
+     */
+    public static function get_role($roleId){
+        if (empty($roleId)) {
+            return null;
+        }
+        if (!array_key_exists($roleId, self::$roles_cache)) {
+            $table = DB()->table('roles');
+            $result = $table->where('role_id', $roleId)->get()->getRow();
+            self::$roles_cache[$roleId] = $result;
+            if (!empty($result) && !empty($result->permission)) {
+                $decoded = json_decode($result->permission, true);
+                self::$permissions_cache[$roleId] = is_array($decoded) ? $decoded : [];
+            } else {
+                self::$permissions_cache[$roleId] = [];
+            }
+        }
+        return self::$roles_cache[$roleId];
+    }
+
+    /**
+     * @description Get all permissions array for a role (1 query only, then memory array)
+     * @param int|string $roleId
+     * @return array
+     */
+    public static function get_all_role_permissions($roleId){
+        if (empty($roleId)) {
+            return [];
+        }
+        if (!isset(self::$permissions_cache[$roleId])) {
+            self::get_role($roleId);
+        }
+        return self::$permissions_cache[$roleId] ?? [];
+    }
+
+    /**
+     * @description Clear cache when a role is updated
+     * @param int|string|null $roleId
+     * @return void
+     */
+    public static function clear_cache($roleId = null){
+        if ($roleId !== null) {
+            unset(self::$roles_cache[$roleId], self::$permissions_cache[$roleId]);
+        } else {
+            self::$roles_cache = [];
+            self::$permissions_cache = [];
+        }
+    }
+
+    /**
+     * @description This method provides user access check from memory array (1 query for role)
      * @param int $roleId
      * @param string $module_name
      * @param string $sub_permission
      * @return int|mixed
      */
     public function have_access($roleId, $module_name, $sub_permission){
-        $table = DB()->table('roles');
-        $result = $table->where('role_id',$roleId)->get()->getRow();
+        $permissions = self::get_all_role_permissions($roleId);
 
-        $obj = json_decode($result->permission, true);
-        if (!empty($obj[$module_name][$sub_permission])) {
-            return $obj[$module_name][$sub_permission];
+        if (!empty($permissions[$module_name][$sub_permission])) {
+            return $permissions[$module_name][$sub_permission];
         }else{
             return 0;
         }
     }
 
     /**
-     * @description This method provides module permission list
+     * @description This method provides module permission list from memory array (1 query for role)
      * @param int $role_id
      * @param string $module_name
-     * @return mixed
+     * @return array
      */
     public function module_permission_list($role_id, $module_name){
-        $table = DB()->table('roles');
-        $result = $table->where('role_id',$role_id)->get()->getRow();
-        $obj = json_decode($result->permission, true);
+        $permissions = self::get_all_role_permissions($role_id);
 
-        if (!empty($obj[$module_name])) {
-            $output = $obj[$module_name];
+        if (!empty($permissions[$module_name]) && is_array($permissions[$module_name])) {
+            $output = $permissions[$module_name];
         }else {
-            $obj = json_decode('{"' . $module_name . '":{"mod_access":"0","create":"0","read":"0","update":"0","delete":"0"}}', true);
-            $output = $obj[$module_name];
+            $output = [
+                'mod_access' => '0',
+                'create' => '0',
+                'read' => '0',
+                'update' => '0',
+                'delete' => '0'
+            ];
         }
         return $output;
     }

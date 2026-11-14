@@ -75,6 +75,7 @@ class Ledger_accounts_ajax extends BaseController
             $data['account_id'] = $account_id;
 
             $data['id'] = $shopId;
+            $data['shopId'] = $shopId;
             $data['menu'] = view('Admin/menu_ledger');
             // All Permissions
             //$perm = array('create','read','update','delete','mod_access');

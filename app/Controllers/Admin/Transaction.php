@@ -31,6 +31,10 @@ class Transaction extends BaseController
      * @description This method provides transaction view
      * @return RedirectResponse|void
      */
+    /**
+     * @description This method provides transaction view
+     * @return RedirectResponse|void
+     */
     public function index()
     {
         $isLoggedIn = $this->session->isLoggedIn;
@@ -39,19 +43,11 @@ class Transaction extends BaseController
             return redirect()->to(site_url('Admin/login'));
         } else {
             $shopId = $this->session->shopId;
-            $transactionTable = DB()->table('transaction');
 
             // Date Filter
             $start_date = $this->request->getGet('st_date');
             $end_date = $this->request->getGet('en_date');
             $category = $this->request->getGet('category');
-
-            if ($start_date) {
-                $transactionTable->where('date >=', $start_date . ' 00:00:00');
-            }
-            if ($end_date) {
-                $transactionTable->where('date <=', $end_date . ' 23:59:59');
-            }
 
             // Exclusive Entity Filters based on Category
             $customer_id = $this->request->getGet('customer_id');
@@ -60,46 +56,7 @@ class Transaction extends BaseController
             $bank_id = $this->request->getGet('bank_id');
             $employee_id = $this->request->getGet('employee_id');
 
-            if ($category == 'customer') {
-                $transactionTable->where('customer_id !=', NULL);
-                if ($customer_id) $transactionTable->where('customer_id', $customer_id);
-            } elseif ($category == 'supplier') {
-                $transactionTable->where('supplier_id !=', NULL);
-                if ($supplier_id) $transactionTable->where('supplier_id', $supplier_id);
-            } elseif ($category == 'loan_provider') {
-                $transactionTable->where('loan_pro_id !=', NULL);
-                if ($loan_pro_id) $transactionTable->where('loan_pro_id', $loan_pro_id);
-            } elseif ($category == 'fund_transfer') {
-                $transactionTable->where('bank_to_id !=', NULL);
-                if ($bank_id) {
-                    $transactionTable->groupStart()
-                        ->where('bank_id', $bank_id)
-                        ->orWhere('bank_to_id', $bank_id)
-                        ->groupEnd();
-                }
-            } elseif ($category == 'employee') {
-                $transactionTable->where('employee_id !=', NULL);
-                if ($employee_id) $transactionTable->where('employee_id', $employee_id);
-            } elseif ($category == 'vat') {
-                $transactionTable->where('vat_id !=', NULL);
-            } elseif ($category == 'expense') {
-                $transactionTable->where('loan_pro_id', NULL)
-                    ->where('customer_id', NULL)
-                    ->where('supplier_id', NULL)
-                    ->where('bank_id', NULL)
-                    ->where('lc_id', NULL)
-                    ->where('employee_id', NULL)
-                    ->where('trangaction_type', 'Cr.');
-            } elseif ($category == 'othersales') {
-                $transactionTable->where('loan_pro_id', NULL)
-                    ->where('customer_id', NULL)
-                    ->where('supplier_id', NULL)
-                    ->where('bank_id', NULL)
-                    ->where('lc_id', NULL)
-                    ->where('trangaction_type', 'Dr.');
-            }
-
-            $data['transaction_data'] = $transactionTable->where('sch_id', $shopId)->get()->getResult();
+            $data['transaction_data'] = $this->transactionQuery($start_date, $end_date, $category, $customer_id, $supplier_id, $loan_pro_id, $bank_id, $employee_id, $shopId);
             $data['st_date'] = isset($start_date)?$start_date:'';
             $data['en_date'] = isset($end_date)?$end_date:'';
             $data['active_category'] = $category;
@@ -132,6 +89,142 @@ class Transaction extends BaseController
             }
             echo view('Admin/footer');
         }
+    }
+
+    /**
+     * @description Query transactions with filters
+     */
+    private function transactionQuery($start_date = '', $end_date = '', $category = '', $customer_id = '', $supplier_id = '', $loan_pro_id = '', $bank_id = '', $employee_id = '', $shopId = null)
+    {
+        if ($shopId === null) {
+            $shopId = $this->session->shopId;
+        }
+        $transactionTable = DB()->table('transaction');
+
+        if (!empty($start_date)) {
+            $transactionTable->where('date >=', $start_date . ' 00:00:00');
+        }
+        if (!empty($end_date)) {
+            $transactionTable->where('date <=', $end_date . ' 23:59:59');
+        }
+
+        if ($category == 'customer') {
+            $transactionTable->where('customer_id !=', NULL);
+            if (!empty($customer_id)) $transactionTable->where('customer_id', $customer_id);
+        } elseif ($category == 'supplier') {
+            $transactionTable->where('supplier_id !=', NULL);
+            if (!empty($supplier_id)) $transactionTable->where('supplier_id', $supplier_id);
+        } elseif ($category == 'loan_provider') {
+            $transactionTable->where('loan_pro_id !=', NULL);
+            if (!empty($loan_pro_id)) $transactionTable->where('loan_pro_id', $loan_pro_id);
+        } elseif ($category == 'fund_transfer') {
+            $transactionTable->where('bank_to_id !=', NULL);
+            if (!empty($bank_id)) {
+                $transactionTable->groupStart()
+                    ->where('bank_id', $bank_id)
+                    ->orWhere('bank_to_id', $bank_id)
+                    ->groupEnd();
+            }
+        } elseif ($category == 'employee') {
+            $transactionTable->where('employee_id !=', NULL);
+            if (!empty($employee_id)) $transactionTable->where('employee_id', $employee_id);
+        } elseif ($category == 'vat') {
+            $transactionTable->where('vat_id !=', NULL);
+        } elseif ($category == 'expense') {
+            $transactionTable->where('loan_pro_id', NULL)
+                ->where('customer_id', NULL)
+                ->where('supplier_id', NULL)
+                ->where('bank_id', NULL)
+                ->where('lc_id', NULL)
+                ->where('employee_id', NULL)
+                ->where('trangaction_type', 'Cr.');
+        } elseif ($category == 'othersales') {
+            $transactionTable->where('loan_pro_id', NULL)
+                ->where('customer_id', NULL)
+                ->where('supplier_id', NULL)
+                ->where('bank_id', NULL)
+                ->where('lc_id', NULL)
+                ->where('trangaction_type', 'Dr.');
+        }
+
+        return $transactionTable->where('sch_id', $shopId)->get()->getResult();
+    }
+
+    /**
+     * @description This method provides transaction table list via AJAX
+     * @return string|void
+     */
+    public function search_dateTodate()
+    {
+        $isLoggedIn = $this->session->isLoggedIn;
+        $role_id = $this->session->role;
+        if (!isset($isLoggedIn) || $isLoggedIn != TRUE) {
+            return redirect()->to(site_url('Admin/login'));
+        }
+
+        $shopId = $this->session->shopId;
+        $start_date = !empty($this->request->getPost('st_date')) ? $this->request->getPost('st_date') : $this->request->getGet('st_date');
+        $end_date = !empty($this->request->getPost('en_date')) ? $this->request->getPost('en_date') : $this->request->getGet('en_date');
+        $category = !empty($this->request->getPost('category')) ? $this->request->getPost('category') : $this->request->getGet('category');
+        $customer_id = !empty($this->request->getPost('customer_id')) ? $this->request->getPost('customer_id') : $this->request->getGet('customer_id');
+        $supplier_id = !empty($this->request->getPost('supplier_id')) ? $this->request->getPost('supplier_id') : $this->request->getGet('supplier_id');
+        $loan_pro_id = !empty($this->request->getPost('loan_pro_id')) ? $this->request->getPost('loan_pro_id') : $this->request->getGet('loan_pro_id');
+        $bank_id = !empty($this->request->getPost('bank_id')) ? $this->request->getPost('bank_id') : $this->request->getGet('bank_id');
+        $employee_id = !empty($this->request->getPost('employee_id')) ? $this->request->getPost('employee_id') : $this->request->getGet('employee_id');
+
+        $data['transaction_data'] = $this->transactionQuery($start_date, $end_date, $category, $customer_id, $supplier_id, $loan_pro_id, $bank_id, $employee_id, $shopId);
+        $data['st_date'] = isset($start_date) ? $start_date : '';
+        $data['en_date'] = isset($end_date) ? $end_date : '';
+        $data['active_category'] = $category;
+
+        $data['customer_id_filter'] = $customer_id;
+        $data['supplier_id_filter'] = $supplier_id;
+        $data['loan_pro_id_filter'] = $loan_pro_id;
+        $data['bank_id_filter'] = $bank_id;
+        $data['employee_id_filter'] = $employee_id;
+
+        $data['customers'] = DB()->table('customers')->where('sch_id', $shopId)->get()->getResult();
+        $data['suppliers'] = DB()->table('suppliers')->where('sch_id', $shopId)->get()->getResult();
+        $data['loan_providers'] = DB()->table('loan_provider')->where('sch_id', $shopId)->get()->getResult();
+        $data['banks'] = DB()->table('bank')->where('sch_id', $shopId)->get()->getResult();
+        $data['employees'] = DB()->table('employee')->where('sch_id', $shopId)->get()->getResult();
+
+        $perm = $this->permission->module_permission_list($role_id, $this->module_name);
+        foreach ($perm as $key => $val) {
+            $data[$key] = $this->permission->have_access($role_id, $this->module_name, $key);
+        }
+
+        return view('Admin/Transaction/table_list', $data);
+    }
+
+    /**
+     * @description This method provides transaction print view
+     * @return string|void
+     */
+    public function search_dateTodatePrint()
+    {
+        $isLoggedIn = $this->session->isLoggedIn;
+        if (!isset($isLoggedIn) || $isLoggedIn != TRUE) {
+            return redirect()->to(site_url('Admin/login'));
+        }
+
+        $shopId = $this->session->shopId;
+        $start_date = !empty($this->request->getPost('st_date')) ? $this->request->getPost('st_date') : $this->request->getGet('st_date');
+        $end_date = !empty($this->request->getPost('en_date')) ? $this->request->getPost('en_date') : $this->request->getGet('en_date');
+        $category = !empty($this->request->getPost('category')) ? $this->request->getPost('category') : $this->request->getGet('category');
+        $customer_id = !empty($this->request->getPost('customer_id')) ? $this->request->getPost('customer_id') : $this->request->getGet('customer_id');
+        $supplier_id = !empty($this->request->getPost('supplier_id')) ? $this->request->getPost('supplier_id') : $this->request->getGet('supplier_id');
+        $loan_pro_id = !empty($this->request->getPost('loan_pro_id')) ? $this->request->getPost('loan_pro_id') : $this->request->getGet('loan_pro_id');
+        $bank_id = !empty($this->request->getPost('bank_id')) ? $this->request->getPost('bank_id') : $this->request->getGet('bank_id');
+        $employee_id = !empty($this->request->getPost('employee_id')) ? $this->request->getPost('employee_id') : $this->request->getGet('employee_id');
+
+        $data['transaction_data'] = $this->transactionQuery($start_date, $end_date, $category, $customer_id, $supplier_id, $loan_pro_id, $bank_id, $employee_id, $shopId);
+        $data['st_date'] = isset($start_date) ? $start_date : '';
+        $data['en_date'] = isset($end_date) ? $end_date : '';
+        $data['active_category'] = $category;
+        $data['shopId'] = $shopId;
+
+        return view('Admin/Transaction/print_table', $data);
     }
 
     /**

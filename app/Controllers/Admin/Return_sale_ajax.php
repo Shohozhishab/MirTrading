@@ -43,6 +43,7 @@ class Return_sale_ajax extends BaseController
             $en_date = $this->request->getGet('en_date');
 
             $table = DB()->table('return_sale');
+            $table->select('return_sale.*');
             $table->where('return_sale.sch_id', $shopId);
             $table->where('return_sale.deleted', null);
             if (!empty($customer_id)) {
@@ -51,14 +52,17 @@ class Return_sale_ajax extends BaseController
             }
             if (!empty($st_date) && !empty($en_date)) {
                 // Assuming your database column name is 'date'
-                $table->where('createdDtm >=', $st_date . ' 00:00:00');
-                $table->where('createdDtm <=', $en_date . ' 23:59:59');
+                $table->where('return_sale.createdDtm >=', $st_date . ' 00:00:00');
+                $table->where('return_sale.createdDtm <=', $en_date . ' 23:59:59');
             }
+            $table->orderBy('return_sale.rtn_sale_id', 'ASC');
             $data['return_sale_data'] = $table->get()->getResult();
 
             $data['customerId'] = $customer_id ?? '';
-            $data['st_date'] = isset($st_date)?$st_date:'';
-            $data['en_date'] = isset($en_date)?$en_date:'';
+            $data['st_date'] = isset($st_date) ? $st_date : '';
+            $data['en_date'] = isset($en_date) ? $en_date : '';
+            $data['id'] = $shopId;
+            $data['shopId'] = $shopId;
 
             $data['menu'] = view('Admin/menu_sales', $data);
             // All Permissions

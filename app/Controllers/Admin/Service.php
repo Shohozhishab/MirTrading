@@ -43,19 +43,12 @@ class Service extends BaseController
             $st_date = $this->request->getGet('st_date');
             $en_date = $this->request->getGet('en_date');
 
-            $table = DB()->table('services');
-            $table->where('sch_id', $shopId)->where('deleted IS NULL');
-            // Apply date filters only if they are present in the request
-            if (!empty($st_date) && !empty($en_date)) {
-                // Assuming your database column name is 'date'
-                $table->where('createdDtm >=', $st_date . ' 00:00:00');
-                $table->where('createdDtm <=', $en_date . ' 23:59:59');
-            }
-            $data['services'] = $table->orderBy('service_id', 'ASC')->get()->getResult();
+            $data['services'] = $this->serviceQuery($st_date, $en_date, $shopId);
 
-            $data['st_date'] = isset($st_date)?$st_date:'';
-            $data['en_date'] = isset($en_date)?$en_date:'';
-
+            $data['st_date'] = isset($st_date) ? $st_date : '';
+            $data['en_date'] = isset($en_date) ? $en_date : '';
+            $data['id'] = $shopId;
+            $data['shopId'] = $shopId;
 
             $data['menu'] = view('Admin/menu_service', $data);
             // All Permissions
@@ -74,6 +67,155 @@ class Service extends BaseController
             }
             echo view('Admin/footer');
         }
+    }
+
+    /**
+     * @description This method search service date to date
+     * @return void
+     */
+    public function search_dateTodate()
+    {
+        $shopId = $this->session->shopId;
+
+        $st_date = $this->request->getPost('st_date') ?? $this->request->getGet('st_date');
+        $en_date = $this->request->getPost('en_date') ?? $this->request->getGet('en_date');
+
+        $query = $this->serviceQuery($st_date, $en_date, $shopId);
+
+        print $this->serviceBox($query, $st_date, $en_date, $shopId);
+    }
+
+    /**
+     * @description This method search service print date to date
+     * @return void
+     */
+    public function search_dateTodatePrint()
+    {
+        $shopId = $this->session->shopId;
+
+        $st_date = $this->request->getPost('st_date') ?? $this->request->getGet('st_date');
+        $en_date = $this->request->getPost('en_date') ?? $this->request->getGet('en_date');
+
+        $query = $this->serviceQuery($st_date, $en_date, $shopId);
+
+        $view = '<div class="col-xs-12" style="text-transform: capitalize;" >'
+            . view('Admin/Service/print_table', [
+                'services' => $query,
+                'st_date' => $st_date,
+                'en_date' => $en_date,
+                'id' => $shopId,
+                'shopId' => $shopId
+            ])
+            . '</div>';
+
+        print $view;
+    }
+
+    /**
+     * @description This method builds the service query
+     * @param string $st_date
+     * @param string $en_date
+     * @param int|null $shopId
+     * @return array
+     */
+    private function serviceQuery($st_date = '', $en_date = '', $shopId = null)
+    {
+        $shopId = $shopId ?? $this->session->shopId;
+        $table = DB()->table('services');
+        $table->where('sch_id', $shopId)->where('deleted IS NULL');
+
+        if (!empty($st_date)) {
+            $table->where('createdDtm >=', $st_date . ' 00:00:00');
+        }
+        if (!empty($en_date)) {
+            $table->where('createdDtm <=', $en_date . ' 23:59:59');
+        }
+        $table->orderBy('service_id', 'ASC');
+
+        return $table->get()->getResult();
+    }
+
+    /**
+     * @description This method builds the service table box and embedded print container
+     * @param array $services
+     * @param string $st_date
+     * @param string $en_date
+     * @param int|null $shopId
+     * @return string
+     */
+    private function serviceBox($services, $st_date = '', $en_date = '', $shopId = null)
+    {
+        $shopId = $shopId ?? $this->session->shopId;
+        $read = $this->permission->have_access($this->session->role, $this->module_name, 'read');
+
+        $totalAmount = 0;
+
+        $view = '<div class="box">
+                    <div class="box-body">
+                        <table id="example1" class="table table-bordered table-striped text-capitalize">
+                            <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody>';
+
+        $start = 1;
+        foreach ($services as $val) {
+            $invAmount = get_data_by_id('final_amount', 'service_invoice', 'service_invoice_id', $val->service_invoice_id);
+            $totalAmount += (float)$invAmount;
+
+            $actionBtns = '';
+            if (isset($read) && $read == 1) {
+                $actionBtns .= '<a href="javascript:void(0)" onclick="showData(\'' . site_url('/Admin/Service_invoice_ajax/view/' . $val->service_invoice_id) . '\',\'/Admin/Service_invoice/view/' . $val->service_invoice_id . '\')" class="btn btn-warning btn-xs">View</a>';
+            }
+
+            $view .= '<tr>
+                        <td width="80px">' . $start++ . '</td>
+                        <td>' . $val->title . '</td>
+                        <td>' . showServiceName($val->service_type) . '</td>
+                        <td>' . showWithCurrencySymbol($invAmount) . '</td>
+                        <td width="180px">' . $actionBtns . '</td>
+                    </tr>';
+        }
+
+        $view .= '</tbody>
+                    <tfoot>
+                    <tr>
+                        <th>No</th>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Action</th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th>Total</th>
+                        <th>= ' . showWithCurrencySymbol($totalAmount) . '</th>
+                        <th></th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>';
+
+        // printable version of the same (filtered) rows
+        $view .= '<div id="ajaxServicePrint" style="display: none;">'
+            . view('Admin/Service/print_table', [
+                'services' => $services,
+                'st_date' => $st_date,
+                'en_date' => $en_date,
+                'id' => $shopId,
+                'shopId' => $shopId
+            ])
+            . '</div>';
+
+        return $view;
     }
 
     /**

@@ -43,31 +43,7 @@ class Ledger_loan extends BaseController
             $en_date = $this->request->getGet('en_date');
             $query = [];
             if (!empty($loan_pro_id)) {
-                $db = DB();
-                // 1. Define the window function column
-                $mBalanceSubquery = "SUM(
-                    CASE 
-                        WHEN LOWER(trangaction_type) LIKE 'dr%' THEN amount 
-                        WHEN LOWER(trangaction_type) LIKE 'cr%' THEN -amount 
-                        ELSE 0 
-                    END
-                ) OVER (ORDER BY ledg_loan_id) AS r_balance";
-                // 2. Build the inner subquery
-                $subquery = $db->table('ledger_loan')
-                    ->select('ledger_loan.*')
-                    ->select($mBalanceSubquery, false)
-                    ->where("loan_pro_id", $loan_pro_id); // false prevents CI4 from escaping the raw SQL window function
-                // 3. Query from the subquery derived table
-                $table = $db->newQuery()
-                    ->fromSubquery($subquery, 't')
-                    ->where("loan_pro_id", $loan_pro_id);
-                if (!empty($st_date) && !empty($en_date)) {
-                    // Assuming your database column name is 'date'
-                    $table->where('createdDtm >=', $st_date . ' 00:00:00');
-                    $table->where('createdDtm <=', $en_date . ' 23:59:59');
-                }
-                $table->orderBy('ledg_loan_id', 'ASC');
-                $query = $table->get()->getResult();
+                $query = $this->loanLedgerQuery($loan_pro_id, $st_date, $en_date);
             }
             $data['result'] = $query;
 
@@ -100,77 +76,27 @@ class Ledger_loan extends BaseController
      */
     public function search_lonProvLedg()
     {
-        $lonproviId = $this->request->getPost('id');
+        $shopId = $this->session->shopId;
 
-        $ledger_loanTb = DB()->table('ledger_loan');
-        $data = $ledger_loanTb->where('loan_pro_id', $lonproviId)->orderBy('ledg_loan_id', "DESC")->get()->getResult();
-
-        $name = get_data_by_id('name', 'loan_provider', 'loan_pro_id', $lonproviId);
-        $balance = get_data_by_id('balance', 'loan_provider', 'loan_pro_id', $lonproviId);
-
-        $view = ' <div class="box" >
-                        <div class="box-header">
-                            <h3 class="box-title">Account Head: ' . $name . '</h3>
-                            <span class="pull-right"><table class="table table-bordered table-striped" id="TFtable"><tr><td>Total Get:</td><td>' . showWithCurrencySymbol(get_total('ledger_loan', 'amount', 'Dr.', 'loan_pro_id', $lonproviId)) . '</td></tr><tr><td>Total Pay:</td><td>' . showWithCurrencySymbol(get_total('ledger_loan', 'amount', 'Cr.', 'loan_pro_id', $lonproviId)) . '</td></tr><tr><td>Balance:</td><td>' . showWithCurrencySymbol($balance) . '</td></tr></table></span>
-                        </div>
-                    <div class="box-body">
-                        <table class="table table-bordered table-striped" id="example1">
-                            <thead>
-                                <tr>
-                                    <th>Id</th>
-                                    <th>Date</th>
-                                    <th>Particulars</th>
-                                    <th>Trangaction Id</th>
-                                    <th>Debit</th>
-                                    <th>Credit</th>
-                                    <th>Balance</th>
-                                </tr>
-                            </thead>
-                            <tbody>';
-        $totalRows = count($data) - 1;
-        for ($i = $totalRows; $i >= 0; $i--) {
-            $particulars = ($data[$i]->particulars == NULL) ? "Pay due" : $data[$i]->particulars;
-            $amountCr = ($data[$i]->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($data[$i]->amount);
-            $amountDr = ($data[$i]->trangaction_type != "Dr.") ? "---" : showWithCurrencySymbol($data[$i]->amount);
-            $trnUrl = (!empty($data[$i]->trans_id)) ? '<a href="' . site_url('Admin/Transaction/read/' . $data[$i]->trans_id) . '">TRNS_' . $data[$i]->trans_id . '</a>' : '--';
-
-            $view .= '<tr>
-                                    <td>' . $data[$i]->ledg_loan_id . '</td>
-                                    <td>' . $data[$i]->createdDtm . '</td>
-                                    <td>' . $particulars . '</td>
-                                    <td>' . $trnUrl . '</td>
-                                    <td>' . $amountDr . '</td>
-                                    <td>' . $amountCr . '</td>
-                                    <td>' . showWithCurrencySymbol($data[$i]->rest_balance) . '</td>
-                                </tr>';
+        $loan_pro_id = $this->request->getGet('loan_pro_id');
+        if (empty($loan_pro_id)) {
+            // keep supporting the legacy POST call
+            $loan_pro_id = $this->request->getPost('id');
         }
+        $st_date = $this->request->getGet('st_date');
+        $en_date = $this->request->getGet('en_date');
 
-        $view .= '</tbody>
-                            <tfoot>
-                                <tr>
-                                    <th>Id</th>
-                                    <th>Date</th>
-                                    <th>Particulars</th>
-                                    <th>Trangaction Id</th>
-                                    <th>Debit</th>
-                                    <th>Credit</th>
-                                    <th>Balance</th>
-                                </tr>
-                                <tr>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th>Total</th>
-                                    <th>= ' . showWithCurrencySymbol(get_total('ledger_loan', 'amount', 'Dr.', 'loan_pro_id', $lonproviId)) . '</th>
-                                    <th>= ' . showWithCurrencySymbol(get_total('ledger_loan', 'amount', 'Cr.', 'loan_pro_id', $lonproviId)) . '</th>
-                                    <th>= ' . showWithCurrencySymbol($balance) . '</th>
-                                </tr>
-                            </tfoot>
-                        </table>
-                        </div>
-                    </div>';
+        $query = [];
+        if (!empty($loan_pro_id)) {
+            $query = $this->loanLedgerQuery($loan_pro_id, $st_date, $en_date);
+        }
+        $data['result'] = $query;
+        $data['loan_pro_id'] = $loan_pro_id;
+        $data['st_date'] = $st_date;
+        $data['en_date'] = $en_date;
+        $data['id'] = $shopId;
 
-        print $view;
+        print $this->loanLedgerBox($data['result'], $loan_pro_id, $st_date, $en_date, $shopId);
     }
 
     /**
@@ -242,22 +168,133 @@ class Ledger_loan extends BaseController
      */
     public function search_dateTodate()
     {
+        $shopId = $this->session->shopId;
+
         $lonproviId = $this->request->getPost('loanProId');
         $st_date = $this->request->getPost('st_date');
         $en_date = $this->request->getPost('en_date');
 
+        if (empty($lonproviId)) {
+            print '';
+            return;
+        }
 
-        $ledger_loanTb = DB()->table('ledger_loan');
-        $data = $ledger_loanTb->where('loan_pro_id', $lonproviId)->where('createdDtm >=', $st_date . ' 00:00:00')->where('createdDtm <=', $en_date . ' 23:59:59')->orderBy('ledg_loan_id', "DESC")->get()->getResult();
+        $query = $this->loanLedgerQuery($lonproviId, $st_date, $en_date);
+        $data['result'] = $query;
 
+        print $this->loanLedgerBox($data['result'], $lonproviId, $st_date, $en_date, $shopId);
+    }
 
-        $name = get_data_by_id('name', 'loan_provider', 'loan_pro_id', $lonproviId);
-        $balance = get_data_by_id('balance', 'loan_provider', 'loan_pro_id', $lonproviId);
+    /**
+     * @description This method search lone provider ledger print
+     * @return void
+     */
+    public function search_dateTodatePrint()
+    {
+        $lonproviId = $this->request->getPost('loanProId');
+        $st_date = $this->request->getPost('st_date');
+        $en_date = $this->request->getPost('en_date');
+
+        if (empty($lonproviId)) {
+            print '';
+            return;
+        }
+
+        $db = DB();
+        // 1. Define the window function column
+        $mBalanceSubquery = "SUM(
+            CASE 
+                WHEN LOWER(trangaction_type) LIKE 'dr%' THEN amount 
+                WHEN LOWER(trangaction_type) LIKE 'cr%' THEN -amount 
+                ELSE 0 
+            END
+        ) OVER (ORDER BY ledg_loan_id) AS r_balance";
+        // 2. Build the inner subquery
+        $subquery = $db->table('ledger_loan')
+            ->select('ledger_loan.*')
+            ->select($mBalanceSubquery, false)
+            ->where("loan_pro_id", $lonproviId);
+        // 3. Query from the subquery derived table
+        $table = $db->newQuery()
+            ->fromSubquery($subquery, 't')
+            ->where("loan_pro_id", $lonproviId);
+        if (!empty($st_date) && !empty($en_date)) {
+            $table->where('createdDtm >=', $st_date . ' 00:00:00');
+            $table->where('createdDtm <=', $en_date . ' 23:59:59');
+        }
+        $table->orderBy('ledg_loan_id', 'ASC');
+        $data = $table->get()->getResult();
+
+        $logo = (logo_image() == NULL) ? 'no_image.jpg' : logo_image();
+
+        $view = '<div class="col-xs-12" style="text-transform: capitalize;" >'
+            . view('Admin/Ledger_loan/print_table', ['result' => $data, 'loan_pro_id' => $lonproviId, 'st_date' => $st_date, 'en_date' => $en_date])
+            . '</div>';
+
+        print $view;
+    }
+
+    /**
+     * @description This method builds the account head ledger query with running balance
+     * @param string|int $loan_pro_id
+     * @param string $st_date
+     * @param string $en_date
+     * @return array
+     */
+    private function loanLedgerQuery($loan_pro_id, $st_date = '', $en_date = '')
+    {
+        $db = DB();
+        // 1. Define the window function column
+        $mBalanceSubquery = "SUM(
+            CASE 
+                WHEN LOWER(trangaction_type) LIKE 'dr%' THEN amount 
+                WHEN LOWER(trangaction_type) LIKE 'cr%' THEN -amount 
+                ELSE 0 
+            END
+        ) OVER (ORDER BY ledg_loan_id) AS r_balance";
+        // 2. Build the inner subquery
+        $subquery = $db->table('ledger_loan')
+            ->select('ledger_loan.*')
+            ->select($mBalanceSubquery, false) // false prevents CI4 from escaping the raw SQL window function
+            ->where("loan_pro_id", $loan_pro_id);
+        // 3. Query from the subquery derived table
+        $table = $db->newQuery()
+            ->fromSubquery($subquery, 't')
+            ->where("loan_pro_id", $loan_pro_id);
+        if (!empty($st_date) && !empty($en_date)) {
+            $table->where('createdDtm >=', $st_date . ' 00:00:00');
+            $table->where('createdDtm <=', $en_date . ' 23:59:59');
+        }
+        $table->orderBy('ledg_loan_id', 'ASC');
+
+        return $table->get()->getResult();
+    }
+
+    /**
+     * @description This method builds the account head ledger box (header + table)
+     * @param array $result
+     * @param string|int $loan_pro_id
+     * @param string $st_date
+     * @param string $en_date
+     * @param int $shopId
+     * @return string
+     */
+    private function loanLedgerBox($result, $loan_pro_id, $st_date = '', $en_date = '', $shopId = null)
+    {
+        if (empty($loan_pro_id)) {
+            return '';
+        }
+
+        $name = get_data_by_id('name', 'loan_provider', 'loan_pro_id', $loan_pro_id);
+        $balance = get_data_by_id('balance', 'loan_provider', 'loan_pro_id', $loan_pro_id);
+
+        $start_date = !empty($st_date) ? $st_date : 0;
+        $end_date = !empty($en_date) ? $en_date : 0;
 
         $view = ' <div class="box" >
                         <div class="box-header">
-                            <h3 class="box-title">Loan Head: ' . $name . '</h3>
-                            <span class="pull-right"><table class="table table-bordered table-striped" id="TFtable"><tr><td>Total Get:</td><td>' . showWithCurrencySymbol(get_total('ledger_loan', 'amount', 'Dr.', 'loan_pro_id', $lonproviId, $st_date, $en_date)) . '</td></tr><tr><td>Total Pay:</td><td>' . showWithCurrencySymbol(get_total('ledger_loan', 'amount', 'Cr.', 'loan_pro_id', $lonproviId, $st_date, $en_date)) . '</td></tr><tr><td>Balance:</td><td>' . showWithCurrencySymbol($balance) . '</td></tr></table></span>
+                            <h3 class="box-title">Account Head: ' . $name . '</h3>
+                            <span class="pull-right"><table class="table table-bordered table-striped" id="TFtable"><tr><td>Total Get:</td><td>' . showWithCurrencySymbol(get_total('ledger_loan', 'amount', 'Dr.', 'loan_pro_id', $loan_pro_id, $start_date, $end_date)) . '</td></tr><tr><td>Total Pay:</td><td>' . showWithCurrencySymbol(get_total('ledger_loan', 'amount', 'Cr.', 'loan_pro_id', $loan_pro_id, $start_date, $end_date)) . '</td></tr><tr><td>Balance:</td><td>' . showWithCurrencySymbol($balance) . '</td></tr></table></span>
                         </div>
                     <div class="box-body">
                         <table class="table table-bordered table-striped" id="example1">
@@ -273,19 +310,21 @@ class Ledger_loan extends BaseController
                                 </tr>
                             </thead>
                             <tbody>';
-        $totalRows = count($data) - 1;
-        for ($i = $totalRows; $i >= 0; $i--) {
-            $particulars = ($data[$i]->particulars == NULL) ? "Pay due" : $data[$i]->particulars;
-            $amountCr = ($data[$i]->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($data[$i]->amount);
-            $amountDr = ($data[$i]->trangaction_type != "Dr.") ? "---" : showWithCurrencySymbol($data[$i]->amount);
+
+        $totalRows = count($result) - 1;
+        for ($i = 0; $i <= $totalRows; $i++) {
+            $particulars = ($result[$i]->particulars == NULL) ? "Pay due" : $result[$i]->particulars;
+            $amountCr = ($result[$i]->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($result[$i]->amount);
+            $amountDr = ($result[$i]->trangaction_type != "Dr.") ? "---" : showWithCurrencySymbol($result[$i]->amount);
+            $trnUrl = (!empty($result[$i]->trans_id)) ? '<a href="' . site_url('Admin/Transaction/read/' . $result[$i]->trans_id) . '">TRNS_' . $result[$i]->trans_id . '</a>' : '--';
             $view .= '<tr>
-                                    <td>' . $data[$i]->ledg_loan_id . '</td>
-                                    <td>' . $data[$i]->createdDtm . '</td>
+                                    <td>' . $result[$i]->ledg_loan_id . '</td>
+                                    <td>' . $result[$i]->createdDtm . '</td>
                                     <td>' . $particulars . '</td>
-                                    <td><a href="' . site_url('transaction/read/' . $data[$i]->trans_id) . '">TRNS_' . $data[$i]->trans_id . '</a></td>
+                                    <td>' . $trnUrl . '</td>
                                     <td>' . $amountDr . '</td>
                                     <td>' . $amountCr . '</td>
-                                    <td>' . showWithCurrencySymbol($data[$i]->rest_balance) . '</td>
+                                    <td>' . showWithCurrencySymbol($result[$i]->r_balance) . '</td>
                                 </tr>';
         }
 
@@ -305,8 +344,8 @@ class Ledger_loan extends BaseController
                                     <th></th>
                                     <th></th>
                                     <th>Total</th>
-                                    <th>= ' . showWithCurrencySymbol(get_total('ledger_loan', 'amount', 'Dr.', 'loan_pro_id', $lonproviId, $st_date, $en_date)) . '</th>
-                                    <th>= ' . showWithCurrencySymbol(get_total('ledger_loan', 'amount', 'Cr.', 'loan_pro_id', $lonproviId, $st_date, $en_date)) . '</th>
+                                    <th>= ' . showWithCurrencySymbol(get_total('ledger_loan', 'amount', 'Dr.', 'loan_pro_id', $loan_pro_id, $start_date, $end_date)) . '</th>
+                                    <th>= ' . showWithCurrencySymbol(get_total('ledger_loan', 'amount', 'Cr.', 'loan_pro_id', $loan_pro_id, $start_date, $end_date)) . '</th>
                                     <th>= ' . showWithCurrencySymbol($balance) . '</th>
                                 </tr>
                             </tfoot>
@@ -314,66 +353,12 @@ class Ledger_loan extends BaseController
                         </div>
                     </div>';
 
-        print $view;
-    }
+        // printable version of the same (filtered) rows
+        $view .= '<div id="ajaxLedgPrint" style="display: none;">'
+            . view('Admin/Ledger_loan/print_table', ['result' => $result, 'loan_pro_id' => $loan_pro_id, 'st_date' => $st_date, 'en_date' => $en_date])
+            . '</div>';
 
-    /**
-     * @description This method search lone provider ledger print
-     * @return void
-     */
-    public function search_dateTodatePrint()
-    {
-        $lonproviId = $this->request->getPost('loanProId');
-        $st_date = $this->request->getPost('st_date');
-        $en_date = $this->request->getPost('en_date');
-
-
-        $ledger_loanTb = DB()->table('ledger_loan');
-        $data = $ledger_loanTb->where('loan_pro_id', $lonproviId)->where('createdDtm >=', $st_date . ' 00:00:00')->where('createdDtm <=', $en_date . ' 23:59:59')->orderBy('ledg_loan_id', "DESC")->get()->getResult();
-
-        $logo = (logo_image() == NULL) ? 'no_image.jpg' : logo_image();
-
-        $view = '<div class="col-xs-12" style="text-transform: capitalize;" >
-                            <div class="col-xs-12" style="margin-bottom: 20px;   ">
-                                <div class="col-xs-6">
-                                    <img src="' . base_url() . '/uploads/schools/' . $logo . '" alt="User Image" >
-                                </div>
-                                <div class="col-xs-6">
-                                    ' . address() . '
-                                </div>
-                            </div>
-                    <div class="col-xs-12">
-                        <table class="table table-bordered table-striped" >
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Particulars</th>
-                                    <th>Debit</th>
-                                    <th>Credit</th>
-                                    <th>Balance</th>
-                                </tr>
-                            </thead>
-                            <tbody>';
-        $totalRows = count($data) - 1;
-        for ($i = $totalRows; $i >= 0; $i--) {
-            $particulars = ($data[$i]->particulars == NULL) ? "Pay due" : $data[$i]->particulars;
-            $amountCr = ($data[$i]->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($data[$i]->amount);
-            $amountDr = ($data[$i]->trangaction_type != "Dr.") ? "---" : showWithCurrencySymbol($data[$i]->amount);
-            $view .= '<tr>
-                                    <td>' . bdDateFormat($data[$i]->createdDtm) . '</td>
-                                    <td>' . $particulars . '</td>
-                                    <td>' . $amountDr . '</td>
-                                    <td>' . $amountCr . '</td>
-                                    <td>' . showWithCurrencySymbol($data[$i]->rest_balance) . '</td>
-                                </tr>';
-        }
-
-        $view .= '</tbody>
-                        </table>
-                        </div>
-                    </div>';
-
-        print $view;
+        return $view;
     }
 
 

@@ -45,6 +45,7 @@ class Sales_ajax extends BaseController
             $en_date = $this->request->getGet('en_date');
 
             $table = DB()->table('sales');
+            $table->select('sales.*');
             $table->where('sales.sch_id', $shopId);
 
             if (!empty($customer_id)) {
@@ -53,15 +54,17 @@ class Sales_ajax extends BaseController
             }
             // Apply date filters only if they are present in the request
             if (!empty($st_date) && !empty($en_date)) {
-                // Assuming your database column name is 'date'
-                $table->where('date >=', $st_date . ' 00:00:00');
-                $table->where('date <=', $en_date . ' 23:59:59');
+                $table->where('sales.date >=', $st_date . ' 00:00:00');
+                $table->where('sales.date <=', $en_date . ' 23:59:59');
             }
+            $table->orderBy('sales.sales_id', 'ASC');
             $data['sales'] = $table->get()->getResult();
 
-            $data['st_date'] = isset($st_date)?$st_date:'';
-            $data['en_date'] = isset($en_date)?$en_date:'';
-            $data['customer_id'] = isset($customer_id)?$customer_id:'';
+            $data['st_date'] = isset($st_date) ? $st_date : '';
+            $data['en_date'] = isset($en_date) ? $en_date : '';
+            $data['customer_id'] = isset($customer_id) ? $customer_id : '';
+            $data['id'] = $shopId;
+            $data['shopId'] = $shopId;
 
             $data['menu'] = view('Admin/menu_sales', $data);
             // All Permissions

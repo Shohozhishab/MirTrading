@@ -47,10 +47,13 @@ class Stock_transfer_ajax extends BaseController
                 $table->where('createdDtm >=', $st_date . ' 00:00:00');
                 $table->where('createdDtm <=', $en_date . ' 23:59:59');
             }
+            $table->orderBy('stock_transfer_id', 'ASC');
             $data['transfer'] = $table->get()->getResult();
 
             $data['st_date'] = isset($st_date)?$st_date:'';
             $data['en_date'] = isset($en_date)?$en_date:'';
+            $data['id'] = $shopId;
+            $data['shopId'] = $shopId;
 
             $storesTab = DB()->table('stores');
             $data['stores'] = $storesTab->where('sch_id', $shopId)->get()->getResult();

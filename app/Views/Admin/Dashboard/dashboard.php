@@ -49,69 +49,64 @@
                 <?php if (isset($purchess) && $purchess == 1){ ?>
                     <div class="col-lg-3 col-xs-6" >
                         <!-- small box -->
-                        <a href="<?php echo site_url('Admin/Purchase/create'); ?>" class="btn">
-                            <div class="small-box bg-aqua" >
-                                <div class="inner">
-
-                                    <h2></h2>
-                                    <p id="dashp">Purchase</p>
-                                </div>
-                                <div class="icon">
-                                    <i class="fa fa-fw fa-briefcase"></i>
-                                </div>
-                                <a href="<?php echo site_url('Admin/Purchase/create'); ?>" class="small-box-footer">Purchase Create <i class="fa fa-arrow-circle-right"></i></a>
-                            </div></a>
+                        <div class="small-box bg-aqua" onclick="showData('<?php echo site_url('/Admin/Purchase_ajax'); ?>', '/Admin/Purchase')" style="cursor: pointer;">
+                            <div class="inner">
+                                <h2></h2>
+                                <p id="dashp">Purchase</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-fw fa-briefcase"></i>
+                            </div>
+                            <a href="<?php echo site_url('/Admin/Purchase'); ?>" onclick="event.preventDefault(); event.stopPropagation(); showData('<?php echo site_url('/Admin/Purchase_ajax'); ?>', '/Admin/Purchase');" class="small-box-footer">Purchase List <i class="fa fa-arrow-circle-right"></i></a>
+                        </div>
                     </div>
                     <!-- ./col -->
                 <?php } ?>
                 <?php if (isset($sale) && $sale == 1){ ?>
                     <div class="col-lg-3 col-xs-6">
                         <!-- small box -->
-                        <a href="<?php echo site_url('/Admin/Sales/create'); ?>" class="btn ">
-                            <div class="small-box bg-aqua">
-                                <div class="inner">
-                                    <h2></h2>
-                                    <p id="dashp">Sale</p>
-                                </div>
-                                <div class="icon">
-                                    <i class="fa fa-fw fa-cart-plus"></i>
-                                </div>
-                                <a href="<?php echo site_url('/Admin/Sales/create'); ?>" class="small-box-footer">Sale Create <i class="fa fa-arrow-circle-right"></i></a>
-                            </div></a>
+                        <div class="small-box bg-aqua" onclick="showData('<?php echo site_url('/Admin/Sales_ajax'); ?>', '/Admin/Sales')" style="cursor: pointer;">
+                            <div class="inner">
+                                <h2></h2>
+                                <p id="dashp">Sale</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-fw fa-cart-plus"></i>
+                            </div>
+                            <a href="<?php echo site_url('/Admin/Sales'); ?>" onclick="event.preventDefault(); event.stopPropagation(); showData('<?php echo site_url('/Admin/Sales_ajax'); ?>', '/Admin/Sales');" class="small-box-footer">Sale List <i class="fa fa-arrow-circle-right"></i></a>
+                        </div>
                     </div>
                     <!-- ./col -->
                 <?php } ?>
                 <?php if (isset($transaction) && $transaction == 1){ ?>
                     <div class="col-lg-3 col-xs-6">
                         <!-- small box -->
-                        <a href="<?php echo site_url('Admin/Transaction/create'); ?>" class="btn">
-                            <div class="small-box bg-yellow">
-                                <div class="inner">
-                                    <h2></h2>
-                                    <p id="dashp">All Transaction</p>
-                                </div>
-                                <div class="icon">
-                                    <i class="fa fa-fw fa-exchange"></i>
-                                </div>
-                                <a href="<?php echo site_url('Admin/Transaction/create'); ?>" class="small-box-footer">Transaction Create <i class="fa fa-arrow-circle-right"></i></a>
-                            </div></a>
+                        <div class="small-box bg-yellow" onclick="showData('<?php echo site_url('/Admin/Transaction_ajax'); ?>', '/Admin/Transaction')" style="cursor: pointer;">
+                            <div class="inner">
+                                <h2></h2>
+                                <p id="dashp">All Transaction</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-fw fa-exchange"></i>
+                            </div>
+                            <a href="<?php echo site_url('/Admin/Transaction'); ?>" onclick="event.preventDefault(); event.stopPropagation(); showData('<?php echo site_url('/Admin/Transaction_ajax'); ?>', '/Admin/Transaction');" class="small-box-footer">Transaction List <i class="fa fa-arrow-circle-right"></i></a>
+                        </div>
                     </div>
                     <!-- ./col -->
                 <?php } ?>
                 <?php if (isset($cash_ledger) && $cash_ledger == 1){ ?>
                     <div class="col-lg-3 col-xs-6">
                         <!-- small box -->
-                        <a href="<?php echo site_url('Admin/Ledger_nagodan'); ?>" class="btn">
-                            <div class="small-box bg-green">
-                                <div class="inner">
-                                    <h2></h2>
-                                    <p id="dashp">Cash Ledger</p>
-                                </div>
-                                <div class="icon">
-                                    <i class="fa fa-book"></i>
-                                </div>
-                                <a href="<?php echo site_url('Admin/Ledger_nagodan'); ?>" class="small-box-footer">View Ledger <i class="fa fa-arrow-circle-right"></i></a>
-                            </div></a>
+                        <div class="small-box bg-green" onclick="showData('<?php echo site_url('/Admin/Ledger_nagodan_ajax'); ?>', '/Admin/Ledger_nagodan')" style="cursor: pointer;">
+                            <div class="inner">
+                                <h2></h2>
+                                <p id="dashp">Cash Ledger</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-book"></i>
+                            </div>
+                            <a href="<?php echo site_url('/Admin/Ledger_nagodan'); ?>" onclick="event.preventDefault(); event.stopPropagation(); showData('<?php echo site_url('/Admin/Ledger_nagodan_ajax'); ?>', '/Admin/Ledger_nagodan');" class="small-box-footer">View Ledger <i class="fa fa-arrow-circle-right"></i></a>
+                        </div>
                     </div>
                     <!-- ./col -->
                 <?php } ?>
@@ -121,68 +116,64 @@
                 <?php if (isset($customer_ledger) && $customer_ledger == 1){ ?>
                     <div class="col-lg-3 col-xs-6">
                         <!-- small box -->
-                        <a href="<?php echo site_url('Admin/Ledger'); ?>" class="btn">
-                            <div class="small-box bg-yellow">
-                                <div class="inner">
-                                    <h2></h2>
-                                    <p id="dashp">Customer Ledger</p>
-                                </div>
-                                <div class="icon">
-                                    <i class="fa fa-book"></i>
-                                </div>
-                                <a href="<?php echo site_url('Admin/Ledger'); ?>" class="small-box-footer">View Ledger <i class="fa fa-arrow-circle-right"></i></a>
-                            </div></a>
+                        <div class="small-box bg-yellow" onclick="showData('<?php echo site_url('/Admin/Ledger_ajax'); ?>', '/Admin/Ledger')" style="cursor: pointer;">
+                            <div class="inner">
+                                <h2></h2>
+                                <p id="dashp">Customer Ledger</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-book"></i>
+                            </div>
+                            <a href="<?php echo site_url('/Admin/Ledger'); ?>" onclick="event.preventDefault(); event.stopPropagation(); showData('<?php echo site_url('/Admin/Ledger_ajax'); ?>', '/Admin/Ledger');" class="small-box-footer">View Ledger <i class="fa fa-arrow-circle-right"></i></a>
+                        </div>
                     </div>
                     <!-- ./col -->
                 <?php } ?>
                 <?php if (isset($supplier_ledger) && $supplier_ledger == 1){ ?>
                     <div class="col-lg-3 col-xs-6">
                         <!-- small box -->
-                        <a href="<?php echo site_url('Admin/Ledger_suppliers'); ?>" class="btn">
-                            <div class="small-box bg-yellow">
-                                <div class="inner">
-                                    <h2></h2>
-                                    <p id="dashp">Supplier Ledger</p>
-                                </div>
-                                <div class="icon">
-                                    <i class="fa fa-book"></i>
-                                </div>
-                                <a href="<?php echo site_url('Admin/Ledger_suppliers'); ?>" class="small-box-footer">View Ledger <i class="fa fa-arrow-circle-right"></i></a>
-                            </div></a>
+                        <div class="small-box bg-yellow" onclick="showData('<?php echo site_url('/Admin/Ledger_suppliers_ajax'); ?>', '/Admin/Ledger_suppliers')" style="cursor: pointer;">
+                            <div class="inner">
+                                <h2></h2>
+                                <p id="dashp">Supplier Ledger</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-book"></i>
+                            </div>
+                            <a href="<?php echo site_url('/Admin/Ledger_suppliers'); ?>" onclick="event.preventDefault(); event.stopPropagation(); showData('<?php echo site_url('/Admin/Ledger_suppliers_ajax'); ?>', '/Admin/Ledger_suppliers');" class="small-box-footer">View Ledger <i class="fa fa-arrow-circle-right"></i></a>
+                        </div>
                     </div>
                     <!-- ./col -->
                 <?php } ?>
                 <?php if (isset($bank_ledger) && $bank_ledger == 1){ ?>
                     <div class="col-lg-3 col-xs-6">
                         <!-- small box -->
-                        <a href="<?php echo site_url('Admin/Ledger_bank'); ?>" class="btn">
-                            <div class="small-box bg-green">
-                                <div class="inner">
-                                    <h2></h2>
-                                    <p id="dashp">Bank Ledger</p>
-                                </div>
-                                <div class="icon">
-                                    <i class="fa fa-book"></i>
-                                </div>
-                                <a href="<?php echo site_url('Admin/Ledger_bank'); ?>" class="small-box-footer">View Ledger <i class="fa fa-arrow-circle-right"></i></a>
-                            </div></a>
+                        <div class="small-box bg-green" onclick="showData('<?php echo site_url('/Admin/Ledger_bank_ajax'); ?>', '/Admin/Ledger_bank')" style="cursor: pointer;">
+                            <div class="inner">
+                                <h2></h2>
+                                <p id="dashp">Bank Ledger</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-book"></i>
+                            </div>
+                            <a href="<?php echo site_url('/Admin/Ledger_bank'); ?>" onclick="event.preventDefault(); event.stopPropagation(); showData('<?php echo site_url('/Admin/Ledger_bank_ajax'); ?>', '/Admin/Ledger_bank');" class="small-box-footer">View Ledger <i class="fa fa-arrow-circle-right"></i></a>
+                        </div>
                     </div>
                     <!-- ./col -->
                 <?php } ?>
                 <?php if (isset($account_head_ledger) && $account_head_ledger == 1){ ?>
                     <div class="col-lg-3 col-xs-6">
                         <!-- small box -->
-                        <a href="<?php echo site_url('Admin/Ledger_loan'); ?>" class="btn">
-                            <div class="small-box bg-green">
-                                <div class="inner">
-                                    <h2></h2>
-                                    <p id="dashp">Account Head Ledger</p>
-                                </div>
-                                <div class="icon">
-                                    <i class="fa fa-book"></i>
-                                </div>
-                                <a href="<?php echo site_url('Admin/Ledger_loan'); ?>" class="small-box-footer">View Ledger <i class="fa fa-arrow-circle-right"></i></a>
-                            </div></a>
+                        <div class="small-box bg-green" onclick="showData('<?php echo site_url('/Admin/Ledger_loan_ajax'); ?>', '/Admin/Ledger_loan')" style="cursor: pointer;">
+                            <div class="inner">
+                                <h2></h2>
+                                <p id="dashp">Account Head Ledger</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-book"></i>
+                            </div>
+                            <a href="<?php echo site_url('/Admin/Ledger_loan'); ?>" onclick="event.preventDefault(); event.stopPropagation(); showData('<?php echo site_url('/Admin/Ledger_loan_ajax'); ?>', '/Admin/Ledger_loan');" class="small-box-footer">View Ledger <i class="fa fa-arrow-circle-right"></i></a>
+                        </div>
                     </div>
                     <!-- ./col -->
                 <?php } ?>

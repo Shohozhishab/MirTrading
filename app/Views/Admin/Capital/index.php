@@ -45,27 +45,27 @@
                             <h3 class="box-title"><i class="fa fa-filter"></i> Filter </h3>
                         </div>
                         <div class="box-body">
-                            <form action="<?= base_url('Admin/Capital/list') ?>" method="get">
+                            <form action="<?= base_url('Admin/Capital/list') ?>" method="get" id="filterForm" onsubmit="return false;">
                                 <div class="row">
                                     <div class="col-md-3">
                                         <label>Start Date</label>
-                                        <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>"
-                                               id="st_date" required>
+                                        <input type="date" class="form-control" name="st_date" value="<?= $st_date ?? ''; ?>"
+                                               id="st_date" onchange="capitalFilter()">
                                     </div>
                                     <div class="col-md-3">
                                         <label>End Date</label>
-                                        <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>"
-                                               id="en_date" required>
+                                        <input type="date" class="form-control" name="en_date" value="<?= $en_date ?? ''; ?>"
+                                               id="en_date" onchange="capitalFilter()">
                                     </div>
 
                                     <div class="col-md-2" style="margin-top: 25px;">
-                                        <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-search"></i>
+                                        <button type="button" onclick="capitalFilter()" class="btn btn-primary btn-block"><i class="fa fa-search"></i>
                                             Filter
                                         </button>
                                     </div>
                                     <div class="col-md-2" style="margin-top: 25px;">
-                                        <a href="<?= base_url('Admin/Capital/list') ?>" class="btn btn-default btn-block"><i
-                                                    class="fa fa-refresh"></i> Reset</a>
+                                        <button type="button" onclick="resetCapitalFilter()" class="btn btn-default btn-block"><i
+                                                    class="fa fa-refresh"></i> Reset</button>
                                     </div>
                                 </div>
                             </form>
@@ -74,37 +74,25 @@
                 </div>
             <?php } ?>
             <div class="col-xs-12">
+                <div id="capitalResult">
+                    <?php echo view('Admin/Capital/table_list', [
+                        'capital' => $capital ?? [],
+                        'st_date' => $st_date ?? '',
+                        'en_date' => $en_date ?? '',
+                        'print' => $print ?? 0,
+                        'download_PDF' => $download_PDF ?? 0,
+                        'download_CSV' => $download_CSV ?? 0,
+                        'shopId' => $shopId ?? ($this->session->shopId ?? 0),
+                    ]); ?>
+                </div>
 
-                <div class="box">
-
-                    <!-- /.box-header -->
-                    <div class="box-body">
-                        <table class="table table-bordered table-striped" id="example1">
-                            <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Date</th>
-                                <th>Description</th>
-                                <th>Amount</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <?php
-                            $i = 1;
-                            foreach ($capital as $val){
-                                ?>
-                                <tr>
-                                    <td><?= $i++ ?></td>
-                                    <td><?= $val->createdDtm ?></td>
-                                    <td><?= $val->description ?></td>
-                                    <td><?= showWithCurrencySymbol($val->amount) ?></td>
-                                </tr>
-                            <?php }?>
-
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- /.box-body -->
+                <div class="col-md-12" id="ledgPrint" style="display: none; text-transform: capitalize;">
+                    <?php echo view('Admin/Capital/print_table', [
+                        'capital' => $capital ?? [],
+                        'st_date' => $st_date ?? '',
+                        'en_date' => $en_date ?? '',
+                        'shopId' => $shopId ?? ($this->session->shopId ?? 0),
+                    ]); ?>
                 </div>
             </div>
 

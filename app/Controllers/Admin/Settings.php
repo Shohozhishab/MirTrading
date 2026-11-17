@@ -130,6 +130,7 @@ class Settings extends BaseController
             print '<div class="alert alert-danger alert-dismissible" role="alert">' . $this->validation->listErrors() . ' <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
         } else {
             DB()->table('gen_settings')->where('sch_id', $shopId)->where('label', 'invoice')->update(['value' => $invoice]);
+            clear_gen_settings_cache($shopId);
 
             $shopTable = DB()->table('shops');
             if ($shopTable->where('sch_id', $shopId)->update($data)) {
@@ -216,6 +217,7 @@ class Settings extends BaseController
             $gen_settingsTable = DB()->table('gen_settings');
             $gen_settingsTable->where('settings_id', $id[$key])->update(['value' => $value[$key]]);
         }
+        clear_gen_settings_cache($this->session->shopId);
         print '<div class="alert alert-success alert-dismissible" role="alert"> update data successfully  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
     }
 
@@ -300,6 +302,8 @@ class Settings extends BaseController
 
         // invoice background image (image upload, no crop)
         $this->upload_invoice_image($shopId, 'invoice_background_image');
+
+        clear_gen_settings_cache($shopId);
 
         print '<div class="alert alert-success alert-dismissible" role="alert"> update data successfully  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
     }

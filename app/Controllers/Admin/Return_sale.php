@@ -36,29 +36,17 @@ class Return_sale extends BaseController
             return redirect()->to(site_url('Admin/login'));
         } else {
             $customer_id = $this->request->getGet('customer');
-
-            $shopId = $this->session->shopId;
-
             $st_date = $this->request->getGet('st_date');
             $en_date = $this->request->getGet('en_date');
 
-            $table = DB()->table('return_sale');
-            $table->where('return_sale.sch_id', $shopId);
-            $table->where('return_sale.deleted', null);
-            if (!empty($customer_id)) {
-                $table->join('invoice', 'invoice.invoice_id = return_sale.invoice_id');
-                $table->where('invoice.customer_id', $customer_id);
-            }
-            if (!empty($st_date) && !empty($en_date)) {
-                // Assuming your database column name is 'date'
-                $table->where('return_sale.createdDtm >=', $st_date . ' 00:00:00');
-                $table->where('return_sale.createdDtm <=', $en_date . ' 23:59:59');
-            }
-            $data['return_sale_data'] = $table->get()->getResult();
+            $shopId = $this->session->shopId;
+            $data['return_sale_data'] = $this->returnSaleQuery($customer_id, $st_date, $en_date, $shopId);
 
             $data['customerId'] = $customer_id ?? '';
-            $data['st_date'] = isset($st_date)?$st_date:'';
-            $data['en_date'] = isset($en_date)?$en_date:'';
+            $data['st_date'] = isset($st_date) ? $st_date : '';
+            $data['en_date'] = isset($en_date) ? $en_date : '';
+            $data['id'] = $shopId;
+            $data['shopId'] = $shopId;
 
             $data['menu'] = view('Admin/menu_sales', $data);
             // All Permissions
@@ -76,6 +64,164 @@ class Return_sale extends BaseController
             }
             echo view('Admin/footer');
         }
+    }
+
+    /**
+     * @description This method search return sale date to date
+     * @return void
+     */
+    public function search_dateTodate()
+    {
+        $shopId = $this->session->shopId;
+
+        $customer_id = $this->request->getPost('customer') ?? $this->request->getGet('customer');
+        $st_date = $this->request->getPost('st_date') ?? $this->request->getGet('st_date');
+        $en_date = $this->request->getPost('en_date') ?? $this->request->getGet('en_date');
+
+        $query = $this->returnSaleQuery($customer_id, $st_date, $en_date, $shopId);
+
+        print $this->returnSaleBox($query, $customer_id, $st_date, $en_date, $shopId);
+    }
+
+    /**
+     * @description This method search return sale print date to date
+     * @return void
+     */
+    public function search_dateTodatePrint()
+    {
+        $shopId = $this->session->shopId;
+
+        $customer_id = $this->request->getPost('customer') ?? $this->request->getGet('customer');
+        $st_date = $this->request->getPost('st_date') ?? $this->request->getGet('st_date');
+        $en_date = $this->request->getPost('en_date') ?? $this->request->getGet('en_date');
+
+        $query = $this->returnSaleQuery($customer_id, $st_date, $en_date, $shopId);
+
+        $view = '<div class="col-xs-12" style="text-transform: capitalize;" >'
+            . view('Admin/Return_sale/print_table', [
+                'return_sale_data' => $query,
+                'customerId' => $customer_id,
+                'st_date' => $st_date,
+                'en_date' => $en_date
+            ])
+            . '</div>';
+
+        print $view;
+    }
+
+    /**
+     * @description This method builds the return sale query
+     * @param string|int $customer_id
+     * @param string $st_date
+     * @param string $en_date
+     * @param int|null $shopId
+     * @return array
+     */
+    private function returnSaleQuery($customer_id = '', $st_date = '', $en_date = '', $shopId = null)
+    {
+        $shopId = $shopId ?? $this->session->shopId;
+        $table = DB()->table('return_sale');
+        $table->select('return_sale.*');
+        $table->where('return_sale.sch_id', $shopId);
+        $table->where('return_sale.deleted', null);
+        if (!empty($customer_id)) {
+            $table->join('invoice', 'invoice.invoice_id = return_sale.invoice_id');
+            $table->where('invoice.customer_id', $customer_id);
+        }
+        if (!empty($st_date) && !empty($en_date)) {
+            $table->where('return_sale.createdDtm >=', $st_date . ' 00:00:00');
+            $table->where('return_sale.createdDtm <=', $en_date . ' 23:59:59');
+        }
+        $table->orderBy('return_sale.rtn_sale_id', 'ASC');
+
+        return $table->get()->getResult();
+    }
+
+    /**
+     * @description This method builds the return sale table box and embedded print container
+     * @param array $return_sale_data
+     * @param string|int $customer_id
+     * @param string $st_date
+     * @param string $en_date
+     * @param int|null $shopId
+     * @return string
+     */
+    private function returnSaleBox($return_sale_data, $customer_id = '', $st_date = '', $en_date = '', $shopId = null)
+    {
+        $shopId = $shopId ?? $this->session->shopId;
+        $read = $this->permission->have_access($this->session->role, $this->module_name, 'read');
+
+        $totalAmount = 0;
+        foreach ($return_sale_data as $return) {
+            $totalAmount += $return->amount ?? 0;
+        }
+
+        $view = '<div class="box">
+                    <div class="box-body">
+                        <table id="example1" class="table table-bordered table-striped text-capitalize" style="margin-top: 20px;">
+                            <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Total Amount</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody>';
+
+        $i = 1;
+        foreach ($return_sale_data as $return) {
+            $customerName = !empty($return->customer_id)
+                ? get_data_by_id('customer_name', 'customers', 'customer_id', $return->customer_id)
+                : $return->customer_name;
+
+            $actionBtn = '';
+            if (isset($read) && $read == 1) {
+                $actionBtn = '<a href="javascript:void(0)" onclick="showData(\'' . site_url('/Admin/Return_sale_ajax/view/' . $return->rtn_sale_id) . '\',\'/Admin/Return_sale/view/' . $return->rtn_sale_id . '\')" class="btn btn-warning btn-xs">View</a>';
+            }
+
+            $view .= '<tr>
+                        <td>' . $i++ . '</td>
+                        <td>' . invoiceDateFormat($return->createdDtm) . '</td>
+                        <td>' . $customerName . '</td>
+                        <td>' . showWithCurrencySymbol($return->amount) . '</td>
+                        <td>' . $actionBtn . '</td>
+                    </tr>';
+        }
+
+        $view .= '</tbody>
+                    <tfoot>
+                    <tr>
+                        <th>No</th>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Total Amount</th>
+                        <th>Action</th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th>Total</th>
+                        <th>= ' . showWithCurrencySymbol($totalAmount) . '</th>
+                        <th></th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>';
+
+        // printable version of the same (filtered) rows
+        $view .= '<div id="ajaxReturnSalePrint" style="display: none;">'
+            . view('Admin/Return_sale/print_table', [
+                'return_sale_data' => $return_sale_data,
+                'customerId' => $customer_id,
+                'st_date' => $st_date,
+                'en_date' => $en_date
+            ])
+            . '</div>';
+
+        return $view;
     }
 
     /**

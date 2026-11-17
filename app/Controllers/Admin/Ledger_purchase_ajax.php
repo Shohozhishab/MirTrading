@@ -69,6 +69,8 @@ class Ledger_purchase_ajax extends BaseController
 
             $data['st_date'] = isset($st_date)?$st_date:'';
             $data['en_date'] = isset($en_date)?$en_date:'';
+            $data['id'] = $shopId;
+            $data['shopId'] = $shopId;
 
             $data['menu'] = view('Admin/menu_ledger');
             // All Permissions

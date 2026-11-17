@@ -50,10 +50,10 @@
                         </div>
                         <!-- /.box-header -->
                         <div class="box-body">
-                            <form action="<?= base_url('Admin/Ledger')?>" method="get">
+                            <form action="<?= base_url('Admin/Ledger')?>" method="get" onsubmit="return false;">
                                 <div class="col-md-2" >
                                     <label>Customer name</label>
-                                    <select class="form-control select2 select2-hidden-accessible" name="customer_id" onchange="formSubmit(this)" id="customerId" style=" width: 100%;" tabindex="-1" aria-hidden="true" required>
+                                    <select class="form-control select2 select2-hidden-accessible" name="customer_id" onchange="customerLedgerFilter()" id="customerId" style=" width: 100%;" tabindex="-1" aria-hidden="true" required>
                                         <option selected="selected"  value="">Please Select</option>
                                         <?php echo getAllListInOption($customer_id,'customer_id','customer_name','customers'); ?>
                                     </select>
@@ -62,21 +62,21 @@
                                 <div class="col-md-3">
                                     <label>Start Date</label>
                                     <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>"
-                                           id="st_date" >
+                                           id="st_date" onchange="customerLedgerFilter()">
                                 </div>
                                 <div class="col-md-3">
                                     <label>End Date</label>
                                     <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>"
-                                           id="en_date" >
+                                           id="en_date" onchange="customerLedgerFilter()">
                                 </div>
                                 <div class="col-md-2" style="margin-top: 25px;">
-                                    <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-search"></i>
+                                    <button type="button" onclick="customerLedgerFilter()" class="btn btn-primary btn-block"><i class="fa fa-search"></i>
                                         Filter
                                     </button>
                                 </div>
                                 <div class="col-md-2" style="margin-top: 25px;">
-                                    <a href="<?= base_url('Admin/Ledger') ?>" class="btn btn-default btn-block"><i
-                                                class="fa fa-refresh"></i> Reset</a>
+                                    <button type="button" onclick="resetCustomerLedgerFilter()" class="btn btn-default btn-block"><i
+                                                class="fa fa-refresh"></i> Reset</button>
                                 </div>
                             </form>
 
@@ -88,6 +88,7 @@
                 $name = get_data_by_id('customer_name', 'customers', 'customer_id', $customer_id);
                 $balance = get_data_by_id('balance', 'customers', 'customer_id', $customer_id);
                 ?>
+                <div id="customerLedgerResult">
                 <div class="box">
                     <?php if (!empty($customer_id)){ ?>
                         <div class="box-header">
@@ -143,56 +144,11 @@
                         </table>
                     </div>
                 </div>
+                </div>
 
                 <div style="display: none;" >
                     <div id="ledgPrint">
-                        <div class="col-xs-12" style="margin-bottom: 20px;   ">
-                            <div class="col-xs-6">
-                                <?php if(logo_image() == NULL){ ?>
-                                    <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg" alt="User Image" >
-                                <?php }else{ ?>
-                                    <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
-                                <?php } ?>
-                            </div>
-                            <div class="col-xs-6">
-                                <?php print address(); ?>
-                            </div>
-                        </div>
-                        <div class="col-md-12" >
-                            <table class="table table-bordered table-striped" >
-                                <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Particulars</th>
-                                    <th>Debit</th>
-                                    <th>Credit</th>
-                                    <th>Balance</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <?php
-                                $totalRows = count($result) - 1;
-                                for ($i = 0; $i <= $totalRows; $i++) {
-                                    $particulars = ($result[$i]->particulars == NULL) ? "Pay due" : $result[$i]->particulars;
-                                    $amountCr = ($result[$i]->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($result[$i]->amount);
-                                    $amountDr = ($result[$i]->trangaction_type != "Dr.") ? "---" : showWithCurrencySymbol($result[$i]->amount);
-                                    $bankName = led_id_by_bank_name($result[$i]->invoice_id);
-                                    $checkNumber = led_id_by_chaque_number($result[$i]->invoice_id);
-                                    ?>
-                                    <tr>
-                                        <td><?= $result[$i]->createdDtm ?></td>
-                                        <td><?= $particulars ?><br><small><?= $bankName. $checkNumber ?></small></td>
-                                        <td><?= $amountDr ?></td>
-                                        <td><?= $amountCr ?></td>
-                                        <td><?= showWithCurrencySymbol($result[$i]->r_balance) ?></td>
-                                    </tr>
-
-                                <?php }?>
-
-                                </tbody>
-
-                            </table>
-                        </div>
+                        <?php echo view('Admin/Ledger/print_table', ['result' => $result, 'customer_id' => $customer_id, 'st_date' => $st_date, 'en_date' => $en_date]); ?>
                     </div>
                 </div>
                 <div class="row no-print" >

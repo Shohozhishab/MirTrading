@@ -40,29 +40,15 @@ class Exchange_product extends BaseController
             $st_date = $this->request->getGet('st_date');
             $en_date = $this->request->getGet('en_date');
 
-
             $shopId = $this->session->shopId;
-            $table = DB()->table('exchange_product');
-            $table->where('exchange_product.sch_id', $shopId);
-            if (!empty($customer_id)) {
-                $table->where('exchange_product.customer_id', $customer_id);
-            }
-            if (!empty($status)){
-                $table->join('exchange_status_info', 'exchange_status_info.exchange_pro_id = exchange_product.exchange_pro_id');
-                $table->where('exchange_status_info.status',$status);
-            }
-            // Apply date filters only if they are present in the request
-            if (!empty($st_date) && !empty($en_date)) {
-                // Assuming your database column name is 'date'
-                $table->where('createdDtm >=', $st_date . ' 00:00:00');
-                $table->where('createdDtm <=', $en_date . ' 23:59:59');
-            }
-            $data['exchangeProduct'] = $table->get()->getResult();
+            $data['exchangeProduct'] = $this->exchangeProductQuery($customer_id, $status, $st_date, $en_date, $shopId);
 
             $data['customerId'] = $customer_id ?? '';
             $data['status'] = $status ?? '';
-            $data['st_date'] = isset($st_date)?$st_date:'';
-            $data['en_date'] = isset($en_date)?$en_date:'';
+            $data['st_date'] = isset($st_date) ? $st_date : '';
+            $data['en_date'] = isset($en_date) ? $en_date : '';
+            $data['id'] = $shopId;
+            $data['shopId'] = $shopId;
 
             $data['menu'] = view('Admin/menu_stock');
             // All Permissions
@@ -80,6 +66,195 @@ class Exchange_product extends BaseController
             }
             echo view('Admin/footer');
         }
+    }
+
+    /**
+     * @description This method search exchange product date to date
+     * @return void
+     */
+    public function search_dateTodate()
+    {
+        $shopId = $this->session->shopId;
+
+        $customer_id = $this->request->getPost('customer') ?? $this->request->getGet('customer');
+        $status = $this->request->getPost('status') ?? $this->request->getGet('status');
+        $st_date = $this->request->getPost('st_date') ?? $this->request->getGet('st_date');
+        $en_date = $this->request->getPost('en_date') ?? $this->request->getGet('en_date');
+
+        $query = $this->exchangeProductQuery($customer_id, $status, $st_date, $en_date, $shopId);
+
+        print $this->exchangeProductBox($query, $customer_id, $status, $st_date, $en_date, $shopId);
+    }
+
+    /**
+     * @description This method search exchange product print date to date
+     * @return void
+     */
+    public function search_dateTodatePrint()
+    {
+        $shopId = $this->session->shopId;
+
+        $customer_id = $this->request->getPost('customer') ?? $this->request->getGet('customer');
+        $status = $this->request->getPost('status') ?? $this->request->getGet('status');
+        $st_date = $this->request->getPost('st_date') ?? $this->request->getGet('st_date');
+        $en_date = $this->request->getPost('en_date') ?? $this->request->getGet('en_date');
+
+        $query = $this->exchangeProductQuery($customer_id, $status, $st_date, $en_date, $shopId);
+
+        $view = '<div class="col-xs-12" style="text-transform: capitalize;" >'
+            . view('Admin/Exchange_product/print_table', [
+                'exchangeProduct' => $query,
+                'customerId' => $customer_id,
+                'status' => $status,
+                'st_date' => $st_date,
+                'en_date' => $en_date
+            ])
+            . '</div>';
+
+        print $view;
+    }
+
+    /**
+     * @description This method builds the exchange product query
+     * @param string|int $customer_id
+     * @param string $status
+     * @param string $st_date
+     * @param string $en_date
+     * @param int|null $shopId
+     * @return array
+     */
+    private function exchangeProductQuery($customer_id = '', $status = '', $st_date = '', $en_date = '', $shopId = null)
+    {
+        $shopId = $shopId ?? $this->session->shopId;
+        $table = DB()->table('exchange_product');
+        $table->select('exchange_product.*');
+        $table->where('exchange_product.sch_id', $shopId);
+        if (!empty($customer_id)) {
+            $table->where('exchange_product.customer_id', $customer_id);
+        }
+        if (!empty($status)) {
+            $table->join('exchange_status_info', 'exchange_status_info.exchange_pro_id = exchange_product.exchange_pro_id');
+            $table->where('exchange_status_info.status', $status);
+        }
+        if (!empty($st_date) && !empty($en_date)) {
+            $table->where('exchange_product.createdDtm >=', $st_date . ' 00:00:00');
+            $table->where('exchange_product.createdDtm <=', $en_date . ' 23:59:59');
+        }
+        $table->orderBy('exchange_product.exchange_pro_id', 'ASC');
+
+        return $table->get()->getResult();
+    }
+
+    /**
+     * @description This method builds the exchange product table box and embedded print container
+     * @param array $exchangeProduct
+     * @param string|int $customer_id
+     * @param string $status
+     * @param string $st_date
+     * @param string $en_date
+     * @param int|null $shopId
+     * @return string
+     */
+    private function exchangeProductBox($exchangeProduct, $customer_id = '', $status = '', $st_date = '', $en_date = '', $shopId = null)
+    {
+        $shopId = $shopId ?? $this->session->shopId;
+        $read = $this->permission->have_access($this->session->role, $this->module_name, 'read');
+        $update = $this->permission->have_access($this->session->role, $this->module_name, 'update');
+
+        $totalQty = 0;
+        foreach ($exchangeProduct as $item) {
+            $qty = ($item->type == 'Conditional')
+                ? (get_exchange_conditional_product_qty_by_id($item->exchange_pro_id) ?? 0)
+                : (get_exchange_unconditional_product_qty_by_id($item->exchange_pro_id) ?? 0);
+            $totalQty += $qty;
+        }
+
+        $view = '<div class="box">
+                    <div class="box-body">
+                        <table id="example1" class="table table-bordered table-striped text-capitalize">
+                            <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Customer</th>
+                                <th>Quantity</th>
+                                <th>Comment</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody>';
+
+        $i = 1;
+        foreach ($exchangeProduct as $item) {
+            $customerName = !empty($item->customer_id)
+                ? get_data_by_id('customer_name', 'customers', 'customer_id', $item->customer_id)
+                : $item->customer_name;
+
+            $qty = ($item->type == 'Conditional')
+                ? get_exchange_conditional_product_qty_by_id($item->exchange_pro_id)
+                : get_exchange_unconditional_product_qty_by_id($item->exchange_pro_id);
+
+            $actionBtns = '';
+            if (isset($read) && $read == 1) {
+                $actionBtns .= '<a href="javascript:void(0)" onclick="showData(\'' . site_url('/Admin/Exchange_product_ajax/view/' . $item->exchange_pro_id) . '\',\'/Admin/Exchange_product/view/' . $item->exchange_pro_id . '\')" class="btn btn-primary btn-xs">View</a> ';
+            }
+            if (isset($update) && $update == 1) {
+                $actionBtns .= '<a href="javascript:void(0)" onclick="showData(\'' . site_url('/Admin/Exchange_product_ajax/update/' . $item->exchange_pro_id) . '\',\'/Admin/Exchange_product/update/' . $item->exchange_pro_id . '\')" class="btn btn-warning btn-xs">Update</a>';
+            }
+
+            $view .= '<tr>
+                        <td>' . $i++ . '</td>
+                        <td>' . globalTimeStamp($item->createdDtm) . '</td>
+                        <td>' . $item->type . '</td>
+                        <td>' . get_exchange_status_by_id($item->exchange_pro_id) . '</td>
+                        <td>' . $customerName . '</td>
+                        <td>' . $qty . '</td>
+                        <td>' . $item->comment . '</td>
+                        <td>' . $actionBtns . '</td>
+                    </tr>';
+        }
+
+        $view .= '</tbody>
+                    <tfoot>
+                    <tr>
+                        <th>No</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Customer</th>
+                        <th>Quantity</th>
+                        <th>Comment</th>
+                        <th>Action</th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th>Total</th>
+                        <th>= ' . $totalQty . '</th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>';
+
+        // printable version of the same (filtered) rows
+        $view .= '<div id="ajaxExchangeProductPrint" style="display: none;">'
+            . view('Admin/Exchange_product/print_table', [
+                'exchangeProduct' => $exchangeProduct,
+                'customerId' => $customer_id,
+                'status' => $status,
+                'st_date' => $st_date,
+                'en_date' => $en_date
+            ])
+            . '</div>';
+
+        return $view;
     }
 
     public function invoice_search()

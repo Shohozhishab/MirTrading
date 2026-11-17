@@ -208,6 +208,7 @@ class Role extends BaseController
             $roleTable = DB()->table('roles');
 
             if ($roleTable->where('role_id', $data['role_id'])->update($dataRloe)) {
+                Permission::clear_cache($data['role_id']);
                 print '<div class="alert alert-success alert-dismissible" role="alert"> Update data successfully  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
             } else {
                 print '<div class="alert alert-danger alert-dismissible" role="alert"> something went wrong  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
@@ -245,6 +246,7 @@ class Role extends BaseController
         $mainRole->$module = (object) $permission;
         //Save back to database
         DB()->table('roles')->where('role_id', $role_id)->update(['permission' => json_encode($mainRole)]);
+        Permission::clear_cache($role_id);
 
         print '<div class="alert alert-success alert-dismissible" role="alert"> Update data successfully  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
     }

@@ -42,28 +42,16 @@ class Sales extends BaseController
         } else {
             $shopId = $this->session->shopId;
             $customer_id = $this->request->getGet('customer');
-
             $st_date = $this->request->getGet('st_date');
             $en_date = $this->request->getGet('en_date');
 
-            $table = DB()->table('sales');
-            $table->where('sales.sch_id', $shopId);
+            $data['sales'] = $this->salesQuery($customer_id, $st_date, $en_date, $shopId);
 
-            if (!empty($customer_id)) {
-                $table->join('invoice', 'invoice.invoice_id = sales.invoice_id');
-                $table->where('invoice.customer_id', $customer_id);
-            }
-            // Apply date filters only if they are present in the request
-            if (!empty($st_date) && !empty($en_date)) {
-                // Assuming your database column name is 'date'
-                $table->where('sales.date >=', $st_date . ' 00:00:00');
-                $table->where('sales.date <=', $en_date . ' 23:59:59');
-            }
-            $data['sales'] = $table->get()->getResult();
-
-            $data['st_date'] = isset($st_date)?$st_date:'';
-            $data['en_date'] = isset($en_date)?$en_date:'';
-            $data['customer_id'] = isset($customer_id)?$customer_id:'';
+            $data['st_date'] = isset($st_date) ? $st_date : '';
+            $data['en_date'] = isset($en_date) ? $en_date : '';
+            $data['customer_id'] = isset($customer_id) ? $customer_id : '';
+            $data['id'] = $shopId;
+            $data['shopId'] = $shopId;
             
             $data['menu'] = view('Admin/menu_sales', $data);
             // All Permissions
@@ -81,6 +69,201 @@ class Sales extends BaseController
             }
             echo view('Admin/footer');
         }
+    }
+
+    /**
+     * @description This method search sales date to date
+     * @return void
+     */
+    public function search_dateTodate()
+    {
+        $shopId = $this->session->shopId;
+
+        $customer_id = $this->request->getPost('customer') ?? $this->request->getGet('customer');
+        $st_date = $this->request->getPost('st_date') ?? $this->request->getGet('st_date');
+        $en_date = $this->request->getPost('en_date') ?? $this->request->getGet('en_date');
+
+        $query = $this->salesQuery($customer_id, $st_date, $en_date, $shopId);
+
+        print $this->salesBox($query, $customer_id, $st_date, $en_date, $shopId);
+    }
+
+    /**
+     * @description This method search sales print date to date
+     * @return void
+     */
+    public function search_dateTodatePrint()
+    {
+        $shopId = $this->session->shopId;
+
+        $customer_id = $this->request->getPost('customer') ?? $this->request->getGet('customer');
+        $st_date = $this->request->getPost('st_date') ?? $this->request->getGet('st_date');
+        $en_date = $this->request->getPost('en_date') ?? $this->request->getGet('en_date');
+
+        $query = $this->salesQuery($customer_id, $st_date, $en_date, $shopId);
+        $profit = $this->permission->have_access($this->session->role, $this->module_name, 'profit');
+
+        $view = '<div class="col-xs-12" style="text-transform: capitalize;" >'
+            . view('Admin/Sales/print_table', [
+                'sales' => $query,
+                'customer_id' => $customer_id,
+                'st_date' => $st_date,
+                'en_date' => $en_date,
+                'profit' => $profit
+            ])
+            . '</div>';
+
+        print $view;
+    }
+
+    /**
+     * @description This method builds the sales query
+     * @param string|int $customer_id
+     * @param string $st_date
+     * @param string $en_date
+     * @param int|null $shopId
+     * @return array
+     */
+    private function salesQuery($customer_id = '', $st_date = '', $en_date = '', $shopId = null)
+    {
+        $shopId = $shopId ?? $this->session->shopId;
+        $table = DB()->table('sales');
+        $table->select('sales.*');
+        $table->where('sales.sch_id', $shopId);
+
+        if (!empty($customer_id)) {
+            $table->join('invoice', 'invoice.invoice_id = sales.invoice_id');
+            $table->where('invoice.customer_id', $customer_id);
+        }
+        if (!empty($st_date) && !empty($en_date)) {
+            $table->where('sales.date >=', $st_date . ' 00:00:00');
+            $table->where('sales.date <=', $en_date . ' 23:59:59');
+        }
+        $table->orderBy('sales.sales_id', 'ASC');
+
+        return $table->get()->getResult();
+    }
+
+    /**
+     * @description This method builds the sales table box and embedded print container
+     * @param array $sales
+     * @param string|int $customer_id
+     * @param string $st_date
+     * @param string $en_date
+     * @param int|null $shopId
+     * @return string
+     */
+    private function salesBox($sales, $customer_id = '', $st_date = '', $en_date = '', $shopId = null)
+    {
+        $shopId = $shopId ?? $this->session->shopId;
+        $transaction_flow = $this->permission->have_access($this->session->role, $this->module_name, 'transaction_flow');
+        $read = $this->permission->have_access($this->session->role, $this->module_name, 'read');
+        $update = $this->permission->have_access($this->session->role, $this->module_name, 'update');
+        $profit = $this->permission->have_access($this->session->role, $this->module_name, 'profit');
+
+        $totalAmount = 0;
+        $totalDue = 0;
+        $totalProfit = 0;
+
+        $view = '<div class="box">
+                    <div class="box-body">
+                        <table id="example1" class="table table-bordered table-striped text-capitalize">
+                            <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Invoice Id</th>
+                                <th>Total Amount</th>
+                                <th>Total Due</th>';
+        if (isset($profit) && $profit == 1) {
+            $view .= '<th>Profit</th>';
+        }
+        $view .= '<th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody>';
+
+        $i = 1;
+        foreach ($sales as $val) {
+            $cus_id = get_data_by_id('customer_id', 'invoice', 'invoice_id', $val->invoice_id);
+            $cusName = !empty($cus_id) ? get_data_by_id('customer_name', 'customers', 'customer_id', $cus_id) : get_data_by_id('customer_name', 'invoice', 'invoice_id', $val->invoice_id);
+            $profitOr = get_data_by_id('profit', 'invoice', 'invoice_id', $val->invoice_id);
+            $invAmount = get_data_by_id('amount', 'invoice', 'invoice_id', $val->invoice_id);
+            $invDue = get_data_by_id('due', 'invoice', 'invoice_id', $val->invoice_id);
+
+            $totalAmount += $invAmount;
+            $totalDue += $invDue;
+            $totalProfit += $profitOr;
+
+            $actionBtns = '';
+            if (isset($transaction_flow) && $transaction_flow == 1) {
+                $actionBtns .= '<a href="javascript:void(0)" onclick="showData(\'' . site_url('/Admin/Sales_ajax/transaction_flow/' . $val->sales_id) . '\',\'/Admin/Sales/transaction_flow/' . $val->sales_id . '\')" class="btn btn-success btn-xs">Transaction Flow</a> ';
+            }
+            if (isset($read) && $read == 1) {
+                $actionBtns .= '<a href="javascript:void(0)" onclick="showData(\'' . site_url('/Admin/Invoice_ajax/view/' . $val->invoice_id) . '\',\'/Admin/Invoice/view/' . $val->invoice_id . '\')" class="btn btn-primary btn-xs">View</a> ';
+            }
+            if (isset($update) && $update == 1) {
+                $actionBtns .= '<a href="javascript:void(0)" class="btn btn-xs btn-warning" onclick="saleEdit(\'' . $val->sales_id . '\')" data-toggle="modal" data-target="#modal-default">Edit</a>';
+            }
+
+            $view .= '<tr>
+                        <td>' . $i++ . '</td>
+                        <td>' . invoiceDateFormat($val->date) . '</td>
+                        <td>' . $cusName . '</td>
+                        <td>' . $val->invoice_id . '</td>
+                        <td>' . showWithCurrencySymbol($invAmount) . '</td>
+                        <td>' . showWithCurrencySymbol($invDue) . '</td>';
+            if (isset($profit) && $profit == 1) {
+                $view .= '<td>' . showWithCurrencySymbol($profitOr) . '</td>';
+            }
+            $view .= '<td>' . $actionBtns . '</td>
+                    </tr>';
+        }
+
+        $view .= '</tbody>
+                    <tfoot>
+                    <tr>
+                        <th>No</th>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Invoice Id</th>
+                        <th>Total Amount</th>
+                        <th>Total Due</th>';
+        if (isset($profit) && $profit == 1) {
+            $view .= '<th>Profit</th>';
+        }
+        $view .= '<th>Action</th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th>Total</th>
+                        <th>= ' . showWithCurrencySymbol($totalAmount) . '</th>
+                        <th>= ' . showWithCurrencySymbol($totalDue) . '</th>';
+        if (isset($profit) && $profit == 1) {
+            $view .= '<th>= ' . showWithCurrencySymbol($totalProfit) . '</th>';
+        }
+        $view .= '<th></th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>';
+
+        // printable version of the same (filtered) rows
+        $view .= '<div id="ajaxSalesPrint" style="display: none;">'
+            . view('Admin/Sales/print_table', [
+                'sales' => $sales,
+                'customer_id' => $customer_id,
+                'st_date' => $st_date,
+                'en_date' => $en_date,
+                'profit' => $profit
+            ])
+            . '</div>';
+
+        return $view;
     }
 
     /**

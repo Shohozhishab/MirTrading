@@ -10,7 +10,6 @@ use CodeIgniter\HTTP\RedirectResponse;
 class Transaction_events extends BaseController
 {
 
-
     protected $permission;
     protected $validation;
     protected $session;
@@ -40,19 +39,12 @@ class Transaction_events extends BaseController
 
             $st_date = $this->request->getGet('st_date');
             $en_date = $this->request->getGet('en_date');
+            $event_type = $this->request->getGet('event_type');
 
-            $table = DB()->table('transaction_events');
-            $table->where('sch_id', $shopId);
-            // Apply date filters only if they are present in the request
-            if (!empty($st_date) && !empty($en_date)) {
-                // Assuming your database column name is 'date'
-                $table->where('createdDtm >=', $st_date . ' 00:00:00');
-                $table->where('createdDtm <=', $en_date . ' 23:59:59');
-            }
-            $data['result'] = $table->get()->getResult();
-
+            $data['result'] = $this->transactionEventsQuery($st_date, $en_date, $event_type, $shopId);
             $data['st_date'] = isset($st_date)?$st_date:'';
             $data['en_date'] = isset($en_date)?$en_date:'';
+            $data['event_type'] = isset($event_type)?$event_type:'';
 
             // All Permissions
             //$perm = array('create','read','update','delete','mod_access');
@@ -71,5 +63,91 @@ class Transaction_events extends BaseController
         }
     }
 
+    /**
+     * @description Query transaction events with filters
+     */
+    private function transactionEventsQuery($st_date = '', $en_date = '', $event_type = '', $shopId = null)
+    {
+        if ($shopId === null) {
+            $shopId = $this->session->shopId;
+        }
+        $table = DB()->table('transaction_events');
+        $table->where('sch_id', $shopId);
 
+        if (!empty($st_date)) {
+            $table->where('createdDtm >=', $st_date . ' 00:00:00');
+        }
+        if (!empty($en_date)) {
+            $table->where('createdDtm <=', $en_date . ' 23:59:59');
+        }
+
+        if ($event_type == 'transaction') {
+            $table->where('trans_id IS NOT NULL')->where('trans_id !=', '');
+        } elseif ($event_type == 'sales') {
+            $table->where('sales_id IS NOT NULL')->where('sales_id !=', '');
+        } elseif ($event_type == 'purchase') {
+            $table->where('purchase_id IS NOT NULL')->where('purchase_id !=', '');
+        } elseif ($event_type == 'deposit') {
+            $table->where('dep_id IS NOT NULL')->where('dep_id !=', '');
+        } elseif ($event_type == 'withdraw') {
+            $table->where('wthd_id IS NOT NULL')->where('wthd_id !=', '');
+        }
+
+        return $table->orderBy('transaction_event_id', 'DESC')->get()->getResult();
+    }
+
+    /**
+     * @description This method provides transaction events table list via AJAX
+     * @return string|void
+     */
+    public function search_dateTodate()
+    {
+        $isLoggedIn = $this->session->isLoggedIn;
+        $role_id = $this->session->role;
+        if (!isset($isLoggedIn) || $isLoggedIn != TRUE) {
+            return redirect()->to(site_url('Admin/login'));
+        }
+
+        $shopId = $this->session->shopId;
+        $st_date = !empty($this->request->getPost('st_date')) ? $this->request->getPost('st_date') : $this->request->getGet('st_date');
+        $en_date = !empty($this->request->getPost('en_date')) ? $this->request->getPost('en_date') : $this->request->getGet('en_date');
+        $event_type = !empty($this->request->getPost('event_type')) ? $this->request->getPost('event_type') : $this->request->getGet('event_type');
+
+        $data['result'] = $this->transactionEventsQuery($st_date, $en_date, $event_type, $shopId);
+        $data['st_date'] = isset($st_date) ? $st_date : '';
+        $data['en_date'] = isset($en_date) ? $en_date : '';
+        $data['event_type'] = isset($event_type) ? $event_type : '';
+
+        $perm = $this->permission->module_permission_list($role_id, $this->module_name);
+        foreach ($perm as $key => $val) {
+            $data[$key] = $this->permission->have_access($role_id, $this->module_name, $key);
+        }
+
+        return view('Admin/Transaction_events/table_list', $data);
+    }
+
+    /**
+     * @description This method provides transaction events print view
+     * @return string|void
+     */
+    public function search_dateTodatePrint()
+    {
+        $isLoggedIn = $this->session->isLoggedIn;
+        if (!isset($isLoggedIn) || $isLoggedIn != TRUE) {
+            return redirect()->to(site_url('Admin/login'));
+        }
+
+        $shopId = $this->session->shopId;
+        $st_date = !empty($this->request->getPost('st_date')) ? $this->request->getPost('st_date') : $this->request->getGet('st_date');
+        $en_date = !empty($this->request->getPost('en_date')) ? $this->request->getPost('en_date') : $this->request->getGet('en_date');
+        $event_type = !empty($this->request->getPost('event_type')) ? $this->request->getPost('event_type') : $this->request->getGet('event_type');
+
+        $data['result'] = $this->transactionEventsQuery($st_date, $en_date, $event_type, $shopId);
+        $data['st_date'] = isset($st_date) ? $st_date : '';
+        $data['en_date'] = isset($en_date) ? $en_date : '';
+        $data['event_type'] = isset($event_type) ? $event_type : '';
+        $data['shopId'] = $shopId;
+
+        return view('Admin/Transaction_events/print_table', $data);
+    }
 }

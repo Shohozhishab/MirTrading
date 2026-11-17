@@ -47,15 +47,18 @@ class Service_ajax extends BaseController
             $table = DB()->table('services');
             $table->where('sch_id', $shopId)->where('deleted IS NULL');
             // Apply date filters only if they are present in the request
-            if (!empty($st_date) && !empty($en_date)) {
-                // Assuming your database column name is 'date'
+            if (!empty($st_date)) {
                 $table->where('createdDtm >=', $st_date . ' 00:00:00');
+            }
+            if (!empty($en_date)) {
                 $table->where('createdDtm <=', $en_date . ' 23:59:59');
             }
             $data['services'] = $table->orderBy('service_id', 'ASC')->get()->getResult();
 
-            $data['st_date'] = isset($st_date)?$st_date:'';
-            $data['en_date'] = isset($en_date)?$en_date:'';
+            $data['st_date'] = isset($st_date) ? $st_date : '';
+            $data['en_date'] = isset($en_date) ? $en_date : '';
+            $data['id'] = $shopId;
+            $data['shopId'] = $shopId;
 
             $data['menu'] = view('Admin/menu_service', $data);
             // All Permissions

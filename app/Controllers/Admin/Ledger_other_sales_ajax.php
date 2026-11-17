@@ -66,9 +66,12 @@ class Ledger_other_sales_ajax extends BaseController
             }
             $table->orderBy('ledg_oth_sales_id', 'ASC');
             $data['ledger_data'] = $table->get()->getResult();
+            $data['ledger_other_sales'] = $data['ledger_data'];
 
             $data['st_date'] = isset($st_date)?$st_date:'';
             $data['en_date'] = isset($en_date)?$en_date:'';
+            $data['id'] = $shopId;
+            $data['shopId'] = $shopId;
             
             $data['menu'] = view('Admin/menu_ledger');
             // All Permissions

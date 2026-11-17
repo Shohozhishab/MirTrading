@@ -601,17 +601,53 @@ function getCurrency($selected = '&pound') {
 }
 
 /**
- * @description This function provides show currency symbol
- * @param int|float $money
- * @return string
+ * @description Loads all gen_settings for a shop once into memory array (1 DB query, then cached)
+ * @param int|string|null $shopId
+ * @param bool $reset
+ * @return array<string, mixed>
  */
+function get_all_gen_settings($shopId = null, $reset = false) {
+    static $settingsCache = [];
+    if ($reset) {
+        if ($shopId !== null) {
+            unset($settingsCache[$shopId]);
+        } else {
+            $settingsCache = [];
+        }
+        return [];
+    }
+    $shopId = $shopId ?: ($_SESSION['shopId'] ?? null);
+    if (empty($shopId)) {
+        return [];
+    }
+    if (!isset($settingsCache[$shopId])) {
+        $rows = DB()->table('gen_settings')->where('sch_id', $shopId)->get()->getResult();
+        $map = [];
+        if (!empty($rows)) {
+            foreach ($rows as $row) {
+                $map[$row->label] = $row->value;
+            }
+        }
+        $settingsCache[$shopId] = $map;
+    }
+    return $settingsCache[$shopId];
+}
+
+/**
+ * @description Clear in-memory gen_settings cache
+ * @param int|string|null $shopId
+ * @return void
+ */
+function clear_gen_settings_cache($shopId = null) {
+    get_all_gen_settings($shopId, true);
+}
+
 function showWithCurrencySymbol($money) {
-    $table = DB()->table('gen_settings');
-    $currency_before_symbol = $table->where('sch_id',$_SESSION['shopId'])->where('label','currency_before_symbol')->get()->getRow();
-    $currency_after_symbol = $table->where('sch_id',$_SESSION['shopId'])->where('label','currency_after_symbol')->get()->getRow();
-    $result = $currency_before_symbol->value." ".number_format($money, 2, '.', ',')." ".$currency_after_symbol->value;
+    $settings = get_all_gen_settings();
+    $before = $settings['currency_before_symbol'] ?? '';
+    $after = $settings['currency_after_symbol'] ?? '';
+    $result = $before . " " . number_format((float)($money ?? 0), 2, '.', ',') . " " . $after;
     return $result;
-    //number_format($money, 2, '.', ',')
 }
 
 /**
@@ -621,12 +657,11 @@ function showWithCurrencySymbol($money) {
  * @return string
  */
 function showWithCurrencySymbolSuper($shopId,$money) {
-    $table = DB()->table('gen_settings');
-    $currency_before_symbol = $table->where('sch_id',$shopId)->where('label','currency_before_symbol')->get()->getRow();
-    $currency_after_symbol = $table->where('sch_id',$shopId)->where('label','currency_after_symbol')->get()->getRow();
-    $result = $currency_before_symbol->value." ".number_format($money, 2, '.', ',')." ".$currency_after_symbol->value;
+    $settings = get_all_gen_settings($shopId);
+    $before = $settings['currency_before_symbol'] ?? '';
+    $after = $settings['currency_after_symbol'] ?? '';
+    $result = $before . " " . number_format((float)($money ?? 0), 2, '.', ',') . " " . $after;
     return $result;
-    //number_format($money, 2, '.', ',')
 }
 
 /**
@@ -635,22 +670,21 @@ function showWithCurrencySymbolSuper($shopId,$money) {
  * @return string
  */
 function showWithPhoneNummberCountryCode($number) {
-    $table = DB()->table('gen_settings');
-    $phoneCode = $table->where('label' , "phone_code")->get()->getRow();
-    $result = $phoneCode->value." ".$number;
+    $settings = get_all_gen_settings();
+    $phoneCode = $settings['phone_code'] ?? '880';
+    $result = $phoneCode . " " . $number;
     return $result;
 }
 
 /**
  * @description This function get gen_settings by lavel.
  * @param string $lavel
+ * @param int|string|null $shopId
  * @return mixed
  */
-function get_gen_settings_by_lavel($lavel) {
-    $table = DB()->table('gen_settings');
-    $query = $table->where('label' , $lavel)->where('sch_id',$_SESSION['shopId'])->get()->getRow();
-    $result = $query->value;
-    return $result;
+function get_gen_settings_by_lavel($lavel, $shopId = null) {
+    $settings = get_all_gen_settings($shopId);
+    return $settings[$lavel] ?? null;
 }
 
 /**
@@ -978,12 +1012,9 @@ function invoice_logo($shopId = null){
         $shopId = isset($_SESSION['shopId']) ? $_SESSION['shopId'] : "0";
     }
     if (!empty($shopId)) {
-        $row = DB()->table('gen_settings')
-            ->where('label', 'invoice_logo')
-            ->where('sch_id', $shopId)
-            ->get()->getRow();
-        if (!empty($row->value)) {
-            return $row->value;
+        $settings = get_all_gen_settings($shopId);
+        if (!empty($settings['invoice_logo'])) {
+            return $settings['invoice_logo'];
         }
     }
     return logo_image();
@@ -1538,9 +1569,17 @@ function is_unique_update($table,$whereField,$field,$whereClause,$id){
  * @return string
  */
 function get_sup_settings_by_lavel($lavel){
-    $table = DB()->table('gen_settings_super');
-    $query = $table->where('label',$lavel)->get()->getRow();
-    return !empty($query)?$query->value:'no data available';
+    static $supSettingsCache = null;
+    if ($supSettingsCache === null) {
+        $rows = DB()->table('gen_settings_super')->get()->getResult();
+        $supSettingsCache = [];
+        if (!empty($rows)) {
+            foreach ($rows as $row) {
+                $supSettingsCache[$row->label] = $row->value;
+            }
+        }
+    }
+    return $supSettingsCache[$lavel] ?? 'no data available';
 }
 
 /**
@@ -1641,12 +1680,17 @@ function add_main_ajax_based_menu_with_permission($title, $url, $roleId, $icon, 
  * @param int $role_id
  * @return bool
  */
-function all_menu_permission_check($module_name_array,$role_id){
-    $permission = new Permission();
-    foreach ($module_name_array as $module_name){
-        $access[] = $permission->have_access($role_id, $module_name, 'mod_access');
+function all_menu_permission_check($module_name_array, $role_id){
+    if (empty($module_name_array) || empty($role_id)) {
+        return false;
     }
-    return empty(array_filter($access))?false:true;
+    $rolePermissions = Permission::get_all_role_permissions($role_id);
+    foreach ($module_name_array as $module_name){
+        if (!empty($rolePermissions[$module_name]['mod_access']) && $rolePermissions[$module_name]['mod_access'] == 1) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -2019,22 +2063,40 @@ function getTotalRow($table,$whereCol, $whereInfo){
     return DB()->table($table)->where($whereCol,$whereInfo)->get()->getRow();
 }
 function userRole(){
-    return DB()->table('roles')
-        ->where('sch_id',$_SESSION['shopId'])
-        ->where('is_default','0')
-        ->get()
-        ->getResult();
+    static $cachedUserRoles = [];
+    $shopId = $_SESSION['shopId'] ?? null;
+    if ($shopId === null) {
+        return [];
+    }
+    if (!isset($cachedUserRoles[$shopId])) {
+        $cachedUserRoles[$shopId] = DB()->table('roles')
+            ->where('sch_id', $shopId)
+            ->where('is_default', '0')
+            ->get()
+            ->getResult();
+    }
+    return $cachedUserRoles[$shopId];
 }
 function isDefaultRole() {
     if (!isset($_SESSION['role'])) {
         return false;
     }
 
-    $query = DB()->table('roles')
-        ->where('role_id', $_SESSION['role'])
-        ->get()
-        ->getRow();
-    return (!empty($query) && $query->is_default == 1);
+    $role = Permission::get_role($_SESSION['role']);
+    return (!empty($role) && $role->is_default == 1);
+}
+
+/**
+ * @description Get all permissions for a role as an array (cached in memory, 1 query)
+ * @param int|string|null $role_id
+ * @return array
+ */
+function get_role_permissions($role_id = null) {
+    $role_id = $role_id ?: ($_SESSION['role'] ?? null);
+    if (empty($role_id)) {
+        return [];
+    }
+    return Permission::get_all_role_permissions($role_id);
 }
 function accountIdByType($account_id)
 {
@@ -2202,14 +2264,13 @@ function available_invoice($sel = '')
 function barcodeGenaret($data)
 {
     $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
-    $tabGenSet = DB()->table('gen_settings');
+    $settings = get_all_gen_settings();
 
-    $sizeBarcode = $tabGenSet->where('label', 'barcode_img_size')->get()->getRow()->value;
+    $sizeBarcode = $settings['barcode_img_size'] ?? null;
     $barcodeSize = empty($sizeBarcode) ? '100' : $sizeBarcode;
 
-    $typeBarcode = $tabGenSet->where('label', 'barcode_type')->get()->getRow()->value;
+    $typeBarcode = $settings['barcode_type'] ?? null;
     $barcodeType = empty($typeBarcode) ? 'C128' : $typeBarcode;
 
     return '<img src="data:image/png;base64,' . base64_encode($generator->getBarcode((string)$data, $barcodeType)) . '" width="' . $barcodeSize . '">';
-
 }

@@ -39,20 +39,14 @@ class Products extends BaseController
 
             $category = $this->request->getGet('category');
             $sub_category = $this->request->getGet('sub_category');
+            $st_date = $this->request->getGet('st_date');
+            $en_date = $this->request->getGet('en_date');
 
-            $productTable = DB()->table('products');
-            $productTable->select('products.*,product_stock_relation.*,stores.store_id,stores.name as store_name,stores.is_default');
-            $productTable->join('product_stock_relation','product_stock_relation.product_id = products.prod_id');
-            $productTable->join('stores','stores.store_id = product_stock_relation.store_id');
-
-            if (!empty($sub_category)){
-                $productTable->where('products.prod_cat_id', $sub_category);
-            }
-
-            $data['products_data'] = $productTable->where('products.sch_id', $shopId)->groupBy('products.prod_id')->where('stores.is_default','1')->get()->getResult();
-
+            $data['products_data'] = $this->productQuery($category, $sub_category, $st_date, $en_date, $shopId);
             $data['category'] = isset($category)?$category:'';
             $data['sub_category'] = isset($sub_category)?$sub_category:'';
+            $data['st_date'] = isset($st_date)?$st_date:'';
+            $data['en_date'] = isset($en_date)?$en_date:'';
 
             $data['menu'] = view('Admin/menu_stock');
             // All Permissions
@@ -70,6 +64,97 @@ class Products extends BaseController
             }
             echo view('Admin/footer');
         }
+    }
+
+    /**
+     * @description Query products with filters
+     */
+    private function productQuery($category = '', $sub_category = '', $st_date = '', $en_date = '', $shopId = null)
+    {
+        if ($shopId === null) {
+            $shopId = $this->session->shopId;
+        }
+        $productTable = DB()->table('products');
+        $productTable->select('products.*,product_stock_relation.*,stores.store_id,stores.name as store_name,stores.is_default');
+        $productTable->join('product_stock_relation', 'product_stock_relation.product_id = products.prod_id');
+        $productTable->join('stores', 'stores.store_id = product_stock_relation.store_id');
+
+        if (!empty($sub_category)) {
+            $productTable->where('products.prod_cat_id', $sub_category);
+        } elseif (!empty($category)) {
+            $subCatQuery = DB()->table('product_category')->select('prod_cat_id')->where('parent_pro_cat', $category)->where('sch_id', $shopId)->get()->getResult();
+            $subCatIds = array_column($subCatQuery, 'prod_cat_id');
+            $subCatIds[] = $category;
+            $productTable->whereIn('products.prod_cat_id', $subCatIds);
+        }
+
+        if (!empty($st_date)) {
+            $productTable->where('products.purchase_date >=', $st_date . ' 00:00:00');
+        }
+        if (!empty($en_date)) {
+            $productTable->where('products.purchase_date <=', $en_date . ' 23:59:59');
+        }
+
+        return $productTable->where('products.sch_id', $shopId)->groupBy('products.prod_id')->where('stores.is_default', '1')->orderBy('products.prod_id', 'DESC')->get()->getResult();
+    }
+
+    /**
+     * @description This method provides products table list via AJAX
+     * @return string|void
+     */
+    public function search_dateTodate()
+    {
+        $isLoggedIn = $this->session->isLoggedIn;
+        $role_id = $this->session->role;
+        if (!isset($isLoggedIn) || $isLoggedIn != TRUE) {
+            return redirect()->to(site_url('Admin/login'));
+        }
+
+        $shopId = $this->session->shopId;
+        $category = !empty($this->request->getPost('category')) ? $this->request->getPost('category') : $this->request->getGet('category');
+        $sub_category = !empty($this->request->getPost('sub_category')) ? $this->request->getPost('sub_category') : $this->request->getGet('sub_category');
+        $st_date = !empty($this->request->getPost('st_date')) ? $this->request->getPost('st_date') : $this->request->getGet('st_date');
+        $en_date = !empty($this->request->getPost('en_date')) ? $this->request->getPost('en_date') : $this->request->getGet('en_date');
+
+        $data['products_data'] = $this->productQuery($category, $sub_category, $st_date, $en_date, $shopId);
+        $data['category'] = isset($category) ? $category : '';
+        $data['sub_category'] = isset($sub_category) ? $sub_category : '';
+        $data['st_date'] = isset($st_date) ? $st_date : '';
+        $data['en_date'] = isset($en_date) ? $en_date : '';
+
+        $perm = $this->permission->module_permission_list($role_id, $this->module_name);
+        foreach ($perm as $key => $val) {
+            $data[$key] = $this->permission->have_access($role_id, $this->module_name, $key);
+        }
+
+        return view('Admin/Products/table_list', $data);
+    }
+
+    /**
+     * @description This method provides products print view
+     * @return string|void
+     */
+    public function search_dateTodatePrint()
+    {
+        $isLoggedIn = $this->session->isLoggedIn;
+        if (!isset($isLoggedIn) || $isLoggedIn != TRUE) {
+            return redirect()->to(site_url('Admin/login'));
+        }
+
+        $shopId = $this->session->shopId;
+        $category = !empty($this->request->getPost('category')) ? $this->request->getPost('category') : $this->request->getGet('category');
+        $sub_category = !empty($this->request->getPost('sub_category')) ? $this->request->getPost('sub_category') : $this->request->getGet('sub_category');
+        $st_date = !empty($this->request->getPost('st_date')) ? $this->request->getPost('st_date') : $this->request->getGet('st_date');
+        $en_date = !empty($this->request->getPost('en_date')) ? $this->request->getPost('en_date') : $this->request->getGet('en_date');
+
+        $data['products_data'] = $this->productQuery($category, $sub_category, $st_date, $en_date, $shopId);
+        $data['category'] = isset($category) ? $category : '';
+        $data['sub_category'] = isset($sub_category) ? $sub_category : '';
+        $data['st_date'] = isset($st_date) ? $st_date : '';
+        $data['en_date'] = isset($en_date) ? $en_date : '';
+        $data['shopId'] = $shopId;
+
+        return view('Admin/Products/print_table', $data);
     }
 
     /**

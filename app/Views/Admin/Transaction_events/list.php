@@ -4,7 +4,7 @@
         <h1> Transaction Events <small>Transaction Events</small></h1>
         <ol class="breadcrumb">
             <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-            <li class="active"Transaction Events</li>
+            <li class="active">Transaction Events</li>
         </ol>
     </section>
 
@@ -43,30 +43,36 @@
             <div class="col-xs-12" >
                 <div class="box box-primary">
                     <div class="box-header with-border">
-                        <h3 class="box-title"><i class="fa fa-filter"></i> Filter </h3>
+                        <h3 class="box-title"><i class="fa fa-filter"></i> Filter Events</h3>
                     </div>
                     <div class="box-body">
-                        <form action="<?= base_url('Admin/Transaction_events') ?>" method="get">
+                        <form action="<?= base_url('Admin/Transaction_events') ?>" method="get" id="filterForm" onsubmit="return false;">
                             <div class="row">
                                 <div class="col-md-3">
-                                    <label>Start Date</label>
-                                    <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>"
-                                           id="st_date" required>
+                                    <label>Event Type</label>
+                                    <select class="form-control" name="event_type" id="eventType" onchange="transactionEventsFilter()">
+                                        <option value="">-- All Events --</option>
+                                        <option value="transaction" <?= (($event_type ?? '') == 'transaction') ? 'selected' : ''; ?>>Transaction</option>
+                                        <option value="sales" <?= (($event_type ?? '') == 'sales') ? 'selected' : ''; ?>>Sales</option>
+                                        <option value="purchase" <?= (($event_type ?? '') == 'purchase') ? 'selected' : ''; ?>>Purchase</option>
+                                        <option value="deposit" <?= (($event_type ?? '') == 'deposit') ? 'selected' : ''; ?>>Bank Deposit</option>
+                                        <option value="withdraw" <?= (($event_type ?? '') == 'withdraw') ? 'selected' : ''; ?>>Bank Withdraw</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-3">
+                                    <label>Start Date</label>
+                                    <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>" id="st_date" onchange="transactionEventsFilter()">
+                                </div>
+                                <div class="col-md-2">
                                     <label>End Date</label>
-                                    <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>"
-                                           id="en_date" required>
+                                    <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>" id="en_date" onchange="transactionEventsFilter()">
                                 </div>
 
                                 <div class="col-md-2" style="margin-top: 25px;">
-                                    <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-search"></i>
-                                        Filter
-                                    </button>
+                                    <button type="button" onclick="transactionEventsFilter()" class="btn btn-primary btn-block"><i class="fa fa-search"></i> Filter</button>
                                 </div>
                                 <div class="col-md-2" style="margin-top: 25px;">
-                                    <a href="<?= base_url('Admin/Transaction_events') ?>" class="btn btn-default btn-block"><i
-                                            class="fa fa-refresh"></i> Reset</a>
+                                    <button type="button" onclick="resetTransactionEventsFilter()" class="btn btn-default btn-block"><i class="fa fa-refresh"></i> Reset</button>
                                 </div>
                             </div>
                         </form>
@@ -75,66 +81,15 @@
             </div>
             <?php } ?>
             <div class="col-xs-12">
-
-                <div class="box">
-                    <!-- /.box-header -->
-                    <div class="box-body">
-                        <table class="table table-bordered table-striped" id="example1">
-                            <thead>
-                            <tr>
-                                <th>SL</th>
-                                <th>Date</th>
-                                <th>Event Type</th>
-                                <th>Action</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <?php
-                                $i = 1;
-                                foreach ($result as $val) {
-                                    $url= ''; $urlFlow = ''; $eventType = '';
-                                    if (!empty($val->trans_id)){
-                                        $url = base_url('Admin/Transaction/read/'.$val->trans_id);
-                                        $urlFlow = base_url('Admin/Transaction/transaction_flow/'.$val->trans_id);
-                                        $eventType = 'Transaction';
-                                    }elseif (!empty($val->sales_id)){
-                                        $invId = get_data_by_id('invoice_id','sales','sales_id',$val->sales_id);
-                                        $url = base_url('Admin/Invoice/view/'.$invId);
-                                        $urlFlow = base_url('Admin/Sales/transaction_flow/'.$val->sales_id);
-                                        $eventType = 'Sales';
-                                    }elseif (!empty($val->purchase_id)){
-                                        $url = base_url('Admin/Purchase/view/'.$val->purchase_id);
-                                        $urlFlow = base_url('Admin/Purchase/transaction_flow/'.$val->purchase_id);
-                                        $eventType = 'Purchase';
-                                    }elseif (!empty($val->dep_id)){
-                                        $url = '';
-                                        $urlFlow = base_url('Admin/Bank_deposit/transaction_flow/'.$val->dep_id);
-                                        $eventType = 'Bank Deposit';
-                                    }elseif (!empty($val->wthd_id)){
-                                        $url = '';
-                                        $urlFlow = base_url('Admin/Bank_withdraw/transaction_flow/'.$val->wthd_id);
-                                        $eventType = 'Bank Withdraw';
-                                    }
-                            ?>
-                                <tr>
-                                    <td><?= $i++ ?></td>
-                                    <td><?= $val->createdDtm ?></td>
-                                    <td><?= $eventType;?></td>
-                                    <td>
-                                        <?php if (!empty($urlFlow)){ ?>
-                                        <a href="<?= $urlFlow;?>" class="btn btn-success btn-xs">Transaction Flow </a>
-                                        <?php } if (!empty($url)){ ?>
-                                        <a href="<?= $url;?>" class="btn btn-xs btn-primary">Detail</a>
-                                        <?php } ?>
-                                    </td>
-                                </tr>
-                            <?php }?>
-
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- /.box-body -->
+                <div id="transactionEventsResult">
+                    <?php echo view('Admin/Transaction_events/table_list', [
+                        'result' => $result,
+                        'st_date' => $st_date ?? '',
+                        'en_date' => $en_date ?? '',
+                        'event_type' => $event_type ?? '',
+                    ]); ?>
                 </div>
+            </div>
 
         </div>
         <!-- /.row -->

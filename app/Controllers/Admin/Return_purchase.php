@@ -42,21 +42,13 @@ class Return_purchase extends BaseController
             $st_date = $this->request->getGet('st_date');
             $en_date = $this->request->getGet('en_date');
 
-            $table = DB()->table('return_purchase');
-            $table->where('return_purchase.sch_id', $shopId);
-            $table->where('return_purchase.deleted', null);
-            if (!empty($supplier_id)){
-                $table->where('return_purchase.supplier_id', $supplier_id);
-            }
-            if (!empty($st_date) && !empty($en_date)) {
-                $table->where('return_purchase.createdDtm >=', $st_date . ' 00:00:00');
-                $table->where('return_purchase.createdDtm <=', $en_date . ' 23:59:59');
-            }
-            $data['return_purchase_data'] = $table->get()->getResult();
+            $data['return_purchase_data'] = $this->returnPurchaseQuery($supplier_id, $st_date, $en_date, $shopId);
 
-            $data['supplierId'] = isset($supplier_id)?$supplier_id:'';
-            $data['st_date'] = isset($st_date)?$st_date:'';
-            $data['en_date'] = isset($en_date)?$en_date:'';
+            $data['supplierId'] = isset($supplier_id) ? $supplier_id : '';
+            $data['st_date'] = isset($st_date) ? $st_date : '';
+            $data['en_date'] = isset($en_date) ? $en_date : '';
+            $data['id'] = $shopId;
+            $data['shopId'] = $shopId;
 
             $data['menu'] = view('Admin/menu_purchase', $data);
             // All Permissions
@@ -73,6 +65,160 @@ class Return_purchase extends BaseController
             }
             echo view('Admin/footer');
         }
+    }
+
+    /**
+     * @description This method search return purchase date to date
+     * @return void
+     */
+    public function search_dateTodate()
+    {
+        $shopId = $this->session->shopId;
+
+        $supplier_id = $this->request->getPost('supplier_id') ?? $this->request->getGet('supplier_id');
+        $st_date = $this->request->getPost('st_date') ?? $this->request->getGet('st_date');
+        $en_date = $this->request->getPost('en_date') ?? $this->request->getGet('en_date');
+
+        $query = $this->returnPurchaseQuery($supplier_id, $st_date, $en_date, $shopId);
+
+        print $this->returnPurchaseBox($query, $supplier_id, $st_date, $en_date, $shopId);
+    }
+
+    /**
+     * @description This method search return purchase print date to date
+     * @return void
+     */
+    public function search_dateTodatePrint()
+    {
+        $shopId = $this->session->shopId;
+
+        $supplier_id = $this->request->getPost('supplier_id') ?? $this->request->getGet('supplier_id');
+        $st_date = $this->request->getPost('st_date') ?? $this->request->getGet('st_date');
+        $en_date = $this->request->getPost('en_date') ?? $this->request->getGet('en_date');
+
+        $query = $this->returnPurchaseQuery($supplier_id, $st_date, $en_date, $shopId);
+
+        $view = '<div class="col-xs-12" style="text-transform: capitalize;" >'
+            . view('Admin/Return_purchase/print_table', [
+                'return_purchase_data' => $query,
+                'supplierId' => $supplier_id,
+                'st_date' => $st_date,
+                'en_date' => $en_date,
+                'id' => $shopId,
+                'shopId' => $shopId
+            ])
+            . '</div>';
+
+        print $view;
+    }
+
+    /**
+     * @description This method builds the return purchase query
+     * @param string|int $supplier_id
+     * @param string $st_date
+     * @param string $en_date
+     * @param int|null $shopId
+     * @return array
+     */
+    private function returnPurchaseQuery($supplier_id = '', $st_date = '', $en_date = '', $shopId = null)
+    {
+        $shopId = $shopId ?? $this->session->shopId;
+        $table = DB()->table('return_purchase');
+        $table->where('return_purchase.sch_id', $shopId);
+        $table->where('return_purchase.deleted', null);
+
+        if (!empty($supplier_id)) {
+            $table->where('return_purchase.supplier_id', $supplier_id);
+        }
+        if (!empty($st_date)) {
+            $table->where('return_purchase.createdDtm >=', $st_date . ' 00:00:00');
+        }
+        if (!empty($en_date)) {
+            $table->where('return_purchase.createdDtm <=', $en_date . ' 23:59:59');
+        }
+        $table->orderBy('return_purchase.rtn_purchase_id', 'ASC');
+
+        return $table->get()->getResult();
+    }
+
+    /**
+     * @description This method builds the return purchase table box and embedded print container
+     * @param array $return_purchase_data
+     * @param string|int $supplier_id
+     * @param string $st_date
+     * @param string $en_date
+     * @param int|null $shopId
+     * @return string
+     */
+    private function returnPurchaseBox($return_purchase_data, $supplier_id = '', $st_date = '', $en_date = '', $shopId = null)
+    {
+        $shopId = $shopId ?? $this->session->shopId;
+        $read = $this->permission->have_access($this->session->role, $this->module_name, 'read');
+
+        $totalAmount = 0;
+
+        $view = '<table id="example1" class="table table-bordered table-striped text-capitalize" style="margin-top: 20px;">
+                    <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Date</th>
+                        <th>Supplier</th>
+                        <th>Total Amount</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>';
+
+        $i = 1;
+        foreach ($return_purchase_data as $return) {
+            $totalAmount += (float)$return->amount;
+
+            $actionBtns = '';
+            if (isset($read) && $read == 1) {
+                $actionBtns .= '<a href="javascript:void(0)" onclick="showData(\'' . site_url('/Admin/Return_purchase_ajax/view/' . $return->rtn_purchase_id) . '\',\'/Admin/Return_purchase/view/' . $return->rtn_purchase_id . '\')" class="btn btn-warning btn-xs">View</a>';
+            }
+
+            $view .= '<tr>
+                        <td>' . $i++ . '</td>
+                        <td>' . invoiceDateFormat($return->createdDtm) . '</td>
+                        <td>' . get_data_by_id('name', 'suppliers', 'supplier_id', $return->supplier_id) . '</td>
+                        <td>' . showWithCurrencySymbol($return->amount) . '</td>
+                        <td>' . $actionBtns . '</td>
+                    </tr>';
+        }
+
+        $view .= '</tbody>
+                    <tfoot>
+                    <tr>
+                        <th>No</th>
+                        <th>Date</th>
+                        <th>Supplier</th>
+                        <th>Total Amount</th>
+                        <th>Action</th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th>Total</th>
+                        <th>= ' . showWithCurrencySymbol($totalAmount) . '</th>
+                        <th></th>
+                    </tr>
+                    </tfoot>
+                </table>';
+
+        // printable version of the same (filtered) rows
+        $view .= '<div id="ajaxReturnPurchasePrint" style="display: none;">'
+            . view('Admin/Return_purchase/print_table', [
+                'return_purchase_data' => $return_purchase_data,
+                'supplierId' => $supplier_id,
+                'st_date' => $st_date,
+                'en_date' => $en_date,
+                'id' => $shopId,
+                'shopId' => $shopId
+            ])
+            . '</div>';
+
+        return $view;
     }
 
     /**

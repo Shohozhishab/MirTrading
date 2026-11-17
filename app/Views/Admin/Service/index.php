@@ -50,27 +50,27 @@
                         <h3 class="box-title"><i class="fa fa-filter"></i> Filter </h3>
                     </div>
                     <div class="box-body">
-                        <form action="<?= base_url('Admin/Service') ?>" method="get">
+                        <form action="<?= base_url('Admin/Service') ?>" method="get" onsubmit="return false;">
                             <div class="row">
                                 <div class="col-md-3">
                                     <label>Start Date</label>
                                     <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>"
-                                           id="st_date" required>
+                                           id="st_date" onchange="serviceFilter()">
                                 </div>
                                 <div class="col-md-3">
                                     <label>End Date</label>
                                     <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>"
-                                           id="en_date" required>
+                                           id="en_date" onchange="serviceFilter()">
                                 </div>
 
                                 <div class="col-md-2" style="margin-top: 25px;">
-                                    <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-search"></i>
+                                    <button type="button" onclick="serviceFilter()" class="btn btn-primary btn-block"><i class="fa fa-search"></i>
                                         Filter
                                     </button>
                                 </div>
                                 <div class="col-md-2" style="margin-top: 25px;">
-                                    <a href="<?= base_url('Admin/Service') ?>" class="btn btn-default btn-block"><i
-                                                class="fa fa-refresh"></i> Reset</a>
+                                    <button type="button" onclick="resetServiceFilter()" class="btn btn-default btn-block"><i
+                                                class="fa fa-refresh"></i> Reset</button>
                                 </div>
                             </div>
                         </form>
@@ -86,7 +86,7 @@
             </div>
             <?php } ?>
             <div class="col-xs-12">
-
+                <div id="serviceResult">
                 <div class="box">
                     <!-- /.box-header -->
                     <div class="box-body">
@@ -105,12 +105,18 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <?php $start=1; foreach ($services as $val) {  ?>
+                            <?php 
+                            $start = 1; 
+                            $totalAmount = 0;
+                            foreach ($services as $val) {  
+                                $invAmount = get_data_by_id('final_amount','service_invoice','service_invoice_id',$val->service_invoice_id);
+                                $totalAmount += (float)$invAmount;
+                            ?>
                                 <tr>
                                     <td width="80px"><?php echo $start++ ?></td>
                                     <td><?php echo $val->title ?></td>
                                     <td><?php echo showServiceName($val->service_type) ?></td>
-                                    <td><?php echo showWithCurrencySymbol(get_data_by_id('final_amount','service_invoice','service_invoice_id',$val->service_invoice_id)) ?></td>
+                                    <td><?php echo showWithCurrencySymbol($invAmount) ?></td>
                                     <td width="180px">
                                         <?php if (isset($read) && $read == 1){ ?>
                                         <a href="javascript:void(0)" onclick="showData('<?php echo site_url('/Admin/Service_invoice_ajax/view/'.$val->service_invoice_id); ?>','<?php echo '/Admin/Service_invoice/view/'.$val->service_invoice_id; ?>')" class="btn btn-warning btn-xs">View</a>
@@ -119,62 +125,53 @@
                                 </tr>
                             <?php } ?>
                             </tbody>
+                            <tfoot>
+                            <tr>
+                                <th>No</th>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Action</th>
+                            </tr>
+                            <tr>
+                                <th></th>
+                                <th></th>
+                                <th>Total</th>
+                                <th>= <?php echo showWithCurrencySymbol($totalAmount); ?></th>
+                                <th></th>
+                            </tr>
+                            </tfoot>
                         </table>
-
-                        <div class="row no-print" >
-                            <div class="col-xs-12">
-                                <?php if (isset($print) && $print == 1){ ?>
-                                <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
-                                <?php } ?>
-                                <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
-                                <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','service')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
-                                <?php } ?>
-                                <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
-                                <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','service')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
-                                <?php } ?>
-                            </div>
-                        </div>
-
-                        <div class="col-md-12" id="ledgPrint" style="display: none; text-transform: capitalize; " >
-                            <div class="col-xs-12" style="margin-bottom: 20px;   ">
-                                <div class="col-xs-6">
-                                    <?php if(logo_image() == NULL){ ?>
-                                        <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg" alt="User Image" >
-                                    <?php }else{ ?>
-                                        <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
-                                    <?php } ?>
-                                </div>
-                                <div class="col-xs-6">
-                                    <?php print address(); ?>
-                                </div>
-                            </div>
-                            <div class="col-md-12" >
-                                <table class="table table-bordered table-striped text-capitalize">
-                                    <thead>
-                                    <tr>
-                                        <th>No</th>
-                                        <th>Title</th>
-                                        <th>Type</th>
-                                        <th>Amount</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <?php $start=1; foreach ($services as $val) {  ?>
-                                        <tr>
-                                            <td width="80px"><?php echo $start++ ?></td>
-                                            <td><?php echo $val->title ?></td>
-                                            <td><?php echo showServiceName($val->service_type) ?></td>
-                                            <td><?php echo showWithCurrencySymbol(get_data_by_id('final_amount','service_invoice','service_invoice_id',$val->service_invoice_id)) ?></td>
-                                        </tr>
-                                    <?php } ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
                     </div>
                     <!-- /.box-body -->
                 </div>
                 <!-- /.box -->
+                </div>
+
+                <div class="row no-print" >
+                    <div class="col-xs-12">
+                        <?php if (isset($print) && $print == 1){ ?>
+                        <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
+                        <?php } ?>
+                        <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
+                        <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','service')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>
+                        <?php } ?>
+                        <?php if (isset($download_CSV) && $download_CSV == 1){ ?>
+                        <button type="button" class="btn btn-success pull-right" style="margin-right: 10px;" onclick="downloadCSV('ledgPrint','service')"><i class="fa fa-file-excel-o "></i> Download CSV</button>
+                        <?php } ?>
+                    </div>
+                </div>
+
+                <div style="display: none;">
+                    <div id="ledgPrint">
+                        <?php echo view('Admin/Service/print_table', [
+                            'services' => $services,
+                            'st_date' => $st_date,
+                            'en_date' => $en_date,
+                            'id' => isset($id) ? $id : (isset($shopId) ? $shopId : null)
+                        ]); ?>
+                    </div>
+                </div>
             </div>
 
         </div>

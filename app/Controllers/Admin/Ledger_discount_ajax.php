@@ -66,9 +66,12 @@ class Ledger_discount_ajax extends BaseController
             }
             $table->orderBy('discount_ledg_id', 'ASC');
             $data['ledger_discount_data'] = $table->get()->getResult();
+            $data['ledger_discount'] = $data['ledger_discount_data'];
 
             $data['st_date'] = isset($st_date)?$st_date:'';
             $data['en_date'] = isset($en_date)?$en_date:'';
+            $data['id'] = $shopId;
+            $data['shopId'] = $shopId;
             
             $data['menu'] = view('Admin/menu_ledger');
             // All Permissions

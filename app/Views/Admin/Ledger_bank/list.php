@@ -51,10 +51,10 @@
                     </div>
                     <!-- /.box-header -->
                     <div class="box-body">
-                        <form action="<?= base_url('Admin/Ledger_bank')?>" method="get">
+                        <form action="<?= base_url('Admin/Ledger_bank')?>" method="get" onsubmit="return false;">
                             <div class="col-md-2" >
                                 <label for="int">Bank name</label>
-                                <select class="form-control select2 select2-hidden-accessible" onchange="formSubmit(this)" name="bank_id" id="bankId" style=" width: 100%;" tabindex="-1" aria-hidden="true" required>
+                                <select class="form-control select2 select2-hidden-accessible" onchange="bankLedgerFilter()" name="bank_id" id="bankId" style=" width: 100%;" tabindex="-1" aria-hidden="true" required>
                                     <option selected="selected" value="">Please Select</option>
                                     <?php echo getTwoValueInOption($bank_id, 'bank_id', 'name', 'account_no', 'bank'); ?>
                                 </select>
@@ -62,22 +62,22 @@
                             <div class="col-md-3">
                                 <label>Start Date</label>
                                 <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>"
-                                       id="st_date" >
+                                       id="st_date" onchange="bankLedgerFilter()">
                             </div>
                             <div class="col-md-3">
                                 <label>End Date</label>
                                 <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>"
-                                       id="en_date" >
+                                       id="en_date" onchange="bankLedgerFilter()">
                             </div>
 
                             <div class="col-md-2" style="margin-top: 25px;">
-                                <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-search"></i>
+                                <button type="button" onclick="bankLedgerFilter()" class="btn btn-primary btn-block"><i class="fa fa-search"></i>
                                     Filter
                                 </button>
                             </div>
                             <div class="col-md-2" style="margin-top: 25px;">
-                                <a href="<?= base_url('Admin/Ledger_bank') ?>" class="btn btn-default btn-block"><i
-                                            class="fa fa-refresh"></i> Reset</a>
+                                <button type="button" onclick="resetBankLedgerFilter()" class="btn btn-default btn-block"><i
+                                            class="fa fa-refresh"></i> Reset</button>
                             </div>
                         </form>
                     </div>
@@ -90,6 +90,7 @@
                     $balance = get_data_by_id('balance', 'bank', 'bank_id', $bank_id);
                 ?>
 
+                <div id="bankLedgerResult">
                 <div class="box">
                     <?php if (!empty($bank_id)){ ?>
                     <div class="box-header">
@@ -145,54 +146,11 @@
                         </table>
                     </div>
                 </div>
+                </div>
 
                 <div style="display: none;">
                     <div id="ledgPrint">
-                        <div class="col-xs-12" style="margin-bottom: 20px;   ">
-                            <div class="col-xs-6">
-                                <?php if(logo_image() == NULL){ ?>
-                                    <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg" alt="User Image" >
-                                <?php }else{ ?>
-                                    <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
-                                <?php } ?>
-                            </div>
-                            <div class="col-xs-6">
-                                <?php print address(); ?>
-                            </div>
-                        </div>
-                        <div class="col-md-12" >
-                            <table class="table table-bordered table-striped" >
-                                <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Particulars</th>
-                                    <th>Debit</th>
-                                    <th>Credit</th>
-                                    <th>Balance</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <?php
-                                $totalRows = count($result) - 1;
-                                for ($i = 0; $i <= $totalRows; $i++) {
-                                    $particulars = ($result[$i]->particulars == NULL) ? "Pay due" : $result[$i]->particulars;
-                                    $amountCr = ($result[$i]->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($result[$i]->amount);
-                                    $amountDr = ($result[$i]->trangaction_type != "Dr.") ? "---" : showWithCurrencySymbol($result[$i]->amount);
-                                    ?>
-                                    <tr>
-                                        <td><?= $result[$i]->createdDtm  ?></td>
-                                        <td><?= $particulars  ?></td>
-                                        <td><?= $amountDr ?></td>
-                                        <td><?= $amountCr ?></td>
-                                        <td><?= showWithCurrencySymbol($result[$i]->r_balance) ?></td>
-                                    </tr>
-
-                                <?php }?>
-
-                                </tbody>
-
-                            </table>
-                        </div>
+                        <?php echo view('Admin/Ledger_bank/print_table', ['result' => $result, 'bank_id' => $bank_id, 'st_date' => $st_date, 'en_date' => $en_date]); ?>
                     </div>
                 </div>
                 <div class="row no-print">

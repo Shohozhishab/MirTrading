@@ -37,21 +37,29 @@ class Purchase_ajax extends BaseController
         } else {
             $shopId = $this->session->shopId;
 
+            $supplier_id = $this->request->getGet('supplier_id');
             $st_date = $this->request->getGet('st_date');
             $en_date = $this->request->getGet('en_date');
 
             $table = DB()->table('purchase');
             $table->where('sch_id', $shopId);
-            // Apply date filters only if they are present in the request
-            if (!empty($st_date) && !empty($en_date)) {
-                // Assuming your database column name is 'date'
+            $table->where('deleted IS NULL');
+            if (!empty($supplier_id)) {
+                $table->where('supplier_id', $supplier_id);
+            }
+            if (!empty($st_date)) {
                 $table->where('date >=', $st_date . ' 00:00:00');
+            }
+            if (!empty($en_date)) {
                 $table->where('date <=', $en_date . ' 23:59:59');
             }
-            $data['purchase_data'] = $table->get()->getResult();
+            $data['purchase_data'] = $table->orderBy('purchase_id', 'ASC')->get()->getResult();
 
-            $data['st_date'] = isset($st_date)?$st_date:'';
-            $data['en_date'] = isset($en_date)?$en_date:'';
+            $data['supplier_id'] = isset($supplier_id) ? $supplier_id : '';
+            $data['st_date'] = isset($st_date) ? $st_date : '';
+            $data['en_date'] = isset($en_date) ? $en_date : '';
+            $data['id'] = $shopId;
+            $data['shopId'] = $shopId;
 
 
             //purchase table null value delete (start)

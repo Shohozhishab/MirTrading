@@ -50,10 +50,10 @@
                         </div>
                         <!-- /.box-header -->
                         <div class="box-body">
-                            <form action="<?= base_url('Admin/Ledger_suppliers')?>" method="get">
+                            <form action="<?= base_url('Admin/Ledger_suppliers')?>" method="get" onsubmit="return false;">
                                 <div class="col-md-2" >
-                                    <label for="int">Supplier name</label>
-                                    <select class="form-control select2 select2-hidden-accessible" name="supplier_id" onchange="formSubmit(this)" id="supplierId" style=" width: 100%;" tabindex="-1" aria-hidden="true" required>
+                                    <label>Supplier name</label>
+                                    <select class="form-control select2 select2-hidden-accessible" name="supplier_id" onchange="supplierLedgerFilter()" id="supplierId" style=" width: 100%;" tabindex="-1" aria-hidden="true" required>
                                         <option selected="selected"  value="">Please Select</option>
                                         <?php echo getAllListInOption($supplier_id,'supplier_id','name','suppliers'); ?>
                                     </select>
@@ -62,22 +62,22 @@
                                 <div class="col-md-3">
                                     <label>Start Date</label>
                                     <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>"
-                                           id="st_date" >
+                                           id="st_date" onchange="supplierLedgerFilter()">
                                 </div>
                                 <div class="col-md-3">
                                     <label>End Date</label>
                                     <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>"
-                                           id="en_date" >
+                                           id="en_date" onchange="supplierLedgerFilter()">
                                 </div>
 
                                 <div class="col-md-2" style="margin-top: 25px;">
-                                    <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-search"></i>
+                                    <button type="button" onclick="supplierLedgerFilter()" class="btn btn-primary btn-block"><i class="fa fa-search"></i>
                                         Filter
                                     </button>
                                 </div>
                                 <div class="col-md-2" style="margin-top: 25px;">
-                                    <a href="<?= base_url('Admin/Ledger_suppliers') ?>" class="btn btn-default btn-block"><i
-                                                class="fa fa-refresh"></i> Reset</a>
+                                    <button type="button" onclick="resetSupplierLedgerFilter()" class="btn btn-default btn-block"><i
+                                                class="fa fa-refresh"></i> Reset</button>
                                 </div>
                             </form>
 
@@ -88,12 +88,15 @@
                 <?php
                 $name = get_data_by_id('name', 'suppliers', 'supplier_id', $supplier_id);
                 $balance = get_data_by_id('balance', 'suppliers', 'supplier_id', $supplier_id);
+                $start_date = !empty($st_date) ? $st_date : 0;
+                $end_date = !empty($en_date) ? $en_date : 0;
                 ?>
+                <div id="supplierLedgerResult">
                 <div class="box">
                     <?php if (!empty($supplier_id)){ ?>
                         <div class="box-header">
                             <h3 class="box-title">Supplier: <?= $name ?></h3>
-                            <span class="pull-right"><table class="table table-bordered table-striped" id="TFtable"><tr><td>Total Received:</td><td><?= showWithCurrencySymbol(get_total('ledger_suppliers', 'amount', 'Cr.', 'supplier_id', $supplier_id)) ?></td></tr><tr><td>Total Paid:</td><td><?= showWithCurrencySymbol(get_total('ledger_suppliers', 'amount', 'Dr.', 'supplier_id', $supplier_id)) ?></td></tr><tr><td>Due Balance:</td><td><?= showWithCurrencySymbol($balance) ?></td></tr></table></span>
+                            <span class="pull-right"><table class="table table-bordered table-striped" id="TFtable"><tr><td>Total Received:</td><td><?= showWithCurrencySymbol(get_total('ledger_suppliers', 'amount', 'Cr.', 'supplier_id', $supplier_id, $start_date, $end_date)) ?></td></tr><tr><td>Total Paid:</td><td><?= showWithCurrencySymbol(get_total('ledger_suppliers', 'amount', 'Dr.', 'supplier_id', $supplier_id, $start_date, $end_date)) ?></td></tr><tr><td>Due Balance:</td><td><?= showWithCurrencySymbol($balance) ?></td></tr></table></span>
                         </div>
                     <?php } ?>
 
@@ -137,62 +140,41 @@
                             <?php }?>
 
                             </tbody>
-
-                        </table>
-                    </div>
-                </div>
-
-                <div style="display: none;" >
-                    <div id="ledgPrint">
-                        <div class="col-xs-12" style="margin-bottom: 20px;   ">
-                            <div class="col-xs-6">
-                                <?php if(logo_image() == NULL){ ?>
-                                    <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg" alt="User Image" >
-                                <?php }else{ ?>
-                                    <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
-                                <?php } ?>
-                            </div>
-                            <div class="col-xs-6">
-                                <?php print address(); ?>
-                            </div>
-                        </div>
-                        <div class="col-md-12" >
-                            <table class="table table-bordered table-striped" >
-                                <thead>
+                            <tfoot>
                                 <tr>
+                                    <th>Id</th>
                                     <th>Date</th>
                                     <th>Particulars</th>
+                                    <th>Memo</th>
                                     <th>Debit</th>
                                     <th>Credit</th>
                                     <th>Balance</th>
                                 </tr>
-                                </thead>
-                                <tbody>
-                                <?php
-                                $totalRows = count($result) - 1;
-                                for ($i = 0; $i <= $totalRows; $i++) {
-                                    $particulars = ($result[$i]->particulars == NULL) ? "Pay due" : $result[$i]->particulars;
-                                    $amountCr = ($result[$i]->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($result[$i]->amount);
-                                    $amountDr = ($result[$i]->trangaction_type != "Dr.") ? "---" : showWithCurrencySymbol($result[$i]->amount);
-                                    ?>
-                                    <tr>
-                                        <td><?= $result[$i]->createdDtm ?></td>
-                                        <td><?= $particulars ?></td>
-                                        <td><?= $amountDr ?></td>
-                                        <td><?= $amountCr ?></td>
-                                        <td><?= showWithCurrencySymbol($result[$i]->r_balance) ?></td>
-                                    </tr>
-                                <?php }?>
-                                </tbody>
+                                <tr>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th>Total</th>
+                                    <th>= <?= showWithCurrencySymbol(get_total('ledger_suppliers', 'amount', 'Dr.', 'supplier_id', $supplier_id, $start_date, $end_date)) ?></th>
+                                    <th>= <?= showWithCurrencySymbol(get_total('ledger_suppliers', 'amount', 'Cr.', 'supplier_id', $supplier_id, $start_date, $end_date)) ?></th>
+                                    <th><?= showWithCurrencySymbol($balance) ?></th>
+                                </tr>
+                            </tfoot>
 
-                            </table>
-                        </div>
+                        </table>
+                    </div>
+                </div>
+                </div>
+
+                <div style="display: none;" >
+                    <div id="ledgPrint">
+                        <?php echo view('Admin/Ledger_suppliers/print_table', ['result' => $result, 'supplier_id' => $supplier_id, 'st_date' => $st_date, 'en_date' => $en_date]); ?>
                     </div>
                 </div>
                 <div class="row no-print" >
                     <div class="col-xs-12">
                         <?php if (isset($print) && $print == 1){ ?>
-                            <button onclick="printDiv('ledgPrint')"  class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
+                            <button onclick="printDiv('ledgPrint')" class="print_line btn btn-primary pull-right" ><i class="fa fa-print "></i> Print Now</button>
                         <?php } ?>
                         <?php if (isset($download_PDF) && $download_PDF == 1){ ?>
                             <button type="button" class="btn btn-info pull-right" style="margin-right: 10px;" onclick="downloadPDF('ledgPrint','suppliers')"><i class="fa fa-file-pdf-o "></i> Download PDF </button>

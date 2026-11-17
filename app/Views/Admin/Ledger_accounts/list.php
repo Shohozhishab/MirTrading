@@ -50,10 +50,10 @@
                     </div>
                     <!-- /.box-header -->
                     <div class="box-body">
-                        <form action="<?= base_url('Admin/Ledger_accounts')?>" method="get">
+                        <form action="<?= base_url('Admin/Ledger_accounts')?>" method="get" onsubmit="return false;">
                             <div class="col-md-2">
                                 <label for="int">Accounts</label>
-                                <select class="form-control select2 select2-hidden-accessible" name="account_id" onchange="formSubmit(this)" id="accountId"
+                                <select class="form-control select2 select2-hidden-accessible" name="account_id" onchange="accountLedgerFilter()" id="accountId"
                                         style=" width: 100%;" tabindex="-1" aria-hidden="true" required>
                                     <option selected="selected" value="">Please Select</option>
                                     <?php echo getAllListInOption($account_id, 'account_id', 'name', 'accounts'); ?>
@@ -62,28 +62,42 @@
                             <div class="col-md-3">
                                 <label>Start Date</label>
                                 <input type="date" class="form-control" name="st_date" value="<?= $st_date; ?>"
-                                       id="st_date" >
+                                       id="st_date" onchange="accountLedgerFilter()">
                             </div>
                             <div class="col-md-3">
                                 <label>End Date</label>
                                 <input type="date" class="form-control" name="en_date" value="<?= $en_date; ?>"
-                                       id="en_date" >
+                                       id="en_date" onchange="accountLedgerFilter()">
                             </div>
                             <div class="col-md-2" style="margin-top: 25px;">
-                                <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-search"></i>
+                                <button type="button" onclick="accountLedgerFilter()" class="btn btn-primary btn-block"><i class="fa fa-search"></i>
                                     Filter
                                 </button>
                             </div>
                             <div class="col-md-2" style="margin-top: 25px;">
-                                <a href="<?= base_url('Admin/Ledger_accounts') ?>" class="btn btn-default btn-block"><i
-                                        class="fa fa-refresh"></i> Reset</a>
+                                <button type="button" onclick="resetAccountLedgerFilter()" class="btn btn-default btn-block"><i
+                                            class="fa fa-refresh"></i> Reset</button>
                             </div>
                         </form>
                     </div>
                     <!-- /.box-body -->
                 </div>
                 <?php } ?>
+                <?php
+                $start_date = !empty($st_date) ? $st_date : 0;
+                $end_date = !empty($en_date) ? $en_date : 0;
+                $name = !empty($account_id) ? get_data_by_id('name', 'accounts', 'account_id', $account_id) : '';
+                $phone = !empty($account_id) ? get_data_by_id('phone', 'accounts', 'account_id', $account_id) : '';
+                $balance = !empty($account_id) ? get_data_by_id('balance', 'accounts', 'account_id', $account_id) : 0;
+                ?>
+
+                <div id="accountLedgerResult">
+                <?php if (!empty($account_id)){ ?>
                 <div class="box">
+                    <div class="box-header">
+                        <h3 class="box-title">Account: <?= $name ?><?= !empty($phone) ? ' (' . $phone . ')' : '' ?></h3>
+                        <span class="pull-right"><table class="table table-bordered table-striped" id="TFtable"><tr><td>Total Debit:</td><td> <?= showWithCurrencySymbol(get_total('ledger_accounts', 'amount', 'Dr.', 'account_id', $account_id, $start_date, $end_date)) ?></td></tr><tr><td>Total Credit:</td><td><?= showWithCurrencySymbol(get_total('ledger_accounts', 'amount', 'Cr.', 'account_id', $account_id, $start_date, $end_date)) ?></td></tr><tr><td>Balance:</td><td><?= showWithCurrencySymbol($balance) ?></td></tr></table></span>
+                    </div>
                     <div class="box-body">
                         <table class="table table-bordered table-striped" id="example1">
                             <thead>
@@ -107,7 +121,7 @@
                                 $trnUrl = (!empty($result[$i]->trans_id)) ? '<a href="' . site_url('Admin/Transaction/read/' . $result[$i]->trans_id) . '">TRNS_' . $result[$i]->trans_id . '</a>' : '--';
                                 ?>
                                 <tr>
-                                    <td><?= $result[$i]->account_id ?></td>
+                                    <td><?= $result[$i]->ledg_account_id ?></td>
                                     <td><?= $result[$i]->createdDtm ?></td>
                                     <td><?= $particulars ?></td>
                                     <td><?= $trnUrl ?></td>
@@ -119,61 +133,37 @@
                             <?php }?>
 
                             </tbody>
-
+                            <tfoot>
+                            <tr>
+                                <th>Id</th>
+                                <th>Date</th>
+                                <th>Particulars</th>
+                                <th>Transaction Id</th>
+                                <th>Debit</th>
+                                <th>Credit</th>
+                                <th>Balance</th>
+                            </tr>
+                            <tr>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th>Total</th>
+                                <th>= <?= showWithCurrencySymbol(get_total('ledger_accounts', 'amount', 'Dr.', 'account_id', $account_id, $start_date, $end_date)); ?></th>
+                                <th>= <?= showWithCurrencySymbol(get_total('ledger_accounts', 'amount', 'Cr.', 'account_id', $account_id, $start_date, $end_date)); ?></th>
+                                <th>= <?= showWithCurrencySymbol($balance); ?></th>
+                            </tr>
+                            </tfoot>
                         </table>
                     </div>
+                </div>
+                <?php } ?>
                 </div>
 
                 <div style="display: none;" >
                     <div id="ledgPrint">
-                        <div class="col-xs-12" style="margin-bottom: 20px;   ">
-                            <div class="col-xs-6">
-                                <?php if(logo_image() == NULL){ ?>
-                                    <img src="<?php echo base_url() ?>/uploads/schools/no_image.jpg" alt="User Image" >
-                                <?php }else{ ?>
-                                    <img src="<?php echo base_url(); ?>/uploads/schools/<?php echo logo_image(); ?>" class="" alt="User Image">
-                                <?php } ?>
-                            </div>
-                            <div class="col-xs-6">
-                                <?php print address(); ?>
-                            </div>
-                        </div>
-                        <div class="col-md-12" >
-                            <table class="table table-bordered table-striped">
-                                <thead>
-                                <tr>
-                                    <th>Id</th>
-                                    <th>Date</th>
-                                    <th>Particulars</th>
-                                    <th>Debit</th>
-                                    <th>Credit</th>
-                                    <th>Balance</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <?php
-                                $totalRows = count($result) - 1;
-                                for ($i = 0; $i <= $totalRows; $i++) {
-                                    $particulars = ($result[$i]->particulars == NULL) ? "Pay due" : $result[$i]->particulars;
-                                    $amountCr = ($result[$i]->trangaction_type != "Cr.") ? "---" : showWithCurrencySymbol($result[$i]->amount);
-                                    $amountDr = ($result[$i]->trangaction_type != "Dr.") ? "---" : showWithCurrencySymbol($result[$i]->amount);
-
-                                    ?>
-                                    <tr>
-                                        <td><?= $result[$i]->account_id ?></td>
-                                        <td><?= $result[$i]->createdDtm ?></td>
-                                        <td><?= $particulars ?></td>
-                                        <td><?= $amountDr ?></td>
-                                        <td><?= $amountCr ?></td>
-                                        <td><?= showWithCurrencySymbol($result[$i]->r_balance) ?></td>
-                                    </tr>
-
-                                <?php } ?>
-
-                                </tbody>
-
-                            </table>
-                        </div>
+                        <?php if (!empty($account_id)) {
+                            echo view('Admin/Ledger_accounts/print_table', ['result' => $result, 'account_id' => $account_id, 'st_date' => $st_date, 'en_date' => $en_date]);
+                        } ?>
                     </div>
                 </div>
                 <div class="row no-print" >
